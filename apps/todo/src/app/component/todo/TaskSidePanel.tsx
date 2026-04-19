@@ -1,0 +1,454 @@
+import { useRef, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import {
+  ClipboardList,
+  MapPin,
+  FileText,
+  Calendar,
+  Trash2,
+  Pencil,
+  ImagePlus,
+  Upload,
+  Flag,
+  CircleDot,
+  Tag,
+} from 'lucide-react';
+import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
+import {
+  TodoItem,
+  TodoList,
+  TodoListPriority,
+  TodoListCategory,
+  UpdateTodoItem,
+  UpdateTodoList,
+  TodoStatus,
+} from '@shared/types';
+import { useAuthStore } from '../../store/authStore';
+import { uploadImage } from '../../lib/imageUtils';
+import DatePickerInput from '../elements/DatePickerInput';
+
+// ─── Edit Panel ───────────────────────────────────────────────────────────────
+
+type EditFormValues = {
+  name: string;
+  status: TodoStatus;
+  dueDate: string;
+  location: string;
+  notes: string;
+  listName: string;
+  priority: TodoListPriority | '';
+  category: TodoListCategory | '';
+};
+
+export function TodoEditPanel({
+  todo,
+  list,
+  onSave,
+  onCancel,
+}: {
+  todo: TodoItem;
+  list: TodoList;
+  onSave: (todoUpdates: UpdateTodoItem, listUpdates: UpdateTodoList) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const userId = useAuthStore((s) => s.user?.firebaseUid);
+  const [editImage, setEditImage] = useState<string | null>(todo.image ?? null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { register, handleSubmit, control } = useForm<EditFormValues>({
+    defaultValues: {
+      name: todo.name,
+      status: todo.status,
+      dueDate: todo.dueDate ?? '',
+      location: todo.location ?? '',
+      notes: todo.notes ?? '',
+      listName: list.name,
+      priority: list.priority ?? '',
+      category: list.category ?? '',
+    },
+  });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    setImageError(null);
+    setImageUploading(true);
+    try {
+      const url = await uploadImage(file, userId);
+      setEditImage(url);
+    } catch (err) {
+      setImageError((err as Error).message);
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setEditImage(null);
+    setImageError(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const onFormSubmit = (data: EditFormValues) => {
+    onSave(
+      {
+        name: data.name.trim() || todo.name,
+        status: data.status,
+        dueDate: data.dueDate || null,
+        location: data.location.trim() || null,
+        notes: data.notes.trim() || null,
+        image: editImage,
+      },
+      {
+        name: data.listName.trim() || list.name,
+        priority: data.priority || undefined,
+        category: data.category || undefined,
+      }
+    );
+  };
+
+  const labelClass = 'text-xs text-secondary-dark-bg font-medium w-20 shrink-0';
+  const inputClass =
+    'flex-1 px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm';
+  const actionBtnClass =
+    'w-6 h-6 flex items-center justify-center shrink-0 rounded-lg text-secondary-dark-bg transition-colors outline-none cursor-pointer';
+
+  return (
+    <form
+      onSubmit={handleSubmit(onFormSubmit)}
+      className="flex flex-col h-full p-6"
+    >
+      <h2 className="text-xl font-bold text-dark-bg mb-5">
+        {t('tasks.editTask')}
+      </h2>
+
+      <div className="flex-1 space-y-3 overflow-y-auto">
+        <div className="flex items-center gap-2">
+          <label className={labelClass}>{t('tasks.name')}</label>
+          <input
+            {...register('name')}
+            type="text"
+            className={inputClass}
+            data-testid={'edit-todo-input-' + todo.id}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className={labelClass}>{t('tasks.status')}</label>
+          <select
+            {...register('status')}
+            className="px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm min-w-[160px]"
+            data-testid={'edit-todo-status-' + todo.id}
+          >
+            <option value="pending">{t('tasks.status_pending')}</option>
+            <option value="successful">{t('tasks.status_successful')}</option>
+            <option value="failed">{t('tasks.status_failed')}</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className={labelClass}>{t('tasks.dueDate')}</label>
+          <Controller
+            name="dueDate"
+            control={control}
+            render={({ field }) => (
+              <DatePickerInput
+                id={'edit-todo-due-date-' + todo.id}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className={labelClass}>{t('tasks.location')}</label>
+          <input
+            type="text"
+            {...register('location')}
+            placeholder={t('tasks.locationPlaceholder')}
+            className={inputClass}
+            data-testid={'edit-todo-location-' + todo.id}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className={labelClass}>{t('tasks.notes')}</label>
+          <textarea
+            {...register('notes')}
+            placeholder={t('tasks.notesPlaceholder')}
+            rows={3}
+            className={`${inputClass} resize-none`}
+            data-testid={'edit-todo-notes-' + todo.id}
+          />
+        </div>
+
+        <div className="border-t border-secondary-bg pt-3 mt-1 space-y-3">
+          <div className="flex items-center gap-2">
+            <label className={labelClass}>{t('tasks.listName')}</label>
+            <input
+              {...register('listName')}
+              type="text"
+              className={inputClass}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className={labelClass}>{t('tasks.priority')}</label>
+            <select
+              {...register('priority')}
+              className="px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm min-w-[160px]"
+            >
+              <option value="">{t('tasks.priority_none')}</option>
+              <option value="low">{t('tasks.priority_low')}</option>
+              <option value="medium">{t('tasks.priority_medium')}</option>
+              <option value="high">{t('tasks.priority_high')}</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className={labelClass}>{t('tasks.category')}</label>
+            <select
+              {...register('category')}
+              className="px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm min-w-[160px]"
+            >
+              <option value="">{t('tasks.category_none')}</option>
+              <option value="home">{t('tasks.category_home')}</option>
+              <option value="education">{t('tasks.category_education')}</option>
+              <option value="work">{t('tasks.category_work')}</option>
+              <option value="family">{t('tasks.category_family')}</option>
+              <option value="health">{t('tasks.category_health')}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <label className={`${labelClass} pt-2`}>{t('tasks.image')}</label>
+          <div className="flex flex-col gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              data-testid={'edit-todo-image-' + todo.id}
+            />
+            {!editImage && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={imageUploading}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed border-secondary-bg hover:border-accent hover:bg-accent/10 text-secondary-dark-bg hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {imageUploading ? (
+                  <>
+                    <Upload size={16} className="animate-bounce" />
+                    <span className="text-sm">{t('tasks.uploading')}</span>
+                  </>
+                ) : (
+                  <>
+                    <ImagePlus size={16} />
+                    <span className="text-sm">{t('tasks.chooseImage')}</span>
+                  </>
+                )}
+              </button>
+            )}
+            {imageError && <p className="text-red-500 text-xs">{imageError}</p>}
+            {editImage && (
+              <div className="flex items-center gap-2">
+                <img
+                  src={editImage}
+                  alt="Preview"
+                  className="h-16 w-16 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className={`${actionBtnClass} hover:text-red-500`}
+                  aria-label="Remove image"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2 justify-end pt-5 border-t border-secondary-bg mt-5">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm text-secondary-dark-bg hover:text-dark-bg transition-colors"
+          aria-label="Cancel todo edit"
+          data-testid={'cancel-todo-edit-button-' + todo.id}
+        >
+          {t('tasks.cancel')}
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 text-sm font-medium bg-accent text-dark-bg rounded-lg hover:opacity-90 transition-opacity"
+          aria-label="Save todo edit"
+          data-testid={'save-todo-edit-button-' + todo.id}
+        >
+          {t('tasks.save')}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ─── Detail Panel ─────────────────────────────────────────────────────────────
+
+const STATUS_TEXT_COLORS: Record<string, string> = {
+  pending: 'text-triadic-orange',
+  successful: 'text-green-500',
+  failed: 'text-triadic-purple',
+};
+
+const PRIORITY_TEXT_COLORS: Record<string, string> = {
+  high: 'text-triadic-orange',
+  medium: 'text-triadic-blue',
+  low: 'text-triadic-purple',
+};
+
+export function TaskDetailPanel({
+  todo,
+  list,
+  onDelete,
+  onStartEdit,
+}: {
+  todo: TodoItem;
+  list: TodoList;
+  onDelete: (id: string) => void;
+  onStartEdit: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col h-full p-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex gap-4 mb-6">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-2xl font-bold text-dark-bg leading-snug">
+              {todo.name}
+            </h2>
+
+            <div className="space-y-2 text-sm text-secondary-dark-bg mt-3">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                <span>
+                  {t('tasks.list')}{' '}
+                  <span className="font-medium text-dark-bg">{list.name}</span>
+                </span>
+              </div>
+              {list.createdAt && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <span>
+                    {t('tasks.created')}{' '}
+                    {dayjs(list.createdAt).format('DD/MM/YYYY')}
+                  </span>
+                </div>
+              )}
+              {todo.dueDate && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <span>
+                    {t('tasks.due')} {dayjs(todo.dueDate).format('DD/MM/YYYY')}
+                  </span>
+                </div>
+              )}
+              {todo.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <span>{todo.location}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <CircleDot className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                <span>
+                  {t('tasks.status')}{' '}
+                  <span
+                    className={`font-medium ${STATUS_TEXT_COLORS[todo.status]}`}
+                  >
+                    {t(`tasks.status_${todo.status}`)}
+                  </span>
+                </span>
+              </div>
+              {list.priority && (
+                <div className="flex items-center gap-2">
+                  <Flag className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <span>
+                    {t('tasks.priority')}{' '}
+                    <span
+                      className={`font-medium ${
+                        PRIORITY_TEXT_COLORS[list.priority]
+                      }`}
+                    >
+                      {t(`tasks.priority_${list.priority}`)}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {list.category && (
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <span>
+                    {t('tasks.category')}{' '}
+                    <span className="font-medium text-triadic-blue">
+                      {t(`tasks.category_${list.category}`)}
+                    </span>
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {todo.image && (
+            <img
+              src={todo.image}
+              alt="Attached"
+              className="w-32 h-32 object-cover rounded-lg border border-secondary-bg shrink-0"
+            />
+          )}
+        </div>
+
+        {todo.notes && (
+          <div className="border-t border-secondary-bg pt-4 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-secondary-dark-bg" />
+              <span className="text-sm font-semibold text-dark-bg">
+                {t('tasks.notes')}
+              </span>
+            </div>
+            <p className="text-sm text-secondary-dark-bg leading-relaxed whitespace-pre-wrap">
+              {todo.notes}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-end gap-2 pt-4">
+        <button
+          onClick={() => onDelete(todo.id)}
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
+          aria-label="Delete task"
+        >
+          <Trash2 size={18} />
+        </button>
+        <button
+          onClick={onStartEdit}
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
+          aria-label="Edit task"
+        >
+          <Pencil size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
