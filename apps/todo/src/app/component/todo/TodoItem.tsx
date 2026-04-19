@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Pencil } from 'lucide-react';
 import dayjs from 'dayjs';
 import {
   TodoItem as TodoItemType,
@@ -11,6 +12,7 @@ interface TodoItemProps {
   listPriority?: TodoListPriority;
   isSelected?: boolean;
   onSelect?: () => void;
+  onEdit?: () => void;
 }
 
 const STATUS_DOT: Record<TodoStatus, string> = {
@@ -37,7 +39,13 @@ const STATUS_BORDER: Record<TodoStatus, string> = {
   failed: 'border-triadic-purple',
 };
 
-function TodoItem({ todo, listPriority, isSelected, onSelect }: TodoItemProps) {
+function TodoItem({
+  todo,
+  listPriority,
+  isSelected,
+  onSelect,
+  onEdit,
+}: TodoItemProps) {
   useEffect(() => {
     // auto-fail overdue items is handled server-side / via edit panel
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +65,7 @@ function TodoItem({ todo, listPriority, isSelected, onSelect }: TodoItemProps) {
       }}
     >
       <div className="flex flex-col p-4 cursor-pointer gap-2">
-        {/* Row 1: status dot + name */}
+        {/* Row 1: status dot + name + edit btn */}
         <div className="flex items-center gap-3">
           <div
             className={`w-5 h-5 rounded-full shrink-0 ${
@@ -73,6 +81,18 @@ function TodoItem({ todo, listPriority, isSelected, onSelect }: TodoItemProps) {
           >
             {todo.name}
           </p>
+          {onEdit && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="shrink-0 p-1 text-secondary-dark-bg hover:text-triadic-orange transition-colors rounded"
+              aria-label="Edit task"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
         </div>
 
         {/* Row 2: image */}

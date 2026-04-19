@@ -22,6 +22,7 @@ interface TodoListProps {
   onDeleteList: (id: string) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItemType) => void;
+  onEditTodo?: (todo: TodoItemType) => void;
   dataTestId?: string;
 }
 
@@ -37,6 +38,7 @@ function TodoList({
   onDeleteList,
   selectedTodoId,
   onSelectTodo,
+  onEditTodo,
   dataTestId,
 }: TodoListProps) {
   const { t } = useTranslation();
@@ -186,6 +188,7 @@ function TodoList({
                 listPriority={todoList.priority}
                 isSelected={selectedTodoId === todo.id}
                 onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
+                onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
               />
             ))
           )}

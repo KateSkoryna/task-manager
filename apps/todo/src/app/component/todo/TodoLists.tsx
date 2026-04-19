@@ -20,6 +20,7 @@ interface TodoListsProps {
   handleAddTodo: (todolistId: string, name: string, opts?: NewTodoOpts) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItem, list: TodoListType) => void;
+  onEditTodo?: (todo: TodoItem, list: TodoListType) => void;
 }
 
 function TodoLists({
@@ -32,6 +33,7 @@ function TodoLists({
   handleAddTodo,
   selectedTodoId,
   onSelectTodo,
+  onEditTodo,
 }: TodoListsProps) {
   const { t } = useTranslation();
 
@@ -80,6 +82,7 @@ function TodoLists({
           onSelectTodo={
             onSelectTodo ? (todo) => onSelectTodo(todo, list) : undefined
           }
+          onEditTodo={onEditTodo ? (todo) => onEditTodo(todo, list) : undefined}
           dataTestId={'todolist-item-' + list.id}
         />
       ))}
