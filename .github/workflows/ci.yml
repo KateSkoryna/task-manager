@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  checks:
-    name: Lint, typecheck, test, build
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,11 +20,35 @@ jobs:
 
       - run: npm ci
 
-      - name: Lint
-        run: npx nx run-many --target=lint
+      - run: npx nx run-many --target=lint
 
-      - name: Typecheck
-        run: npm run typecheck
+  typescript:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
 
       - name: Unit tests
         run: npx nx run-many --target=test --configuration=ci
