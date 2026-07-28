@@ -145,6 +145,7 @@ describe('TodoController', () => {
       location: null,
       notes: null,
       completedAt: null,
+      image: null,
     });
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(newTodo);
