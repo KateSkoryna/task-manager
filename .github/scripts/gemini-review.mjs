@@ -41,7 +41,7 @@ try {
 
   const systemInstruction = fs.readFileSync('.github/scripts/review-prompt.md', 'utf8');
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3.1-flash-lite',
     contents: truncatedDiff,
     config: {
       systemInstruction,
