@@ -7,6 +7,20 @@ A full-stack task management app built with React, Express, MongoDB, and Firebas
 
 ---
 
+## Quick Start
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start everything: MongoDB, Firebase emulator, backend, frontend
+npm run all
+```
+
+Frontend at `http://localhost:4200`, backend at `http://localhost:3333`. Requires a `.env` file first — see [Environment Variables](#environment-variables). Sign-in won't work without the Firebase emulator running — see [Local Auth Emulator](#local-auth-emulator-required-for-sign-in-to-work-locally).
+
+---
+
 ## Tech Stack
 
 ### Frontend
@@ -232,6 +246,28 @@ npm run test:unit:be
 # Run E2E tests
 npm run test:e2e:watch
 ```
+
+---
+
+## Local Auth Emulator (required for sign-in to work locally)
+
+`apps/todo/src/app/lib/firebase.ts` connects to the **Firebase Auth Emulator** (`localhost:9099`) and **Storage Emulator** (`localhost:9199`) automatically whenever the app isn't running in production mode. If the emulator isn't running, every auth action fails silently in the UI (e.g. "Google sign-in failed. Please try again.") — the popup opens, has no emulator to talk to, and closes immediately.
+
+```bash
+# Start the emulator (needed before any login attempt in local dev)
+npm run emulator
+
+# Or start everything at once — Mongo, emulator, backend, frontend
+npm run all
+```
+
+### Creating a local test account
+
+The emulator has no real users and doesn't send real emails, so:
+
+- **Email/password** — use the app's "Create One" (register) link. This creates a user directly in the emulator; no email verification needed.
+- **Google sign-in** — with the emulator running, "Continue with Google" opens Firebase's **emulated** Google sign-in dialog (not real Google OAuth). Enter any email/name — no real Google account required.
+- **Emulator UI** — browse/manage local users directly at `http://localhost:4000/auth`.
 
 ---
 
