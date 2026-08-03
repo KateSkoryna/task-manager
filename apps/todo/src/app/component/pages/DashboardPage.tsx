@@ -6,10 +6,11 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/src/style.css';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { useTodoListsQuery } from '../../fetchers/api';
+import { useNavigate } from 'react-router-dom';
 import { TodoItem, TodoList } from '@shared/types';
+import { useTodoListsQuery } from '../../fetchers/api';
 import { useDateStore } from '../../store/dateStore';
-import TodoCard from '../elements/TodoCard';
+import TodoItemComponent from '../todo/TodoItem';
 
 const DAY_PICKER_STYLE: React.CSSProperties = {
   '--rdp-today-color': '#eb8a4a',
@@ -152,9 +153,11 @@ function CompletedCard({ item }: { item: FlatItem }) {
 function TodoPanel({
   items,
   selectedDate,
+  onEditTodo,
 }: {
   items: FlatItem[];
   selectedDate: Dayjs;
+  onEditTodo?: (item: FlatItem) => void;
 }) {
   const { t, i18n } = useTranslation();
   const dayLabel = selectedDate.format('D MMMM');
@@ -272,7 +275,12 @@ function TodoPanel({
       ) : (
         <div className="space-y-3 overflow-y-auto flex-1">
           {items.map((item) => (
-            <TodoCard key={item.id} item={item} />
+            <TodoItemComponent
+              key={item.id}
+              todo={item}
+              listPriority={item.listPriority}
+              onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
+            />
           ))}
         </div>
       )}
@@ -353,6 +361,7 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 function DashboardPage() {
+  const navigate = useNavigate();
   const { data: todoLists = [] } = useTodoListsQuery();
   const selectedDate = useDateStore((s) => s.selectedDate);
   const selectedDateStr = toDateStr(selectedDate);
@@ -400,7 +409,15 @@ function DashboardPage() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-      <TodoPanel items={todoItems} selectedDate={selectedDate} />
+      <TodoPanel
+        items={todoItems}
+        selectedDate={selectedDate}
+        onEditTodo={(item) =>
+          navigate('/tasks', {
+            state: { todoId: item.id, listId: item.todolistId },
+          })
+        }
+      />
 
       <div className="space-y-6">
         <TaskStatusPanel
