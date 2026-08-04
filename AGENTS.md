@@ -11,6 +11,7 @@ When making git commits in this repository:
 - Follow standard git commit message conventions
 - DO NOT commit and push changes without asking for user approval first
 - Always let the user review changes before committing
+- When opening a pull request, create it as ready for review rather than as a draft; this repository uses a solo workflow.
 
 Example of a proper commit message:
 
