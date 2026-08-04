@@ -1,0 +1,18 @@
+{
+  "description": "Guard external publication while a plan-driven task workflow is active.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/workflow_guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Checking active task workflow guard"
+          }
+        ]
+      }
+    ]
+  }
+}

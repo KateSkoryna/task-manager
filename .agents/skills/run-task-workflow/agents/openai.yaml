@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Task Workflow"
+  short_description: "Plan, implement, test, and repair tasks"
+  default_prompt: "Use $run-task-workflow to execute a selected task from a plan on its own branch."

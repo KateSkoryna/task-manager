@@ -45,6 +45,7 @@
 - **P0 — Engineering foundation:** Phases 0–5. These make the repository defensible in an interview.
 - **P1 — Product differentiator:** Phases 6–8. These make the app memorable and easy to demonstrate.
 - **P2 — Portfolio packaging:** Phase 9. This makes the work discoverable in under five minutes.
+- **Post-core lab — Performance optimization and refactor:** Phase 10. This measures bottlenecks and validates improvements without deploying experiments from the lab branch.
 - **Stretch:** advanced AI and supporting infrastructure only after the core plan is complete.
 
 ---
@@ -53,7 +54,7 @@
 
 **Why:** large refactors are only credible when their before/after behavior and quality gates are explicit.
 
-**Goal (measurable):** document and run the current lint, typecheck, unit-test, production-build, and critical Cypress flows; record a baseline for backend test count, frontend test count, API payload size for an image-heavy list, and Lighthouse scores; CI is green before Phase 1 begins.
+**Goal (measurable):** document and run the current lint, typecheck, unit-test, production-build, and critical Cypress flows; record a baseline for backend test count, frontend test count, and API payload size for an image-heavy list; CI is green before Phase 1 begins.
 
 **Concepts:** characterization tests, regression baselines, performance budgets, risk-driven test selection.
 
@@ -364,6 +365,37 @@
 
 ---
 
+## Phase 10 — Performance optimization and refactor lab
+
+**Why:** performance work is credible only when it starts from reproducible measurements and proves that a focused change improves user-visible behavior without weakening correctness or maintainability. Exploratory profiling and refactors should remain isolated from production code until independently verified.
+
+**Goal (measurable):** on a dedicated lab branch, establish reproducible Lighthouse, bundle-size, frontend-rendering, and API-latency baselines; identify the highest-impact bottlenecks; prototype focused optimizations or refactors; and record before/after evidence. Do not deploy the lab branch or merge experimental code directly. Promote only independently verified improvements through separate task branches and reviewable pull requests.
+
+**Concepts:** measurement variance, performance budgets, production-build profiling, bundle analysis, React render profiling, network waterfalls, backend latency, memory and query profiling, incremental refactoring, before/after validation.
+
+**Libs/deps:** prefer existing browser and build tooling; add Lighthouse CI or a bundle analyzer only inside the lab when it makes measurements reproducible and remove unused experimental dependencies.
+
+**Lab files and artifacts:**
+
+- `docs/performance/` — environment, dataset, commands, repeated-run results, bottlenecks, and before/after evidence.
+- Lighthouse results for the primary authenticated flows against a production frontend build and representative local backend data.
+- Bundle analysis for the main application entry points and largest lazy-loaded routes.
+- React Profiler evidence for interactions with visible responsiveness problems.
+- Backend latency and payload measurements for representative list, image, statistics, and AI endpoints.
+- Small, isolated experimental refactors tied to a measured bottleneck; avoid broad cleanup without measurable impact.
+
+**Acceptance checks:**
+
+- Measurement instructions specify build mode, browser/device profile, dataset, local services, warm-up, and number of runs.
+- Lighthouse and latency conclusions use repeated runs and a representative median rather than one favorable result.
+- Performance and accessibility budgets are explicit for the flows being evaluated.
+- Every proposed optimization links to a measured bottleneck and includes before/after evidence.
+- Relevant lint, typecheck, unit, integration, build, and smoke checks still pass after each experiment.
+- Experimental changes remain on the lab branch; each improvement selected for production is reimplemented or cleanly extracted into its own task branch and independently tested before merge.
+- The lab branch is not deployed and is not merged wholesale into the default branch.
+
+---
+
 ## Stretch roadmap — only after the core plan
 
 ### AI productivity insights
@@ -396,7 +428,6 @@
 ### Extra presentation polish
 
 - Storybook for reusable components.
-- Lighthouse CI with explicit performance and accessibility budgets.
 - Playwright visual regression tests for the primary pages.
 
 ---
@@ -445,3 +476,4 @@ The portfolio project is ready to feature prominently on a CV when:
 11. Gemini Smart Parser, privacy controls, and eval harness.
 12. Local-stack/CI/deployment improvements.
 13. Portfolio documentation and measured CV evidence.
+14. Performance optimization and refactor lab; promote verified improvements through separate task branches only.
