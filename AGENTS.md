@@ -37,6 +37,15 @@ Before making any changes that affect deployment:
 - Ensure all tests pass before committing changes
 - Do not commit code that breaks existing tests
 
+## Plan-Driven Task Workflow
+
+- When implementing a selected task from a plan, invoke the `run-task-workflow` skill.
+- Use one dedicated `task/<task-id>-<slug>` branch per plan task.
+- Run Architect, Executor, and independent Tester sequentially on that branch.
+- Route test failures back to Executor; route defective implementation plans from Executor back to Architect.
+- Repeat with a fresh Tester until all relevant checks pass and the application runs locally without issues, or until user input or an external dependency is genuinely required.
+- Never commit, push, deploy, merge, or open a pull request from this workflow. Leave changes uncommitted for user review.
+
 ## Colors and Theming
 
 All project colors are defined in `tailwind.config.js`. Use Tailwind utility classes wherever possible (`text-accent`, `bg-triadic-orange`, etc.).
