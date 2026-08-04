@@ -54,6 +54,28 @@ describe('API Integration Tests', () => {
       ).toBeTruthy();
     });
 
+    it('records the populated payload size for an image-heavy list', async () => {
+      const imageUrl =
+        'https://firebasestorage.googleapis.com/v0/b/demo-todo/o/todos%2Fbaseline-user%2Frepresentative-image.jpg?alt=media&token=00000000-0000-0000-0000-000000000000';
+
+      await Todo.insertMany(
+        Array.from({ length: 10 }, (_, index) => ({
+          name: `Image todo ${index + 1}`,
+          todolistId,
+          image: imageUrl,
+        }))
+      );
+
+      const res = await request(app).get('/api/users/me/todolists');
+      const payloadBytes = Buffer.byteLength(JSON.stringify(res.body), 'utf8');
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].todos).toHaveLength(10);
+      expect(payloadBytes).toBeLessThanOrEqual(10_000);
+      console.info(`Image-heavy list payload baseline: ${payloadBytes} bytes`);
+    });
+
     it('should not return todolists belonging to other users', async () => {
       const otherUserId = new mongoose.Types.ObjectId().toString();
       await Todolist.create({ name: 'Other User List', userId: otherUserId });

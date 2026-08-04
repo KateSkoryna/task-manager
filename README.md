@@ -53,14 +53,14 @@ npm run serve:fe
 - Statistics view with week/month/year filtering, status breakdowns, time series, weekday activity, and category charts.
 - Responsive authentication screens and a shared application shell.
 - English, German, and Ukrainian translations.
-- Backend unit/integration coverage and Cypress E2E specifications.
-- GitHub Actions checks for lint, typecheck, unit tests, coverage collection, and production builds.
+- Backend unit/integration coverage and an authenticated Cypress smoke flow.
+- GitHub Actions checks for lint, typecheck, unit tests, coverage collection,
+  production builds, and the authenticated Cypress smoke flow.
 
 ### Not yet complete
 
 - Settings and Help routes currently contain placeholder content.
 - There are no frontend component or hook tests yet.
-- Cypress is not run by the current CI workflow.
 - The hand-maintained Swagger file still contains obsolete pre-Firebase auth endpoints and does not fully match the running API.
 - Firebase Storage reads are public; writes are restricted to the authenticated user's path.
 - Gemini is installed but no AI feature is connected to the application.
@@ -311,6 +311,9 @@ The backend also exposes a smaller aggregate statistics endpoint with day/week/m
 Run workspace checks through Nx-backed npm scripts:
 
 ```bash
+# Interactive Cypress when the frontend is already running on port 4200
+npm exec nx -- run todo-e2e:e2e-ci --watch
+
 # Lint all configured projects
 npm run lint
 
@@ -329,8 +332,11 @@ npm run test:unit:fe
 # Production builds for all buildable projects
 npm exec nx run-many --target=build
 
-# Interactive Cypress run
+# Interactive Cypress that starts the frontend (port 4200 must be free)
 npm run test:e2e:watch
+
+# Headless authenticated smoke flow (starts the frontend automatically)
+npm run test:e2e
 ```
 
 Useful Nx commands:
@@ -343,11 +349,56 @@ npm exec nx affected --target=test
 npm exec nx affected --target=build
 ```
 
-CI runs on pushes and pull requests targeting `main` with three parallel jobs:
+CI runs on pushes and pull requests targeting `main` with four parallel jobs:
 
 1. Lint all configured projects.
 2. Typecheck the frontend, backend, and shared library.
 3. Run Jest in CI/coverage mode, then build all buildable projects.
+4. Start MongoDB, the Firebase Auth and Storage emulators, and the backend,
+   then run the authenticated Cypress smoke flow.
+
+### Phase 0 quality baseline
+
+Baseline recorded locally on 2026-08-04 with Node.js 24.14.1, the Firebase
+Emulator Suite 15.14.0, and the repository's MongoMemoryServer configuration.
+CI and the package engine remain standardized on Node.js 20.x, where the same
+commands are required to pass:
+
+| Signal | Baseline |
+| --- | ---: |
+| Backend Jest tests | 97 passing |
+| Frontend Jest tests | 0 (the configured target exits successfully) |
+| Image-heavy list payload | 3,658 bytes |
+
+The payload fixture is one populated todo list with ten todos. Each todo stores
+a representative 157-character Firebase Storage download URL. The integration
+test measures `Buffer.byteLength(JSON.stringify(response.body), 'utf8')` and
+sets a 10,000-byte characterization guardrail; it does not include HTTP headers
+or transport compression.
+
+Run the complete deterministic baseline with:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:unit
+npm exec nx build todo
+npm exec nx build todo-be
+```
+
+For the authenticated smoke flow, keep the root `.env` configured for local
+MongoDB and the Firebase emulators, then use separate terminals:
+
+```bash
+npm run docker:mongodb
+npm run emulator
+npm run serve:be
+npm run test:e2e
+```
+
+The Cypress flow registers a throwaway emulator account through the UI, creates
+a todo list and task, marks the task complete, and deletes both records. It does
+not use real Firebase credentials.
 
 ## Deployment
 

@@ -14,8 +14,9 @@
     "test:unit:fe": "nx test todo",
     "test:unit:be": "nx test todo-be",
     "test:unit": "nx run-many --target=test",
+    "test:e2e": "nx e2e todo-e2e --spec=apps/todo-e2e/src/e2e/authenticated-smoke.cy.ts",
     "test:e2e:watch": "nx e2e todo-e2e --watch",
-    "lint": "nx lint",
+    "lint": "nx run-many --target=lint",
     "typecheck": "tsc --build apps/todo apps/todo-be libs/types",
     "emulator": "firebase emulators:start",
     "all": "npm run docker:mongodb & npm run emulator & npm run serve:be & npm run serve:fe"

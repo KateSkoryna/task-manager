@@ -26,10 +26,7 @@
         "cypressConfig": "apps/todo-e2e/cypress.config.ts",
         "testingType": "e2e",
         "baseUrl": "http://localhost:4200",
-        "spec": [
-          "apps/todo-e2e/src/e2e/todolist.cy.ts",
-          "apps/todo-e2e/src/e2e/todo.cy.ts"
-        ]
+        "spec": "apps/todo-e2e/src/e2e/authenticated-smoke.cy.ts"
       }
     },
     "lint": {
