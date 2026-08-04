@@ -1,9 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git worktree add:*)",
-      "Bash(git worktree remove:*)",
-      "Bash(git worktree list:*)",
       "Bash(ln:*)",
       "Bash(cp:*)",
       "Bash(rm:*)",
@@ -17,5 +14,21 @@
       "Bash(awk:*)",
       "Bash(sed:*)"
     ]
+  },
+  "extraKnownMarketplaces": {
+    "nx-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "nrwl/nx-ai-agents-config"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "nx@nx-claude-plugins": true
+  },
+  "sandbox": {
+    "network": {
+      "allowedDomains": ["www.google-analytics.com"]
+    }
   }
 }
