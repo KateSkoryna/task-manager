@@ -1,12 +1,13 @@
 # Project Instructions
 
-## Git Commits
+## Git Commits and Pull Requests
 
 When making git commits in this repository:
 
-- DO NOT include "Generated with Claude Code" branding
-- DO NOT add "Co-Authored-By: Claude Sonnet 4.5" to commit messages
-- Write simple, direct commit messages without any AI attribution
+- Never include AI-assistant, model, tool, or generator attribution in commit messages, pull-request titles, or pull-request descriptions.
+- Do not add `Co-authored-by`, `Generated-by`, `Created-by`, or similar attribution trailers or footers.
+- Remove automatically inserted AI branding or generation notices before committing or opening a pull request.
+- Write simple, direct commit messages and pull-request descriptions that describe only the project changes.
 - Follow standard git commit message conventions
 - DO NOT commit and push changes without asking for user approval first
 - Always let the user review changes before committing

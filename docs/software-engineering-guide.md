@@ -32,10 +32,17 @@
 22. [Programming Fundamentals](#22-programming-fundamentals)
 23. [Algorithms, Flowcharts, and Pseudocode](#23-algorithms-flowcharts-and-pseudocode)
 24. [Pair Programming](#24-pair-programming)
-25. [End-to-End Project Guideline](#25-end-to-end-project-guideline)
-26. [Study Checklists and Review Questions](#26-study-checklists-and-review-questions)
-27. [Glossary](#27-glossary)
-28. [Source Files](#28-source-files)
+25. [Functions, Objects, and Modular Programming](#25-functions-objects-and-modular-programming)
+26. [Software Architecture](#26-software-architecture)
+27. [Software Design, Modeling, and UML](#27-software-design-modeling-and-uml)
+28. [Object-Oriented Analysis and Design](#28-object-oriented-analysis-and-design)
+29. [Component, Service-Oriented, and Distributed Architecture](#29-component-service-oriented-and-distributed-architecture)
+30. [Architectural Patterns, Environments, and Production Infrastructure](#30-architectural-patterns-environments-and-production-infrastructure)
+31. [End-to-End Project Guideline](#31-end-to-end-project-guideline)
+32. [Study Checklists and Review Questions](#32-study-checklists-and-review-questions)
+33. [Glossary](#33-glossary)
+34. [Todo Application Case Study](#34-todo-application-case-study)
+35. [Source Files](#35-source-files)
 
 ---
 
@@ -3228,7 +3235,186 @@ A learner should be able to explain:
 
 ---
 
-# 34. Source Files
+# 34. Todo Application Case Study
+
+This case study consolidates the former `Explanations.md`. It records the reasoning behind the todo application's original implementation and connects the general engineering concepts in this guide to a concrete Nx, React, Express, and MongoDB project.
+
+> **Historical context:** the application has evolved since the original technical exercise. Use the repository README for current behavior and `docs/PLAN.md` for current status, priorities, and acceptance criteria. The decisions below explain the original baseline and should not be mistaken for the current authentication, data model, API contract, or deployment state.
+
+## 34.1 Problem-Solving Sequence
+
+The original implementation followed a dependency-aware order:
+
+1. Inspect the Nx workspace and supplied OpenAPI contract.
+2. Create shared TypeScript types used by both applications.
+3. Build the backend from models to repositories to controllers.
+4. Test each backend layer, followed by full API integration tests.
+5. Build reusable frontend elements and feature components.
+6. Connect the UI to the API through React Query hooks.
+7. Add Cypress coverage for the critical CRUD journeys.
+8. Add the original multi-user demonstration and deployment configuration.
+
+This order reduced uncertainty because each layer was built on an already-understood dependency and checked before the next layer was added.
+
+## 34.2 Architecture Decisions
+
+### Nx monorepo
+
+The project used an Nx monorepo containing the React frontend, Express backend, Cypress project, and a shared types library. The main advantages were centralized tooling, consistent configuration, task caching, and direct sharing of TypeScript contracts. Separate repositories would offer stronger deployment isolation, but would add package publishing and cross-repository coordination for a project of this size.
+
+### MongoDB and Mongoose
+
+The original skeleton included MySQL, but the implementation moved to MongoDB to exercise document-database skills and simplify the initial deployment model. Mongoose provided typed schemas and virtual population.
+
+Todos remained separate documents referencing their parent list. A Mongoose virtual populated the list's `todos` field when the nested API representation was required. This avoided duplicating todo data inside list documents and allowed independent todo queries and updates. The trade-off was an additional population step and more care around relationship integrity and cascading deletion.
+
+### Layered Express backend
+
+The original server separated responsibilities into:
+
+```text
+HTTP request
+    ↓
+Controller — request handling and validation
+    ↓
+Repository — persistence operations
+    ↓
+Mongoose model — schema and database representation
+```
+
+This structure made controller tests possible with mocked repositories and kept database operations out of route handlers. Its limitations were repeated controller `try/catch` blocks, manual dependency wiring, and validation duplicated across trust boundaries. The current plan addresses those weaknesses with shared Zod schemas, dependency injection, guards, pipes, and centralized error handling.
+
+### Shared TypeScript contracts
+
+The `libs/types` library established a compile-time contract between the frontend and backend. This reduced duplicated interfaces and made breaking API changes visible across the workspace. TypeScript types alone do not validate untrusted runtime data, so shared runtime schemas are the necessary complement.
+
+### REST and OpenAPI
+
+The original API used resource-oriented todo and todo-list endpoints and was manually implemented against a supplied Swagger specification. REST kept the CRUD model simple and familiar. Manual implementation offered control but allowed the specification and runtime behavior to drift, which is why generated or runtime-derived OpenAPI is preferable as the application grows.
+
+### Tailwind CSS
+
+Tailwind was selected for rapid UI development and consistent theme usage without introducing a full component framework. Project colors belong in `tailwind.config.js`; components should use theme utilities instead of duplicating raw color constants.
+
+## 34.3 Frontend Design
+
+### Server state with React Query
+
+React Query managed remote todo and list data, including caching, loading and error state, refetching, mutations, and query invalidation. Local React state remained appropriate for temporary UI concerns such as form fields and edit-mode toggles. This separation avoided using a general global-state library for data that primarily belonged to the server.
+
+Custom hooks such as `useTodoListsData` hid query and mutation details from page components. Fetcher functions formed a typed API boundary, while feature components focused on user interaction and rendering.
+
+### Component composition
+
+The original component hierarchy separated reusable elements—buttons, inputs, text, loaders, containers, and error fallbacks—from todo-specific forms, cards, and list views. Feature components composed the primitives instead of duplicating their styling and behavior.
+
+Inline editing was chosen for quick task updates without navigation or modal state. Controlled forms were initially sufficient for the small input surface; more complex cross-field validation justifies React Hook Form with shared Zod schemas.
+
+### User feedback
+
+Loading indicators, empty states, disabled submission controls, and error fallbacks made asynchronous behavior visible. A production-quality evolution should also provide retry actions, accessible status announcements, optimistic rollback, and error messages appropriate to the failure type.
+
+## 34.4 Testing Strategy
+
+The project used complementary test levels rather than relying on a single suite:
+
+- **Model and unit tests** checked schema behavior and isolated controller logic quickly.
+- **Integration tests** exercised Express routes, repositories, Mongoose, and response serialization together.
+- **Cypress E2E tests** checked critical user workflows in a browser.
+
+`mongodb-memory-server` provided an isolated MongoDB process for integration tests. It exercised real Mongoose queries without risking development data and made teardown deterministic. Controller unit tests still mocked repositories where the purpose was to isolate HTTP and validation logic.
+
+Supertest used the Express application without binding a fixed public port. This avoided port conflicts and allowed the full middleware and routing stack to be exercised in-process.
+
+The E2E suite used stable test attributes and a page-object helper. Direct selectors remained in some tests during rapid debugging, which reduced the benefit of the abstraction. New tests should prefer accessible roles and labels for user-facing behavior, reserving test IDs for cases with no stable semantic selector.
+
+Test cleanup was designed to leave each scenario independent. Because deleting a parent list changes the DOM, cleanup re-queried after each deletion rather than iterating over a stale collection. API-level setup and cleanup is generally faster and less brittle when the UI behavior itself is not under test.
+
+Meaningful coverage matters more than a nominal 100% target. Priority cases include successful CRUD, validation failures, unauthorized access, missing resources, empty states, network/server errors, relationship cleanup, and the main authenticated workflow.
+
+## 34.5 Deployment and Configuration Lessons
+
+The initial deployment shape used a separately hosted frontend and backend, with MongoDB and environment-specific configuration. Its durable lessons are:
+
+- keep secrets out of source control;
+- document every required environment variable;
+- restrict CORS to known production origins;
+- build and test locally before deployment;
+- expose health and readiness information;
+- keep deployment configuration reproducible;
+- use monitoring, redacted structured logs, and rollback procedures.
+
+Development convenience, such as permissive CORS or fallback URLs, must not silently become the production security policy.
+
+## 34.6 Important Trade-offs and Lessons
+
+### Speed versus polish
+
+The exercise prioritized a working, testable vertical slice. Tailwind, React Query, Nx generators, and a simple layered backend accelerated delivery. The cost was incomplete UI testing, some repeated error handling, and architectural choices that required later hardening.
+
+### Database migration
+
+Moving from MySQL to MongoDB demonstrated adaptability but introduced new relationship and data-integrity decisions. A technology should normally be selected from access patterns, consistency needs, operational constraints, and team expertise—not solely because it is desirable on a résumé.
+
+### E2E reliability
+
+An edit flow worked manually but was difficult to stabilize in Cypress. The right response is to diagnose timing, network, focus, and cache behavior; use retryable assertions; and keep the limitation visible until the deterministic test passes. Arbitrary waits only hide the race and make the suite slower.
+
+### Historical multi-user approach
+
+The first exercise distinguished users through numeric URL/query values. That was a demonstration mechanism, not authentication or authorization: a caller could choose another identifier. The current application uses Firebase Authentication and server-enforced ownership. This distinction is an important interview lesson—filtering by a client-supplied user ID is not a security boundary.
+
+## 34.7 Production Evolution Checklist
+
+The most important production improvements identified by the original retrospective were:
+
+- enforce authentication and server-side authorization;
+- add shared runtime validation and bounded pagination;
+- index common ownership and relationship queries;
+- centralize API errors and add structured, redacted logging;
+- restrict CORS, add security headers, and rate-limit sensitive routes;
+- add frontend component and hook tests;
+- make critical E2E flows deterministic and part of CI;
+- support responsive and keyboard-accessible interactions;
+- add monitoring, dependency scanning, backup awareness, and safe rollback;
+- measure performance before adding caches or distributed infrastructure.
+
+The detailed implementation sequence and measurable acceptance criteria live in `docs/PLAN.md`.
+
+## 34.8 Interview Discussion Prompts
+
+Use these prompts to explain reasoning rather than memorizing answers:
+
+1. Why was an Nx monorepo suitable, and when would separate repositories be better?
+2. Why were todos referenced instead of embedded, and what access patterns could reverse that decision?
+3. How did controller, repository, and model boundaries improve testability?
+4. What does a shared TypeScript library guarantee, and what requires runtime validation?
+5. Why is React Query a better fit for server state than Redux in this application?
+6. What belongs in local component state versus the query cache?
+7. What different failures are caught by unit, integration, and E2E tests?
+8. Why use an in-memory MongoDB process instead of mocking every persistence call?
+9. Why is a user ID in a URL not authentication or authorization?
+10. How would cursor pagination, indexes, object storage, and rate limiting change scalability?
+11. Which historical shortcuts were reasonable for a time-boxed exercise, and which would block production release?
+12. What evidence—tests, metrics, API documentation, or ADRs—supports each architectural claim?
+
+## 34.9 Local Runbook
+
+The current README is authoritative for setup. The common commands are:
+
+```bash
+npm install
+npm run docker:mongodb
+npm run emulator
+npm run serve:be
+npm run serve:fe
+```
+
+The repository also provides `npm run all` for the documented combined local workflow. Run lint, typecheck, unit/integration tests, affected production builds, and the critical E2E smoke flow before deployment or commit review.
+
+---
+
+# 35. Source Files
 
 This guide was created from the following supplied transcript files:
 

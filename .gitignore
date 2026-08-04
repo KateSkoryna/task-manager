@@ -51,11 +51,8 @@ Thumbs.db
 
 .nx/cache
 
-# Git worktrees directory
-.worktrees/
-
 # Project planning (private notes)
-PLAN.md
-Explanations.md
-WORKTREE.md
 docs/portfolio-improvement-plan.md
+docs/software-engineering-guide.md
+.nx/polygraph
+.claude/settings.local.json
