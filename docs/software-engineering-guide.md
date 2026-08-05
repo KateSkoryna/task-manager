@@ -3432,7 +3432,7 @@ MSW intercepts HTTP requests at the network boundary and returns controlled resp
 
 `apps/todo/src/test-setup.js` loads `jest-dom` matchers, supplies stable translation output, and provides browser APIs missing from JSDOM. `apps/todo/src/app/mocks/handlers.ts` defines reusable API responses and `server.ts` creates the MSW server.
 
-`apps/todo/jest.config.ts` collects coverage for the tested frontend components and store and requires at least 70% statement, line, and function coverage, with a 60% branch threshold. CI runs the coverage-enabled Nx test command so regressions fail automatically.
+`apps/todo/jest.config.ts` collects coverage for the tested frontend components and store and requires at least 70% statement, line, and function coverage, with a 50% branch threshold. CI runs the coverage-enabled Nx test command so regressions fail automatically.
 
 These are component and unit-level tests, not E2E tests. They run quickly without a real browser or deployed services; E2E tests remain responsible for validating the complete application, routing, backend, and infrastructure together.
 
