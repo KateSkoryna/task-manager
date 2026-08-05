@@ -1,5 +1,6 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
   "scss.lint.unknownAtRules": "ignore",
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "js/ts.experimental.useTsgo": false
 }

@@ -20,7 +20,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npx nx run-many --target=lint
+      - run: npm exec nx -- run-many --target=lint
 
   typescript:
     name: Typecheck
@@ -51,7 +51,7 @@ jobs:
       - run: npm ci
 
       - name: Unit tests
-        run: npx nx run-many --target=test --configuration=ci
+        run: npm exec nx -- run-many --target=test --configuration=ci
 
       - name: Build
-        run: npx nx run-many --target=build
+        run: npm exec nx -- run-many --target=build

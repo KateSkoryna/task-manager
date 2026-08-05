@@ -14,6 +14,8 @@ export const googleProvider = new GoogleAuthProvider();
 export const storage = getStorage(firebaseApp);
 
 if (!environment.production) {
-  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-  connectStorageEmulator(storage, 'localhost', 9199);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', {
+    disableWarnings: true,
+  });
+  connectStorageEmulator(storage, '127.0.0.1', 9199);
 }
