@@ -111,10 +111,15 @@ export const useToggleTodoMutation = () => {
   return useMutation<
     TodoItemType,
     Error,
-    { id: string; todolistId: string; status: string }
+    {
+      id: string;
+      todolistId: string;
+      status: string;
+      completedAt: string | null;
+    }
   >({
-    mutationFn: ({ id, todolistId, status }) =>
-      updateTodoFetcher(id, todolistId, user!.id, { status }),
+    mutationFn: ({ id, todolistId, status, completedAt }) =>
+      updateTodoFetcher(id, todolistId, user!.id, { status, completedAt }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todoLists', user?.id] });
     },

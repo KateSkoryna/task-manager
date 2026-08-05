@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
-import { TodoListPriority, TodoListCategory } from '@shared/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  TodoListPriority,
+  TodoListCategory,
+  todolistCreateSchema,
+} from '@shared/types';
 import { useTranslation } from 'react-i18next';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
@@ -21,13 +27,8 @@ type TodoListFormProps = {
   isSubmitting: boolean;
 };
 
-type FormValues = {
-  name: string;
-  priority: TodoListPriority | '';
-  category: TodoListCategory | '';
-  dueDate: string;
-  notes: string;
-};
+type FormInput = z.input<typeof todolistCreateSchema>;
+type FormOutput = z.output<typeof todolistCreateSchema>;
 
 const TodoListForm: React.FC<TodoListFormProps> = ({
   onSubmit,
@@ -43,7 +44,8 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
     control,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, unknown, FormOutput>({
+    resolver: zodResolver(todolistCreateSchema),
     defaultValues: {
       name: '',
       priority: '',
@@ -58,12 +60,12 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
     setShowMore(false);
   }, [userId, reset]);
 
-  const onFormSubmit = (data: FormValues) => {
+  const onFormSubmit = (data: FormOutput) => {
     const opts: TodoListFormOpts = {
-      priority: data.priority || undefined,
-      category: data.category || undefined,
-      dueDate: data.dueDate || null,
-      notes: data.notes || null,
+      priority: data.priority,
+      category: data.category,
+      dueDate: data.dueDate ?? null,
+      notes: data.notes ?? null,
     };
     onSubmit(data.name, opts);
     reset();
@@ -151,7 +153,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
               render={({ field }) => (
                 <DetailsSelect
                   id="list-priority"
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={field.onChange}
                   options={priorityOptions}
                   placeholder={t('todoListForm.noPriority')}
@@ -173,7 +175,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
               render={({ field }) => (
                 <DetailsSelect
                   id="list-category"
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={field.onChange}
                   options={categoryOptions}
                   placeholder={t('todoListForm.noCategory')}
@@ -195,7 +197,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
               render={({ field }) => (
                 <DatePickerInput
                   id="list-due-date"
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={field.onChange}
                 />
               )}

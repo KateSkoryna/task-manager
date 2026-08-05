@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { ImagePlus, Upload, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Input from '../elements/Input';
@@ -7,6 +9,7 @@ import Button from '../elements/Button';
 import DatePickerInput from '../elements/DatePickerInput';
 import { uploadImage } from '../../lib/imageUtils';
 import { useAuthStore } from '../../store/authStore';
+import { todoCreateSchema } from '@shared/types';
 
 type NewTodoOpts = {
   dueDate?: string;
@@ -19,12 +22,8 @@ type FormProps = {
   onAddTodo: (name: string, opts?: NewTodoOpts) => void;
 };
 
-type FormValues = {
-  name: string;
-  dueDate: string;
-  location: string;
-  notes: string;
-};
+type FormInput = z.input<typeof todoCreateSchema>;
+type FormOutput = z.output<typeof todoCreateSchema>;
 
 const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
   const { t } = useTranslation();
@@ -41,7 +40,8 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
     reset,
     control,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, unknown, FormOutput>({
+    resolver: zodResolver(todoCreateSchema),
     defaultValues: { name: '', dueDate: '', location: '', notes: '' },
   });
 
@@ -67,11 +67,11 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const onFormSubmit = (data: FormValues) => {
+  const onFormSubmit = (data: FormOutput) => {
     const opts: NewTodoOpts = {};
     if (data.dueDate) opts.dueDate = data.dueDate;
-    if (data.location.trim()) opts.location = data.location.trim();
-    if (data.notes.trim()) opts.notes = data.notes.trim();
+    if (data.location?.trim()) opts.location = data.location.trim();
+    if (data.notes?.trim()) opts.notes = data.notes.trim();
     if (image) opts.image = image;
     onAddTodo(data.name.trim(), Object.keys(opts).length ? opts : undefined);
     reset();
@@ -138,7 +138,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
               render={({ field }) => (
                 <DatePickerInput
                   id="new-todo-due-date"
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={field.onChange}
                 />
               )}

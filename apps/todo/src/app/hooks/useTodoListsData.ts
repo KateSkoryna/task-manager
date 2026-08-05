@@ -66,10 +66,12 @@ export const useTodoListsData = () => {
       ?.flatMap((list) => list.todos)
       .find((t) => t.id === id);
     if (todo) {
+      const status = todo.status === 'successful' ? 'pending' : 'successful';
       toggleTodoMutation.mutate({
         id,
         todolistId,
-        status: todo.status === 'successful' ? 'pending' : 'successful',
+        status,
+        completedAt: status === 'successful' ? new Date().toISOString() : null,
       });
     }
   };

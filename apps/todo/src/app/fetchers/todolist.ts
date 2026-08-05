@@ -82,6 +82,7 @@ export const updateTodoFetcher = async (
   updates: {
     name?: string;
     status?: string;
+    completedAt?: string | null;
     dueDate?: string | null;
     location?: string | null;
     notes?: string | null;
