@@ -3414,6 +3414,28 @@ The repository also provides `npm run all` for the documented combined local wor
 
 ---
 
+## 34.10 Frontend Testing Concepts Added in Phase 2
+
+### React Testing Library
+
+React Testing Library renders components as users experience them. Tests query accessible roles, labels, and visible text instead of component internals, keeping them focused on behavior and accessibility.
+
+### `@testing-library/user-event`
+
+`user-event` simulates realistic typing, clicking, keyboard navigation, and file uploads. It runs in Jest and JSDOM, so it is faster than browser E2E testing while exercising realistic event sequences.
+
+### MSW (Mock Service Worker)
+
+MSW intercepts HTTP requests at the network boundary and returns controlled responses. The frontend uses its real API client and query code, while tests can model success, empty data, authorization failures, and server errors without a running backend or implementation-level fetcher mocks.
+
+### Jest setup and coverage
+
+`apps/todo/src/test-setup.js` loads `jest-dom` matchers, supplies stable translation output, and provides browser APIs missing from JSDOM. `apps/todo/src/app/mocks/handlers.ts` defines reusable API responses and `server.ts` creates the MSW server.
+
+`apps/todo/jest.config.ts` collects coverage for the tested frontend components and store and requires at least 70% statement, line, and function coverage, with a 60% branch threshold. CI runs the coverage-enabled Nx test command so regressions fail automatically.
+
+These are component and unit-level tests, not E2E tests. They run quickly without a real browser or deployed services; E2E tests remain responsible for validating the complete application, routing, backend, and infrastructure together.
+
 # 35. Source Files
 
 This guide was created from the following supplied transcript files:
