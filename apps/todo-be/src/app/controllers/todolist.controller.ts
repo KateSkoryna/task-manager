@@ -1,7 +1,14 @@
 import { Request, Response } from 'express';
 import { TodolistRepository } from '../repositories/todolist.repository';
-import { createValidationError } from '../utils/errors';
+import {
+  createValidationError,
+  createValidationErrorFromZod,
+} from '../utils/errors';
 import { AuthRequest } from '../middleware/auth.middleware';
+import {
+  todolistCreateSchema,
+  todolistUpdateSchema,
+} from '@shared/types';
 import mongoose from 'mongoose';
 
 export const TodolistController = {
@@ -44,22 +51,17 @@ export const TodolistController = {
 
   create: async (req: Request, res: Response) => {
     try {
-      const { name, priority, category, dueDate, notes } = req.body;
       const userId = (req as AuthRequest).userId;
-
-      if (!name) {
+      const parsed = todolistCreateSchema.safeParse(req.body);
+      if (!parsed.success) {
         return res
           .status(400)
-          .json(createValidationError([{ field: 'name', value: name }]));
+          .json(createValidationErrorFromZod(parsed.error, req.body));
       }
 
       const newList = await TodolistRepository.create({
-        name,
+        ...parsed.data,
         userId,
-        priority,
-        category,
-        dueDate,
-        notes,
       });
       res.status(201).json(newList);
     } catch (error) {
@@ -73,7 +75,6 @@ export const TodolistController = {
   update: async (req: Request, res: Response) => {
     try {
       const { todolistId } = req.params;
-      const { name, priority, category, dueDate, notes } = req.body;
       const userId = (req as AuthRequest).userId;
 
       if (!mongoose.Types.ObjectId.isValid(todolistId)) {
@@ -82,21 +83,16 @@ export const TodolistController = {
           .json(createValidationError([{ field: 'id', value: todolistId }]));
       }
 
-      if (
-        !name &&
-        priority === undefined &&
-        category === undefined &&
-        dueDate === undefined &&
-        notes === undefined
-      ) {
+      const parsed = todolistUpdateSchema.safeParse(req.body);
+      if (!parsed.success) {
         return res
           .status(400)
-          .json(createValidationError([{ field: 'name', value: name }]));
+          .json(createValidationErrorFromZod(parsed.error, req.body));
       }
 
       const updatedList = await TodolistRepository.update(
         todolistId,
-        { name, priority, category, dueDate, notes },
+        parsed.data,
         userId
       );
       if (!updatedList) {

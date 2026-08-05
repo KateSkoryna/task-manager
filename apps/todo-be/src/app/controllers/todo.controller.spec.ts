@@ -159,6 +159,7 @@ describe('TodoController', () => {
       dueDate: '2026-04-01T00:00:00.000Z',
       location: 'Office',
       notes: 'Some notes',
+      completedAt: '2026-04-01T00:00:00.000Z',
     };
     const newTodo = makeTodo(todoId, todolistId, {
       name: 'Extended Todo',

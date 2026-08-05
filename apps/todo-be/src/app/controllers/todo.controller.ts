@@ -1,19 +1,13 @@
 import { Request, Response } from 'express';
 import { TodoRepository } from '../repositories/todo.repository';
 import { TodolistRepository } from '../repositories/todolist.repository';
-import { createValidationError } from '../utils/errors';
+import {
+  createValidationError,
+  createValidationErrorFromZod,
+} from '../utils/errors';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { TodoStatus, UpdateTodoItem } from '@shared/types';
+import { todoCreateSchema, todoUpdateSchema } from '@shared/types';
 import mongoose from 'mongoose';
-
-const VALID_STATUSES: TodoStatus[] = ['pending', 'successful', 'failed'];
-const MAX_LOCATION_LENGTH = 200;
-const MAX_NOTES_LENGTH = 2000;
-const MAX_IMAGE_LENGTH = 7_000_000;
-
-function isValidDate(value: string): boolean {
-  return !isNaN(new Date(value).getTime());
-}
 
 export const TodoController = {
   getById: async (req: Request, res: Response) => {
@@ -48,45 +42,18 @@ export const TodoController = {
   create: async (req: Request, res: Response) => {
     try {
       const { todolistId } = req.params;
-      const { name, status, dueDate, location, notes, completedAt, image } =
-        req.body;
       const userId = (req as AuthRequest).userId;
-      const errors = [];
-
       if (!todolistId || !mongoose.Types.ObjectId.isValid(todolistId)) {
-        errors.push({ field: 'todolistId', value: todolistId ?? '' });
+        return res
+          .status(400)
+          .json(createValidationError([{ field: 'todolistId', value: todolistId ?? '' }]));
       }
 
-      if (!name) {
-        errors.push({ field: 'name', value: name });
-      }
-
-      if (status !== undefined && !VALID_STATUSES.includes(status)) {
-        errors.push({ field: 'status', value: status });
-      }
-
-      if (dueDate != null && !isValidDate(dueDate)) {
-        errors.push({ field: 'dueDate', value: dueDate });
-      }
-
-      if (completedAt != null && !isValidDate(completedAt)) {
-        errors.push({ field: 'completedAt', value: completedAt });
-      }
-
-      if (location != null && location.length > MAX_LOCATION_LENGTH) {
-        errors.push({ field: 'location', value: location });
-      }
-
-      if (notes != null && notes.length > MAX_NOTES_LENGTH) {
-        errors.push({ field: 'notes', value: notes });
-      }
-
-      if (image != null && image.length > MAX_IMAGE_LENGTH) {
-        errors.push({ field: 'image', value: '[too large]' });
-      }
-
-      if (errors.length > 0) {
-        return res.status(400).json(createValidationError(errors));
+      const parsed = todoCreateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res
+          .status(400)
+          .json(createValidationErrorFromZod(parsed.error, req.body));
       }
 
       const todolist = await TodolistRepository.findById(todolistId, userId);
@@ -95,13 +62,12 @@ export const TodoController = {
       }
 
       const newTodo = await TodoRepository.create(todolistId, {
-        name,
-        status,
-        dueDate: dueDate ?? null,
-        location: location ?? null,
-        notes: notes ?? null,
-        completedAt: completedAt ?? null,
-        image: image ?? null,
+        ...parsed.data,
+        dueDate: parsed.data.dueDate ?? null,
+        location: parsed.data.location ?? null,
+        notes: parsed.data.notes ?? null,
+        completedAt: parsed.data.completedAt ?? null,
+        image: parsed.data.image ?? null,
       });
       res.status(201).json(newTodo);
     } catch (error) {
@@ -115,8 +81,6 @@ export const TodoController = {
   update: async (req: Request, res: Response) => {
     try {
       const { todolistId, id } = req.params;
-      const { name, status, dueDate, location, notes, completedAt, image } =
-        req.body;
       const userId = (req as AuthRequest).userId;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -125,49 +89,11 @@ export const TodoController = {
           .json(createValidationError([{ field: 'id', value: id }]));
       }
 
-      const hasFields = [
-        name,
-        status,
-        dueDate,
-        location,
-        notes,
-        completedAt,
-        image,
-      ].some((v) => v !== undefined);
-      if (!hasFields) {
+      const parsed = todoUpdateSchema.safeParse(req.body);
+      if (!parsed.success) {
         return res
           .status(400)
-          .json(createValidationError([{ field: '', value: '' }]));
-      }
-
-      const errors = [];
-
-      if (status !== undefined && !VALID_STATUSES.includes(status)) {
-        errors.push({ field: 'status', value: status });
-      }
-
-      if (dueDate != null && !isValidDate(dueDate)) {
-        errors.push({ field: 'dueDate', value: dueDate });
-      }
-
-      if (completedAt != null && !isValidDate(completedAt)) {
-        errors.push({ field: 'completedAt', value: completedAt });
-      }
-
-      if (location != null && location.length > MAX_LOCATION_LENGTH) {
-        errors.push({ field: 'location', value: location });
-      }
-
-      if (notes != null && notes.length > MAX_NOTES_LENGTH) {
-        errors.push({ field: 'notes', value: notes });
-      }
-
-      if (image != null && image.length > MAX_IMAGE_LENGTH) {
-        errors.push({ field: 'image', value: '[too large]' });
-      }
-
-      if (errors.length > 0) {
-        return res.status(400).json(createValidationError(errors));
+          .json(createValidationErrorFromZod(parsed.error, req.body));
       }
 
       const todolist = await TodolistRepository.findById(todolistId, userId);
@@ -175,16 +101,7 @@ export const TodoController = {
         return res.status(404).json({ message: 'Todolist not found' });
       }
 
-      const updates: UpdateTodoItem = {};
-      if (name !== undefined) updates.name = name;
-      if (status !== undefined) updates.status = status;
-      if (dueDate !== undefined) updates.dueDate = dueDate;
-      if (location !== undefined) updates.location = location;
-      if (notes !== undefined) updates.notes = notes;
-      if (completedAt !== undefined) updates.completedAt = completedAt;
-      if (image !== undefined) updates.image = image;
-
-      const updatedTodo = await TodoRepository.update(id, updates);
+      const updatedTodo = await TodoRepository.update(id, parsed.data);
       if (!updatedTodo) {
         return res.status(404).json({ message: 'Todo not found' });
       }

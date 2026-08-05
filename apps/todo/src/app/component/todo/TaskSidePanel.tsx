@@ -23,6 +23,8 @@ import {
   UpdateTodoItem,
   UpdateTodoList,
   TodoStatus,
+  todoUpdateSchema,
+  todolistUpdateSchema,
 } from '@shared/types';
 import { useAuthStore } from '../../store/authStore';
 import { uploadImage } from '../../lib/imageUtils';
@@ -56,6 +58,7 @@ export function TodoEditPanel({
   const userId = useAuthStore((s) => s.user?.firebaseUid);
   const [editImage, setEditImage] = useState<string | null>(todo.image ?? null);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,21 +97,31 @@ export function TodoEditPanel({
   };
 
   const onFormSubmit = (data: EditFormValues) => {
-    onSave(
-      {
-        name: data.name.trim() || todo.name,
-        status: data.status,
-        dueDate: data.dueDate || null,
-        location: data.location.trim() || null,
-        notes: data.notes.trim() || null,
-        image: editImage,
-      },
-      {
-        name: data.listName.trim() || list.name,
-        priority: data.priority || undefined,
-        category: data.category || undefined,
-      }
-    );
+    const todoResult = todoUpdateSchema.safeParse({
+      name: data.name.trim() || todo.name,
+      status: data.status,
+      dueDate: data.dueDate || null,
+      location: data.location.trim() || null,
+      notes: data.notes.trim() || null,
+      image: editImage,
+    });
+    const listResult = todolistUpdateSchema.safeParse({
+      name: data.listName.trim() || list.name,
+      priority: data.priority,
+      category: data.category,
+    });
+
+    if (!todoResult.success || !listResult.success) {
+      setValidationError(
+        todoResult.error?.issues[0]?.message ??
+          listResult.error?.issues[0]?.message ??
+          'Please check the form values.'
+      );
+      return;
+    }
+
+    setValidationError(null);
+    onSave(todoResult.data, listResult.data);
   };
 
   const labelClass = 'text-xs text-secondary-dark-bg font-medium w-20 shrink-0';
@@ -280,6 +293,11 @@ export function TodoEditPanel({
       </div>
 
       <div className="flex gap-2 justify-end pt-5 border-t border-secondary-bg mt-5">
+        {validationError && (
+          <p className="text-sm text-red-500 mr-auto" role="alert">
+            {validationError}
+          </p>
+        )}
         <button
           type="button"
           onClick={onCancel}
