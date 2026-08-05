@@ -51,7 +51,7 @@ jobs:
       - run: npm ci
 
       - name: Unit tests
-        run: npm exec nx -- run-many --target=test --configuration=ci
+        run: npm exec nx -- run-many --target=test --configuration=ci --coverage
 
       - name: Build
         run: npm exec nx -- run-many --target=build
