@@ -7,6 +7,9 @@ let mongo: MongoMemoryServer;
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
   const uri = mongo.getUri();
+  process.env.MONGODB_URI = uri;
+  process.env.FIREBASE_PROJECT_ID = 'demo-test';
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 
   await mongoose.connect(uri);
 });
