@@ -1,11 +1,12 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, models, Document, Model, Types } from 'mongoose';
 import { User } from '@shared/types';
 
-interface IUserDocument extends Omit<User, 'id'>, Document {
+export interface IUserDocument extends Omit<User, 'id'>, Document {
   _id: Types.ObjectId;
 }
 
-const userSchema = new Schema<IUserDocument>(
+export const USER_MODEL_NAME = 'User';
+export const userSchema = new Schema<IUserDocument>(
   {
     firebaseUid: { type: String, required: true, unique: true, index: true },
     email: {
@@ -42,4 +43,6 @@ const userSchema = new Schema<IUserDocument>(
   }
 );
 
-export const UserModel = model<IUserDocument>('User', userSchema);
+export const UserModel =
+  (models[USER_MODEL_NAME] as Model<IUserDocument>) ||
+  model<IUserDocument>(USER_MODEL_NAME, userSchema);

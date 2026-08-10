@@ -1,7 +1,7 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, models, Document, Model, Types } from 'mongoose';
 import { TodoItem, TodoStatus } from '@shared/types';
 
-interface ITodoDocument
+export interface ITodoDocument
   extends Omit<TodoItem, 'id' | 'todolistId' | 'dueDate' | 'completedAt'>,
     Document {
   _id: Types.ObjectId;
@@ -10,7 +10,8 @@ interface ITodoDocument
   completedAt?: Date | null;
 }
 
-const todoSchema = new Schema<ITodoDocument>(
+export const TODO_MODEL_NAME = 'Todo';
+export const todoSchema = new Schema<ITodoDocument>(
   {
     name: { type: String, required: true },
     status: {
@@ -52,4 +53,6 @@ const todoSchema = new Schema<ITodoDocument>(
   }
 );
 
-export const Todo = model<ITodoDocument>('Todo', todoSchema);
+export const Todo =
+  (models[TODO_MODEL_NAME] as Model<ITodoDocument>) ||
+  model<ITodoDocument>(TODO_MODEL_NAME, todoSchema);
