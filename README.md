@@ -1,6 +1,6 @@
 # Todo List Application
 
-A full-stack task-management application built in an Nx workspace with React, Express, MongoDB, Firebase Authentication, and Firebase Storage.
+A full-stack task-management application built in an Nx workspace with React, NestJS, MongoDB, Firebase Authentication, and Firebase Storage.
 
 The app supports authenticated, user-scoped task management; rich todo and list metadata; dashboard and statistics views; image attachments; and English, German, and Ukrainian UI translations.
 
@@ -61,7 +61,7 @@ npm run serve:fe
 
 - Settings and Help routes currently contain placeholder content.
 - There are no frontend component or hook tests yet.
-- The hand-maintained Swagger file still contains obsolete pre-Firebase auth endpoints and does not fully match the running API.
+- API documentation is generated from the NestJS application and served with Swagger UI.
 - Firebase Storage reads are public; writes are restricted to the authenticated user's path.
 - Gemini is installed but no AI feature is connected to the application.
 - Rate limiting, security headers, structured request logging, and pagination are planned rather than shipped.
@@ -77,11 +77,11 @@ React frontend
   └─ Axios + Firebase ID token
              │
              ▼
-Express REST API
+NestJS REST API
   ├─ Firebase Admin ─────────── token verification
-  ├─ auth middleware ────────── MongoDB profile lookup + ownership check
-  ├─ controllers/repositories
-  └─ Mongoose
+  ├─ guards ─────────────────── MongoDB profile lookup + ownership check
+  ├─ injectable controllers/services
+  └─ injected Mongoose models
              │
              ▼
 MongoDB ─────────────────────── users, todo lists, todos, image URLs
@@ -107,10 +107,10 @@ Images follow a separate path: the frontend compresses the selected file, upload
 
 ### Backend
 
-- Node.js 20 and Express 4
+- Node.js 20 and NestJS 10
 - Mongoose 7 and MongoDB
 - Firebase Admin SDK
-- Swagger UI with a YAML OpenAPI document
+- Generated OpenAPI with Swagger UI
 
 ### Tests and delivery
 
@@ -141,18 +141,17 @@ todo-list/
 │   │       │   ├── lib/               # API client, Firebase, image uploads
 │   │       │   └── store/             # Auth and selected-date state
 │   │       └── environments/
-│   ├── todo-be/                       # Express/Mongoose API
-│   │   └── src/app/
-│   │       ├── controllers/
-│   │       ├── integrations/          # Firebase Admin
-│   │       ├── middleware/            # Firebase auth + ownership check
-│   │       ├── models/
-│   │       ├── repositories/
-│   │       └── utils/
+│   ├── todo-be/                       # NestJS/Mongoose API
+│   │   └── src/
+│   │       ├── auth/                  # Profile endpoints and Firebase guards
+│   │       ├── common/                # Decorators, pipes, filters, errors
+│   │       ├── integrations/firebase/ # Injectable Firebase Admin provider
+│   │       ├── todo/                   # Nested todo controller/service/module
+│   │       ├── todolist/               # Todo-list controller/service/module
+│   │       └── user/                   # Statistics controller/service/module
 │   └── todo-e2e/                      # Cypress specifications
 ├── libs/types/                        # Shared TypeScript types and Zod schemas
 ├── tools/mongodb/                     # MongoDB + mongo-express Compose stack
-├── tools/swagger.yml                  # Served at /api-docs; currently stale
 ├── docs/
 │   └── PLAN.md                        # Authoritative phased implementation plan
 ├── firebase.json                      # Auth/Storage emulator configuration
@@ -216,7 +215,7 @@ The development frontend connects to the Firebase Auth and Storage emulators. Ke
 - **Password reset:** Firebase handles the request. The emulator does not send a real email; inspect the Emulator UI instead.
 - **Emulator users:** view and remove them at `http://localhost:4000/auth`.
 
-After Firebase authentication, the frontend calls `POST /api/auth/provision` to create or link the MongoDB profile. Subsequent requests load that profile through the protected API middleware.
+After Firebase authentication, the frontend calls `POST /api/auth/provision` to create or link the MongoDB profile. Subsequent requests load that profile through the protected API guard.
 
 ## Frontend routes
 
@@ -260,7 +259,7 @@ DELETE /api/users/:userId/todolists/:todolistId/todos/:id
 
 `GET /api/users/:userId/todolists` populates the todos inside each list, so the frontend does not use separate read endpoints for individual todos.
 
-> The running route list above is authoritative. `tools/swagger.yml` still documents removed JWT-era routes (`register`, `login`, `refresh`, and `logout`) and must be synchronized before the Swagger page can be treated as the API contract.
+The generated OpenAPI document at `/api-docs-json` contains exactly these operations; Swagger UI is available at `/api-docs`.
 
 ## Data model
 
@@ -364,11 +363,11 @@ Emulator Suite 15.14.0, and the repository's MongoMemoryServer configuration.
 CI and the package engine remain standardized on Node.js 20.x, where the same
 commands are required to pass:
 
-| Signal | Baseline |
-| --- | ---: |
-| Backend Jest tests | 97 passing |
-| Frontend Jest tests | 0 (the configured target exits successfully) |
-| Image-heavy list payload | 3,658 bytes |
+| Signal                   |                                     Baseline |
+| ------------------------ | -------------------------------------------: |
+| Backend Jest tests       |                                   97 passing |
+| Frontend Jest tests      | 0 (the configured target exits successfully) |
+| Image-heavy list payload |                                  3,658 bytes |
 
 The payload fixture is one populated todo list with ten todos. Each todo stores
 a representative 157-character Firebase Storage download URL. The integration
