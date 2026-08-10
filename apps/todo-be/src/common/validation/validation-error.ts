@@ -9,23 +9,22 @@ export interface ValidationError {
   fields: FieldError[];
 }
 
-export const createValidationError = (errors: { field: string; value: unknown }[]): ValidationError => {
-  return {
-    fields: errors.map(err => ({
-      field: err.field,
-      value: String(err.value ?? '')
-    }))
-  };
-};
+export const createValidationError = (
+  errors: { field: string; value: unknown }[]
+): ValidationError => ({
+  fields: errors.map(({ field, value }) => ({
+    field,
+    value: String(value ?? ''),
+  })),
+});
 
-const valueAtPath = (input: unknown, path: PropertyKey[]): unknown => {
-  return path.reduce<unknown>((value, key) => {
+const valueAtPath = (input: unknown, path: PropertyKey[]): unknown =>
+  path.reduce<unknown>((value, key) => {
     if (value && typeof value === 'object' && key in value) {
       return (value as Record<PropertyKey, unknown>)[key];
     }
     return undefined;
   }, input);
-};
 
 export const createValidationErrorFromZod = (
   error: ZodError,
@@ -33,7 +32,7 @@ export const createValidationErrorFromZod = (
 ): ValidationError =>
   createValidationError(
     error.issues.map((issue) => {
-      const value = issue.path.length === 0 ? '' : valueAtPath(input, issue.path);
+      const value = issue.path.length ? valueAtPath(input, issue.path) : '';
       return {
         field: issue.path.join('.'),
         value:

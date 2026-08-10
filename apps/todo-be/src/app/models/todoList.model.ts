@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, models, Document, Model, Types } from 'mongoose';
 import {
   TodoList,
   TodoItem,
@@ -6,7 +6,7 @@ import {
   TodoListCategory,
 } from '@shared/types';
 
-interface ITodolistDocument
+export interface ITodolistDocument
   extends Omit<
       TodoList,
       'id' | 'userId' | 'dueDate' | 'createdAt' | 'updatedAt'
@@ -20,7 +20,8 @@ interface ITodolistDocument
   notes?: string | null;
 }
 
-const todolistSchema = new Schema<ITodolistDocument>(
+export const TODOLIST_MODEL_NAME = 'Todolist';
+export const todolistSchema = new Schema<ITodolistDocument>(
   {
     name: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -71,4 +72,6 @@ todolistSchema.virtual('todos', {
   foreignField: 'todolistId',
 });
 
-export const Todolist = model<ITodolistDocument>('Todolist', todolistSchema);
+export const Todolist =
+  (models[TODOLIST_MODEL_NAME] as Model<ITodolistDocument>) ||
+  model<ITodolistDocument>(TODOLIST_MODEL_NAME, todolistSchema);

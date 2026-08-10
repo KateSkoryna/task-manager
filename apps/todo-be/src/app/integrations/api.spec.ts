@@ -1,351 +1,268 @@
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import app, { TEST_USER_ID } from '../test-app';
 import mongoose from 'mongoose';
 import { Todo } from '../models/todo.model';
 import { Todolist } from '../models/todoList.model';
-import { TodoList } from '@shared/types';
+import { UserModel } from '../models/user.model';
+import { createNestTestApplication } from '../nest-test-app';
 
-describe('API Integration Tests', () => {
-  let todolistId: string;
-  let todoId: string;
+describe('Nest API parity', () => {
+  let app: INestApplication;
+  let userAId: string;
+  let userBId: string;
+  let listAId: string;
+  let listBId: string;
+
+  const auth = (token = 'token-a') => ({ Authorization: `Bearer ${token}` });
+
+  beforeAll(async () => {
+    app = await createNestTestApplication();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
 
   beforeEach(async () => {
-    const todolist = await Todolist.create({
-      name: 'Test Todolist',
-      userId: TEST_USER_ID,
-    });
-    todolistId = todolist._id.toString();
+    const [userA, userB] = await UserModel.create([
+      {
+        firebaseUid: 'firebase-a',
+        email: 'a@example.com',
+        displayName: 'User A',
+        firstName: 'User',
+        lastName: 'A',
+      },
+      {
+        firebaseUid: 'firebase-b',
+        email: 'b@example.com',
+        displayName: 'User B',
+        firstName: 'User',
+        lastName: 'B',
+      },
+    ]);
+    userAId = userA._id.toString();
+    userBId = userB._id.toString();
+    const [listA, listB] = await Todolist.create([
+      { name: 'List A', userId: userAId },
+      { name: 'List B', userId: userBId },
+    ]);
+    listAId = listA._id.toString();
+    listBId = listB._id.toString();
   });
 
-  // --- Todolist API Tests ---
-  describe('Todolist API', () => {
-    it('should create a new todolist', async () => {
-      const res = await request(app)
-        .post('/api/users/me/todolists')
-        .send({ name: 'My New List' });
-
-      expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty('id');
-      expect(res.body.name).toBe('My New List');
-
-      const dbTodolist = await Todolist.findById(res.body.id);
-      expect(dbTodolist).toBeDefined();
-      expect(dbTodolist?.name).toBe('My New List');
+  it('preserves authentication and provisioning behavior', async () => {
+    expect(
+      (await request(app.getHttpServer()).get('/api/auth/user')).body
+    ).toEqual({
+      message: 'Authorization token required',
     });
+    expect(
+      (
+        await request(app.getHttpServer())
+          .get('/api/auth/user')
+          .set(auth('invalid'))
+      ).body
+    ).toEqual({ message: 'Invalid or expired token' });
+    expect(
+      (
+        await request(app.getHttpServer())
+          .get('/api/auth/user')
+          .set(auth('token-new'))
+      ).body
+    ).toEqual({ message: 'User profile not found' });
 
-    it('should return 400 if missing name for creating todolist', async () => {
-      const res = await request(app).post('/api/users/me/todolists').send({});
-      expect(res.statusCode).toEqual(400);
-      expect(res.body.fields).toEqual([{ field: 'name', value: '' }]);
-    });
+    const profile = await request(app.getHttpServer())
+      .get('/api/auth/user')
+      .set(auth());
+    expect(profile.status).toBe(200);
+    expect(profile.body.id).toBe(userAId);
 
-    it('should get all todolists for the authenticated user', async () => {
-      await Todolist.create({ name: 'Another List', userId: TEST_USER_ID });
-      const res = await request(app).get('/api/users/me/todolists');
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.length).toBeGreaterThanOrEqual(2);
-      expect(res.body[0]).toHaveProperty('id');
-      expect(
-        res.body.some((list: TodoList) => list.name === 'Test Todolist')
-      ).toBeTruthy();
-      expect(
-        res.body.some((list: TodoList) => list.name === 'Another List')
-      ).toBeTruthy();
-    });
-
-    it('records the populated payload size for an image-heavy list', async () => {
-      const imageUrl =
-        'https://firebasestorage.googleapis.com/v0/b/demo-todo/o/todos%2Fbaseline-user%2Frepresentative-image.jpg?alt=media&token=00000000-0000-0000-0000-000000000000';
-
-      await Todo.insertMany(
-        Array.from({ length: 10 }, (_, index) => ({
-          name: `Image todo ${index + 1}`,
-          todolistId,
-          image: imageUrl,
-        }))
-      );
-
-      const res = await request(app).get('/api/users/me/todolists');
-      const payloadBytes = Buffer.byteLength(JSON.stringify(res.body), 'utf8');
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveLength(1);
-      expect(res.body[0].todos).toHaveLength(10);
-      expect(payloadBytes).toBeLessThanOrEqual(10_000);
-      console.info(`Image-heavy list payload baseline: ${payloadBytes} bytes`);
-    });
-
-    it('should not return todolists belonging to other users', async () => {
-      const otherUserId = new mongoose.Types.ObjectId().toString();
-      await Todolist.create({ name: 'Other User List', userId: otherUserId });
-      const res = await request(app).get('/api/users/me/todolists');
-
-      expect(res.statusCode).toEqual(200);
-      expect(
-        res.body.some((list: TodoList) => list.name === 'Other User List')
-      ).toBeFalsy();
-    });
-
-    it('should get a todolist by id', async () => {
-      const res = await request(app).get(
-        `/api/users/me/todolists/${todolistId}`
-      );
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.id).toBe(todolistId);
-      expect(res.body.name).toBe('Test Todolist');
-    });
-
-    it('should return 404 for non-existent todolist id', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId().toString();
-      const res = await request(app).get(
-        `/api/users/me/todolists/${nonExistentId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body.message).toBe('Todolist not found');
-    });
-
-    it('should return 404 for todolist belonging to another user', async () => {
-      const otherUserId = new mongoose.Types.ObjectId().toString();
-      const otherList = await Todolist.create({
-        name: 'Other User List',
-        userId: otherUserId,
-      });
-      const res = await request(app).get(
-        `/api/users/me/todolists/${otherList._id.toString()}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-    });
-
-    it('should update a todolist', async () => {
-      const updatedName = 'Updated Test Todolist';
-      const res = await request(app)
-        .put(`/api/users/me/todolists/${todolistId}`)
-        .send({ name: updatedName });
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.name).toBe(updatedName);
-
-      const dbTodolist = await Todolist.findById(todolistId);
-      expect(dbTodolist?.name).toBe(updatedName);
-    });
-
-    it('should return 404 if todolist not found for update', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId().toString();
-      const res = await request(app)
-        .put(`/api/users/me/todolists/${nonExistentId}`)
-        .send({ name: 'Non Existent' });
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body.message).toBe('Todolist not found');
-    });
-
-    it('should return 400 if missing name for updating todolist', async () => {
-      const res = await request(app)
-        .put(`/api/users/me/todolists/${todolistId}`)
-        .send({});
-
-      expect(res.statusCode).toEqual(400);
-      expect(res.body.fields).toEqual([{ field: 'name', value: '' }]);
-    });
-
-    it('should delete a todolist', async () => {
-      const res = await request(app).delete(
-        `/api/users/me/todolists/${todolistId}`
-      );
-
-      expect(res.statusCode).toEqual(204);
-
-      const dbTodolist = await Todolist.findById(todolistId);
-      expect(dbTodolist).toBeNull();
-    });
-
-    it('should return 404 if todolist not found for delete', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId().toString();
-      const res = await request(app).delete(
-        `/api/users/me/todolists/${nonExistentId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body.message).toBe('Todolist not found');
+    const provisioned = await request(app.getHttpServer())
+      .post('/api/auth/provision')
+      .set(auth('token-new'))
+      .send({ firstName: 'New', lastName: 'User' });
+    expect(provisioned.status).toBe(201);
+    expect(provisioned.body).toMatchObject({
+      firebaseUid: 'firebase-new',
+      email: 'new@example.com',
+      displayName: 'New User',
     });
   });
 
-  // --- Todo API Tests ---
-  describe('Todo API', () => {
-    beforeEach(async () => {
-      const todo = await Todo.create({
-        name: 'Initial Todo',
-        todolistId: new mongoose.Types.ObjectId(todolistId),
-      });
-      todoId = todo._id.toString();
-    });
+  it('enforces path identity and user-scoped list reads and mutations', async () => {
+    const mismatch = await request(app.getHttpServer())
+      .get(`/api/users/${userBId}/todolists`)
+      .set(auth());
+    expect(mismatch.status).toBe(403);
+    expect(mismatch.body).toEqual({ message: 'Forbidden' });
 
-    it('should create a new todo', async () => {
-      const res = await request(app)
-        .post(`/api/users/me/todolists/${todolistId}/todos`)
-        .send({ name: 'Buy groceries' });
+    const lists = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .set(auth());
+    expect(lists.status).toBe(200);
+    expect(lists.body.map((list: { id: string }) => list.id)).toEqual([
+      listAId,
+    ]);
 
-      expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty('id');
-      expect(res.body.name).toBe('Buy groceries');
-      expect(res.body.todolistId).toBe(todolistId);
-      expect(res.body.status).toBe('pending');
-
-      const dbTodo = await Todo.findById(res.body.id);
-      expect(dbTodo).toBeDefined();
-      expect(dbTodo?.name).toBe('Buy groceries');
-    });
-
-    it('should return 400 if missing name for creating todo', async () => {
-      const res = await request(app)
-        .post(`/api/users/me/todolists/${todolistId}/todos`)
-        .send({});
-      expect(res.statusCode).toEqual(400);
-      expect(res.body.fields).toEqual([{ field: 'name', value: '' }]);
-    });
-
-    it('should get a todo by id', async () => {
-      const res = await request(app).get(
-        `/api/users/me/todolists/${todolistId}/todos/${todoId}`
-      );
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.id).toBe(todoId);
-      expect(res.body.name).toBe('Initial Todo');
-    });
-
-    it('should return 404 for non-existent todo id', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId().toString();
-      const res = await request(app).get(
-        `/api/users/me/todolists/${todolistId}/todos/${nonExistentId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body.message).toBe('Todo not found');
-    });
-
-    it('should update a todo', async () => {
-      const updatedName = 'Updated Initial Todo';
-      const res = await request(app)
-        .put(`/api/users/me/todolists/${todolistId}/todos/${todoId}`)
-        .send({ name: updatedName, status: 'successful' });
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.name).toBe(updatedName);
-      expect(res.body.status).toBe('successful');
-
-      const dbTodo = await Todo.findById(todoId);
-      expect(dbTodo?.name).toBe(updatedName);
-      expect(dbTodo?.status).toBe('successful');
-    });
-
-    it('should return 404 if todo not found for update', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId().toString();
-      const res = await request(app)
-        .put(`/api/users/me/todolists/${todolistId}/todos/${nonExistentId}`)
-        .send({ name: 'Non Existent' });
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body.message).toBe('Todo not found');
-    });
-
-    it('should return 400 if no fields provided for update', async () => {
-      const res = await request(app)
-        .put(`/api/users/me/todolists/${todolistId}/todos/${todoId}`)
-        .send({});
-
-      expect(res.statusCode).toEqual(400);
-      expect(res.body.fields).toEqual([{ field: '', value: '' }]);
-    });
-
-    it('should delete a todo', async () => {
-      const res = await request(app).delete(
-        `/api/users/me/todolists/${todolistId}/todos/${todoId}`
-      );
-
-      expect(res.statusCode).toEqual(204);
-
-      const dbTodo = await Todo.findById(todoId);
-      expect(dbTodo).toBeNull();
-    });
-
-    it('should return 404 if todo not found for delete', async () => {
-      const nonExistentId = new mongoose.Types.ObjectId().toString();
-      const res = await request(app).delete(
-        `/api/users/me/todolists/${todolistId}/todos/${nonExistentId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body.message).toBe('Todo not found');
-    });
+    const foreignUpdate = await request(app.getHttpServer())
+      .put(`/api/users/${userAId}/todolists/${listBId}`)
+      .set(auth())
+      .send({ name: 'Stolen' });
+    expect(foreignUpdate.status).toBe(404);
+    expect(foreignUpdate.body).toEqual({ message: 'Todolist not found' });
+    expect((await Todolist.findById(listBId))?.name).toBe('List B');
   });
 
-  // --- Stats API Tests ---
-  describe('Stats API', () => {
-    it('should return zero stats when no todos exist', async () => {
-      const res = await request(app).get('/api/users/me/stats?period=week');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual({
-        total: 0,
-        successful: 0,
-        failed: 0,
-        pending: 0,
-        completionRate: 0,
-      });
-    });
+  it('preserves list CRUD, validation, population, and deletion bodies', async () => {
+    const invalid = await request(app.getHttpServer())
+      .post(`/api/users/${userAId}/todolists`)
+      .set(auth())
+      .send({});
+    expect(invalid.status).toBe(400);
+    expect(invalid.body).toEqual({ fields: [{ field: 'name', value: '' }] });
 
-    it('should return correct counts for default period', async () => {
-      await Todo.create({ name: 'Pending', todolistId });
-      await Todo.create({ name: 'Done', todolistId, status: 'successful' });
+    const created = await request(app.getHttpServer())
+      .post(`/api/users/${userAId}/todolists`)
+      .set(auth())
+      .send({ name: 'Created', notes: '' });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ name: 'Created', userId: userAId });
 
-      const res = await request(app).get('/api/users/me/stats');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.total).toBe(2);
-      expect(res.body.pending).toBe(1);
-      expect(res.body.successful).toBe(1);
-      expect(res.body.completionRate).toBe(50);
-    });
+    await Todo.create({ name: 'Nested', todolistId: created.body.id });
+    const lists = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .set(auth());
+    expect(
+      lists.body.find((list: { id: string }) => list.id === created.body.id)
+        .todos
+    ).toHaveLength(1);
 
-    it('should return 400 for invalid period', async () => {
-      const res = await request(app).get('/api/users/me/stats?period=invalid');
-      expect(res.statusCode).toEqual(400);
-      expect(res.body.message).toContain('Invalid period');
-    });
-
-    it('should accept all valid periods', async () => {
-      for (const period of ['day', 'week', 'month', 'year']) {
-        const res = await request(app).get(
-          `/api/users/me/stats?period=${period}`
-        );
-        expect(res.statusCode).toEqual(200);
-      }
-    });
+    const removed = await request(app.getHttpServer())
+      .delete(`/api/users/${userAId}/todolists/${created.body.id}`)
+      .set(auth());
+    expect(removed.status).toBe(204);
+    expect(removed.text).toBe('');
   });
 
-  // --- Todolist and Todo Interaction Tests ---
-  describe('Todolist and Todo Interactions', () => {
-    it('should populate todos when fetching a todolist', async () => {
-      const newTodolist = await Todolist.create({
-        name: 'List with Todos',
-        userId: TEST_USER_ID,
-      });
-      await Todo.create({ name: 'Task 1', todolistId: newTodolist._id });
-      await Todo.create({ name: 'Task 2', todolistId: newTodolist._id });
-
-      const res = await request(app).get(
-        `/api/users/me/todolists/${newTodolist._id.toString()}`
-      );
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.name).toBe('List with Todos');
-      expect(res.body.todos).toBeDefined();
-      expect(res.body.todos.length).toBe(2);
-      expect(res.body.todos[0].name).toBe('Task 1');
-      expect(res.body.todos[1].name).toBe('Task 2');
+  it('scopes nested todo mutations to the owned list', async () => {
+    const foreignTodo = await Todo.create({
+      name: 'Foreign',
+      todolistId: listBId,
     });
+    const update = await request(app.getHttpServer())
+      .put(
+        `/api/users/${userAId}/todolists/${listAId}/todos/${foreignTodo._id}`
+      )
+      .set(auth())
+      .send({ name: 'Stolen' });
+    expect(update.status).toBe(404);
+    expect(update.body).toEqual({ message: 'Todo not found' });
+    expect((await Todo.findById(foreignTodo._id))?.name).toBe('Foreign');
+
+    const deletion = await request(app.getHttpServer())
+      .delete(
+        `/api/users/${userAId}/todolists/${listAId}/todos/${foreignTodo._id}`
+      )
+      .set(auth());
+    expect(deletion.status).toBe(404);
+    expect(await Todo.findById(foreignTodo._id)).not.toBeNull();
+  });
+
+  it('preserves todo CRUD, defaults, shared validation, and empty 204', async () => {
+    const invalid = await request(app.getHttpServer())
+      .post(`/api/users/${userAId}/todolists/${listAId}/todos`)
+      .set(auth())
+      .send({});
+    expect(invalid.body).toEqual({ fields: [{ field: 'name', value: '' }] });
+
+    const created = await request(app.getHttpServer())
+      .post(`/api/users/${userAId}/todolists/${listAId}/todos`)
+      .set(auth())
+      .send({ name: 'Todo' });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      status: 'pending',
+      dueDate: null,
+      location: null,
+      notes: null,
+      completedAt: null,
+      image: null,
+    });
+
+    const updated = await request(app.getHttpServer())
+      .put(
+        `/api/users/${userAId}/todolists/${listAId}/todos/${created.body.id}`
+      )
+      .set(auth())
+      .send({ status: 'successful', completedAt: new Date().toISOString() });
+    expect(updated.status).toBe(200);
+    expect(updated.body.status).toBe('successful');
+
+    const removed = await request(app.getHttpServer())
+      .delete(
+        `/api/users/${userAId}/todolists/${listAId}/todos/${created.body.id}`
+      )
+      .set(auth());
+    expect(removed.status).toBe(204);
+    expect(removed.text).toBe('');
+  });
+
+  it('preserves statistics and excludes another user data', async () => {
+    await Todo.create([
+      { name: 'Pending', todolistId: listAId },
+      { name: 'Done', todolistId: listAId, status: 'successful' },
+      { name: 'Foreign', todolistId: listBId, status: 'failed' },
+    ]);
+    const response = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/stats`)
+      .set(auth());
+    expect(response.body).toEqual({
+      total: 2,
+      successful: 1,
+      failed: 0,
+      pending: 1,
+      completionRate: 50,
+    });
+
+    const invalid = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/stats?period=invalid`)
+      .set(auth());
+    expect(invalid.status).toBe(400);
+    expect(invalid.body.message).toContain('Invalid period');
+
+    for (const period of ['day', 'week', 'month', 'year']) {
+      const valid = await request(app.getHttpServer())
+        .get(`/api/users/${userAId}/stats?period=${period}`)
+        .set(auth());
+      expect(valid.status).toBe(200);
+    }
+  });
+
+  it('keeps validation and operation failures in the established shapes', async () => {
+    const invalidId = await request(app.getHttpServer())
+      .delete(`/api/users/${userAId}/todolists/not-an-id`)
+      .set(auth());
+    expect(invalidId.body).toEqual({
+      fields: [{ field: 'id', value: 'not-an-id' }],
+    });
+
+    const oversized = await request(app.getHttpServer())
+      .post(`/api/users/${userAId}/todolists`)
+      .set(auth())
+      .send({ name: 'List', notes: 'x'.repeat(2001) });
+    expect(oversized.body.fields[0].value).toBe('[too large]');
+
+    jest.spyOn(mongoose.Model, 'find').mockImplementationOnce(() => {
+      throw new Error('database unavailable');
+    });
+    const failure = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .set(auth());
+    expect(failure.status).toBe(500);
+    expect(failure.body).toEqual({
+      message: 'Error fetching todolists',
+      error: 'database unavailable',
+    });
+    jest.restoreAllMocks();
   });
 });

@@ -799,15 +799,15 @@ The items on the right still have value, but Agile gives greater emphasis to the
 
 ## 7.4 Sequential and Iterative Models Compared
 
-| Topic | Waterfall / V-model | Agile |
-|---|---|---|
-| Flow | Sequential | Iterative and cyclical |
-| Planning | Mostly up front | Repeated each sprint |
-| Customer feedback | Usually later | Frequent |
-| Change handling | Difficult | Expected and supported |
-| Delivery | Often a whole product | Small working increments |
-| Budget predictability | Often easier initially | Can be harder when scope evolves |
-| Testing | Later or mapped to stages | Integrated into each cycle |
+| Topic                 | Waterfall / V-model       | Agile                            |
+| --------------------- | ------------------------- | -------------------------------- |
+| Flow                  | Sequential                | Iterative and cyclical           |
+| Planning              | Mostly up front           | Repeated each sprint             |
+| Customer feedback     | Usually later             | Frequent                         |
+| Change handling       | Difficult                 | Expected and supported           |
+| Delivery              | Often a whole product     | Small working increments         |
+| Budget predictability | Often easier initially    | Can be harder when scope evolves |
+| Testing               | Later or mapped to stages | Integrated into each cycle       |
 
 ## 7.5 Selecting a Methodology
 
@@ -1948,13 +1948,13 @@ A less opinionated framework gives developers more architectural freedom, but th
 
 ## 18.5 Library versus Framework
 
-| Dimension | Library | Framework |
-|---|---|---|
-| Control flow | Application calls library | Framework calls application code |
-| Scope | Usually solves a focused problem | Structures much or all of the application |
-| Flexibility | Generally higher | Generally lower |
-| Adoption | Can often be added for a specific need | Usually selected early because it shapes architecture |
-| Main value | Reuse | Standardization and structure |
+| Dimension    | Library                                | Framework                                             |
+| ------------ | -------------------------------------- | ----------------------------------------------------- |
+| Control flow | Application calls library              | Framework calls application code                      |
+| Scope        | Usually solves a focused problem       | Structures much or all of the application             |
+| Flexibility  | Generally higher                       | Generally lower                                       |
+| Adoption     | Can often be added for a specific need | Usually selected early because it shapes architecture |
+| Main value   | Reuse                                  | Standardization and structure                         |
 
 ---
 
@@ -2332,13 +2332,13 @@ Pseudocode helps technical and non-technical participants agree on behavior. It 
 
 ## 23.5 Flowchart versus Pseudocode
 
-| Dimension | Flowchart | Pseudocode |
-|---|---|---|
-| Form | Visual diagram | Structured text |
-| Best suited to | Small processes and decision flows | Detailed algorithms and larger logic |
-| Accessibility | Highly visual | Closer to implementation |
-| Modification | Can become cumbersome | Usually quick to edit |
-| Language dependence | Independent | Independent |
+| Dimension           | Flowchart                          | Pseudocode                           |
+| ------------------- | ---------------------------------- | ------------------------------------ |
+| Form                | Visual diagram                     | Structured text                      |
+| Best suited to      | Small processes and decision flows | Detailed algorithms and larger logic |
+| Accessibility       | Highly visual                      | Closer to implementation             |
+| Modification        | Can become cumbersome              | Usually quick to edit                |
+| Language dependence | Independent                        | Independent                          |
 
 ## 23.6 From Problem to Code
 
@@ -3435,6 +3435,50 @@ MSW intercepts HTTP requests at the network boundary and returns controlled resp
 `apps/todo/jest.config.ts` collects coverage for the tested frontend components and store and requires at least 70% statement, line, and function coverage, with a 50% branch threshold. CI runs the coverage-enabled Nx test command so regressions fail automatically.
 
 These are component and unit-level tests, not E2E tests. They run quickly without a real browser or deployed services; E2E tests remain responsible for validating the complete application, routing, backend, and infrastructure together.
+
+---
+
+## 34.11 Backend Architecture Concepts Added in Phase 3
+
+### Modules
+
+A Nest `@Module` declares a cohesive unit of controllers, providers, and imports. `AppModule` composes feature modules (`AuthModule`, `TodolistModule`, `TodoModule`, `UserModule`) instead of one file wiring every route and dependency by hand.
+
+### Constructor dependency injection
+
+Controllers and services declare what they need in their constructor; Nest's injector resolves and supplies it. This replaces manually imported singleton repositories and makes substituting a test double as simple as overriding a provider in a testing module.
+
+### Guards
+
+A guard implements `CanActivate` and runs before a route handler to decide whether the request may proceed. `FirebaseTokenGuard` verifies a bearer token; `FirebaseAuthGuard` additionally resolves the MongoDB profile and enforces that the authenticated user matches the requested path. Guards replace ad hoc Express middleware chains with a declarative, testable authorization boundary.
+
+### Custom parameter decorators
+
+`@CurrentUser()` reads the authenticated principal that a guard attached to the request. Handlers receive a typed value instead of casting or reaching into the raw Express request object.
+
+### Pipes
+
+A pipe transforms or validates a single argument before it reaches a handler. `ZodValidationPipe` parses request bodies against the shared Zod schemas from `libs/types`, and `MongoIdPipe` validates route-parameter identifiers, both returning the established client-error shape on failure. Pipes keep validation at the HTTP boundary instead of duplicated inside each controller method.
+
+### Exception filters
+
+A global `HttpExceptionFilter` catches thrown errors once, for every route, and converts them into the application's established response shape. This removed repeated per-controller `try/catch` blocks without changing the observable status codes or bodies clients already depended on.
+
+### Injected Mongoose models
+
+`@InjectModel(TOKEN)` supplies a service with its Mongoose model through `MongooseModule.forFeature`, rather than importing a module-level singleton. This keeps persistence testable through Nest's testing module and avoids duplicate model registration across the application and its tests.
+
+### Nest testing modules
+
+`Test.createTestingModule` assembles a real dependency graph — or one with overridden providers, such as a mocked Firebase Admin app — for both isolated unit tests and full Supertest-driven integration tests. The same technique proved guard, pipe, and cross-user authorization behavior without bypassing the HTTP layer.
+
+### Strangler migration
+
+The backend adopted Nest incrementally: a Nest-first host was established, then each feature area (auth, todo lists, todos, users/statistics) was migrated behind the same routes while an Express fallback still carried unmigrated traffic. Only after every route was proven equivalent were the legacy controllers, middleware, repositories, and the fallback router removed. This pattern lets a live API keep serving traffic throughout a rewrite instead of requiring a single high-risk cutover.
+
+### Generated OpenAPI documentation
+
+`@nestjs/swagger` builds the OpenAPI document from the running application's decorated controllers rather than from a hand-maintained YAML file. A test comparing the generated method/path set against the documented API operations catches drift automatically instead of relying on someone remembering to update a separate spec file.
 
 # 35. Source Files
 
