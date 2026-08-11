@@ -104,7 +104,21 @@ function TasksPage() {
     listUpdates: UpdateTodoList
   ) {
     if (!selectedTask) return;
-    handleEditTodo(selectedTask.todo.id, selectedTask.list.id, todoUpdates);
+    const previousTodo = selectedTask.todo;
+    handleEditTodo(
+      selectedTask.todo.id,
+      selectedTask.list.id,
+      todoUpdates,
+      () => {
+        // Revert the optimistic patch below if the save actually failed,
+        // so a stale (possibly deleted) image URL doesn't linger in the UI.
+        setSelectedTask((prev) =>
+          prev && prev.todo.id === previousTodo.id
+            ? { ...prev, todo: previousTodo }
+            : prev
+        );
+      }
+    );
     handleEditList(selectedTask.list.id, listUpdates);
     setSelectedTask((prev) =>
       prev
