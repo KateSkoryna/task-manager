@@ -29,7 +29,6 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
   const { t } = useTranslation();
   const userId = useAuthStore((s) => s.user?.firebaseUid);
   const [showExtra, setShowExtra] = useState(false);
-  const [image, setImage] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,11 +38,21 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
     handleSubmit,
     reset,
     control,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(todoCreateSchema),
-    defaultValues: { name: '', dueDate: '', location: '', notes: '' },
+    defaultValues: {
+      name: '',
+      dueDate: '',
+      location: '',
+      notes: '',
+      image: null,
+    },
   });
+
+  const image = watch('image');
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,17 +61,17 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
     setImageUploading(true);
     try {
       const url = await uploadImage(file, userId);
-      setImage(url);
+      setValue('image', url, { shouldDirty: true });
     } catch (err) {
       setImageError((err as Error).message);
-      setImage(null);
+      setValue('image', null, { shouldDirty: true });
     } finally {
       setImageUploading(false);
     }
   };
 
   const handleRemoveImage = () => {
-    setImage(null);
+    setValue('image', null, { shouldDirty: true });
     setImageError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -72,11 +81,10 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
     if (data.dueDate) opts.dueDate = data.dueDate;
     if (data.location?.trim()) opts.location = data.location.trim();
     if (data.notes?.trim()) opts.notes = data.notes.trim();
-    if (image) opts.image = image;
+    if (data.image) opts.image = data.image;
     onAddTodo(data.name.trim(), Object.keys(opts).length ? opts : undefined);
     reset();
     setShowExtra(false);
-    setImage(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
