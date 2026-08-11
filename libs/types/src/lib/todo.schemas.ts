@@ -5,17 +5,42 @@ import { dateFieldSchema, optionalTextSchema } from './common.schemas';
 
 const MAX_LOCATION_LENGTH = 200;
 const MAX_NOTES_LENGTH = 2000;
-const MAX_IMAGE_LENGTH = 7_000_000;
+const MAX_IMAGE_URL_LENGTH = 2048;
+const FIREBASE_STORAGE_HOST = 'firebasestorage.googleapis.com';
+const LOCAL_EMULATOR_HOSTS = new Set(['127.0.0.1', 'localhost']);
+
+const isFirebaseStorageUrl = (value: string): boolean => {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.hostname === FIREBASE_STORAGE_HOST) {
+    return url.protocol === 'https:';
+  }
+  return (
+    LOCAL_EMULATOR_HOSTS.has(url.hostname) &&
+    (url.protocol === 'http:' || url.protocol === 'https:')
+  );
+};
 
 const optionalImage = z
-  .union([z.string().max(MAX_IMAGE_LENGTH), z.literal('')])
+  .union([
+    z.string().trim().max(MAX_IMAGE_URL_LENGTH).refine(isFirebaseStorageUrl, {
+      message: 'Image must be a Firebase Storage URL, not raw image data',
+    }),
+    z.literal(''),
+  ])
   .nullable()
   .optional()
   .transform((value) => (value === '' ? null : value));
 
 const todoFields = {
   name: z.string().trim().min(1, 'Name is required'),
-  status: z.enum(['pending', 'successful', 'failed'] as [TodoStatus, ...TodoStatus[]]).optional(),
+  status: z
+    .enum(['pending', 'successful', 'failed'] as [TodoStatus, ...TodoStatus[]])
+    .optional(),
   dueDate: dateFieldSchema,
   location: optionalTextSchema(MAX_LOCATION_LENGTH),
   notes: optionalTextSchema(MAX_NOTES_LENGTH),
@@ -28,7 +53,11 @@ const addCompletionRules = (
   context: z.RefinementCtx,
   requireStatus: boolean
 ) => {
-  if (data.status === 'successful' && data.completedAt == null && requireStatus) {
+  if (
+    data.status === 'successful' &&
+    data.completedAt == null &&
+    requireStatus
+  ) {
     context.addIssue({
       code: 'custom',
       path: ['completedAt'],
@@ -38,7 +67,9 @@ const addCompletionRules = (
 
   if (
     data.completedAt != null &&
-    (requireStatus ? data.status !== 'successful' : data.status != null && data.status !== 'successful')
+    (requireStatus
+      ? data.status !== 'successful'
+      : data.status != null && data.status !== 'successful')
   ) {
     context.addIssue({
       code: 'custom',

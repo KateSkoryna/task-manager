@@ -90,12 +90,21 @@ export const useTodoListsData = () => {
   const handleEditTodo = (
     id: string,
     todolistId: string,
-    updates: UpdateTodoItem
+    updates: UpdateTodoItem,
+    onError?: () => void
   ) => {
     const oldImage = todoLists
       ?.flatMap((list) => list.todos)
       .find((t) => t.id === id)?.image;
-    editTodoMutation.mutate({ id, todolistId, oldImage, ...updates });
+    editTodoMutation.mutate(
+      { id, todolistId, oldImage, ...updates },
+      {
+        onError: (err) => {
+          console.error(`Failed to save edits for todo ${id}:`, err);
+          onError?.();
+        },
+      }
+    );
   };
 
   return {

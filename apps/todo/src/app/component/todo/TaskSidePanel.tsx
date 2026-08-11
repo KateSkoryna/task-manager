@@ -41,6 +41,7 @@ type EditFormValues = {
   listName: string;
   priority: TodoListPriority | '';
   category: TodoListCategory | '';
+  image: string | null;
 };
 
 export function TodoEditPanel({
@@ -56,13 +57,19 @@ export function TodoEditPanel({
 }) {
   const { t } = useTranslation();
   const userId = useAuthStore((s) => s.user?.firebaseUid);
-  const [editImage, setEditImage] = useState<string | null>(todo.image ?? null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, control } = useForm<EditFormValues>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    formState: { dirtyFields },
+  } = useForm<EditFormValues>({
     defaultValues: {
       name: todo.name,
       status: todo.status,
@@ -72,8 +79,11 @@ export function TodoEditPanel({
       listName: list.name,
       priority: list.priority ?? '',
       category: list.category ?? '',
+      image: todo.image ?? null,
     },
   });
+
+  const editImage = watch('image');
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,7 +92,7 @@ export function TodoEditPanel({
     setImageUploading(true);
     try {
       const url = await uploadImage(file, userId);
-      setEditImage(url);
+      setValue('image', url, { shouldDirty: true });
     } catch (err) {
       setImageError((err as Error).message);
     } finally {
@@ -91,7 +101,7 @@ export function TodoEditPanel({
   };
 
   const handleRemoveImage = () => {
-    setEditImage(null);
+    setValue('image', null, { shouldDirty: true });
     setImageError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -103,7 +113,7 @@ export function TodoEditPanel({
       dueDate: data.dueDate || null,
       location: data.location.trim() || null,
       notes: data.notes.trim() || null,
-      image: editImage,
+      ...(dirtyFields.image ? { image: data.image } : {}),
     });
     const listResult = todolistUpdateSchema.safeParse({
       name: data.listName.trim() || list.name,

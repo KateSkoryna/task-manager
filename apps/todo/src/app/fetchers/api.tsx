@@ -101,7 +101,19 @@ export const useAddTodoMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todoLists', user?.id] });
     },
-    onError: (err) => console.error('Error creating todo:', err),
+    onError: async (err, { image }) => {
+      console.error('Error creating todo:', err);
+      if (image) {
+        try {
+          await deleteObject(ref(storage, image));
+        } catch (cleanupErr) {
+          console.error(
+            'Failed to delete orphaned image from storage:',
+            cleanupErr
+          );
+        }
+      }
+    },
   });
 };
 
@@ -142,7 +154,7 @@ export const useEditTodoMutation = () => {
     mutationFn: ({ id, todolistId, oldImage: _, ...updates }) =>
       updateTodoFetcher(id, todolistId, user!.id, updates),
     onSuccess: async (_, { oldImage, image }) => {
-      if (oldImage && oldImage !== image) {
+      if (oldImage && image !== undefined && oldImage !== image) {
         try {
           await deleteObject(ref(storage, oldImage));
         } catch (err) {
@@ -151,7 +163,19 @@ export const useEditTodoMutation = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['todoLists', user?.id] });
     },
-    onError: (err) => console.error('Error editing todo:', err),
+    onError: async (err, { oldImage, image }) => {
+      console.error('Error editing todo:', err);
+      if (image && image !== oldImage) {
+        try {
+          await deleteObject(ref(storage, image));
+        } catch (cleanupErr) {
+          console.error(
+            'Failed to delete orphaned image from storage:',
+            cleanupErr
+          );
+        }
+      }
+    },
   });
 };
 
