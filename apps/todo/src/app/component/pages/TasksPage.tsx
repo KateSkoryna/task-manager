@@ -93,8 +93,8 @@ function TasksPage() {
     setIsEditing(true);
   }
 
-  function handleDeleteSelectedTodo(id: string, listId: string) {
-    handleDeleteTodo(id, listId);
+  function handleDeleteSelectedTodo(id: string) {
+    handleDeleteTodo(id);
     setSelectedTask(null);
     setIsEditing(false);
   }
@@ -105,20 +105,15 @@ function TasksPage() {
   ) {
     if (!selectedTask) return;
     const previousTodo = selectedTask.todo;
-    handleEditTodo(
-      selectedTask.todo.id,
-      selectedTask.list.id,
-      todoUpdates,
-      () => {
-        // Revert the optimistic patch below if the save actually failed,
-        // so a stale (possibly deleted) image URL doesn't linger in the UI.
-        setSelectedTask((prev) =>
-          prev && prev.todo.id === previousTodo.id
-            ? { ...prev, todo: previousTodo }
-            : prev
-        );
-      }
-    );
+    handleEditTodo(selectedTask.todo.id, todoUpdates, () => {
+      // Revert the optimistic patch below if the save actually failed,
+      // so a stale (possibly deleted) image URL doesn't linger in the UI.
+      setSelectedTask((prev) =>
+        prev && prev.todo.id === previousTodo.id
+          ? { ...prev, todo: previousTodo }
+          : prev
+      );
+    });
     handleEditList(selectedTask.list.id, listUpdates);
     setSelectedTask((prev) =>
       prev
@@ -192,9 +187,7 @@ function TasksPage() {
             <TaskDetailPanel
               todo={selectedTask.todo}
               list={selectedTask.list}
-              onDelete={(id) =>
-                handleDeleteSelectedTodo(id, selectedTask.list.id)
-              }
+              onDelete={(id) => handleDeleteSelectedTodo(id)}
               onStartEdit={() => setIsEditing(true)}
             />
           )
