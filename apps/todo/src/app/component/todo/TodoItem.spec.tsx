@@ -10,6 +10,7 @@ const makeTodo = (
   name: 'Write tests',
   status,
   todolistId: 'l',
+  order: 0,
   ...extra,
 });
 describe('TodoItem', () => {
