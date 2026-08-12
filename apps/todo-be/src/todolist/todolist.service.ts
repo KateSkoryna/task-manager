@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import {
+  PaginatedResult,
+  PaginationQuery,
   TodoList,
   TodolistCreateInput,
   TodolistUpdateInput,
@@ -19,10 +21,26 @@ export class TodolistService {
     private readonly todolistModel: Model<ITodolistDocument>
   ) {}
 
-  findAll(userId: string): Promise<TodoList[]> {
+  findAll(
+    userId: string,
+    { cursor, limit }: PaginationQuery
+  ): Promise<PaginatedResult<TodoList>> {
     return executeOperation('Error fetching todolists', async () => {
-      const docs = await this.todolistModel.find({ userId }).populate('todos');
-      return docs.map((doc) => doc.toJSON() as TodoList);
+      const filter: FilterQuery<ITodolistDocument> = { userId };
+      if (cursor) filter._id = { $gt: new Types.ObjectId(cursor) };
+
+      const docs = await this.todolistModel
+        .find(filter)
+        .sort({ _id: 1 })
+        .limit(limit + 1)
+        .populate('todos');
+
+      const hasMore = docs.length > limit;
+      const page = hasMore ? docs.slice(0, limit) : docs;
+      return {
+        items: page.map((doc) => doc.toJSON() as TodoList),
+        nextCursor: hasMore ? String(page[page.length - 1]._id) : null,
+      };
     });
   }
 

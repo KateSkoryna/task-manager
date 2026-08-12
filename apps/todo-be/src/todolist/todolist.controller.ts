@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,10 +16,12 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import {
+  PaginationQuery,
   TodolistCreateInput,
   TodolistUpdateInput,
   todolistCreateSchema,
@@ -29,6 +32,7 @@ import { AuthenticatedUser } from '../auth/authenticated-user';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { zodToApiSchema } from '../common/openapi/zod-schema';
 import { MongoIdPipe } from '../common/pipes/mongo-id.pipe';
+import { PaginationQueryPipe } from '../common/pipes/pagination-query.pipe';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { TodolistService } from './todolist.service';
 
@@ -42,12 +46,23 @@ export class TodolistController {
   @Get()
   @ApiOperation({ summary: 'List the authenticated user todo lists' })
   @ApiParam({ name: 'userId' })
+  @ApiQuery({ name: 'cursor', required: false })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({
     status: 200,
-    schema: { type: 'array', items: { type: 'object' } },
+    schema: {
+      type: 'object',
+      properties: {
+        items: { type: 'array', items: { type: 'object' } },
+        nextCursor: { type: 'string', nullable: true },
+      },
+    },
   })
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.todolistService.findAll(user.id);
+  findAll(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query(new PaginationQueryPipe()) query: PaginationQuery
+  ) {
+    return this.todolistService.findAll(user.id, query);
   }
 
   @Post()

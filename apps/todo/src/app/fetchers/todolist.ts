@@ -1,4 +1,5 @@
 import {
+  MAX_PAGE_SIZE,
   TodoList as TodoListType,
   TodoItem as TodoItemType,
   TodoListPriority,
@@ -16,8 +17,11 @@ export type CreateTodoListOpts = {
 export const getTodoListsFetcher = async (
   userId: string
 ): Promise<TodoListType[]> => {
-  const { data } = await apiClient.get(`/users/${userId}/todolists`);
-  return data;
+  const { data } = await apiClient.get<{ items: TodoListType[] }>(
+    `/users/${userId}/todolists`,
+    { params: { limit: MAX_PAGE_SIZE } }
+  );
+  return data.items;
 };
 
 export const createTodoListFetcher = async (
