@@ -13,6 +13,10 @@ const EXPECTED = [
   'POST /api/users/{userId}/todolists/{todolistId}/todos',
   'PUT /api/users/{userId}/todolists/{todolistId}/todos/{id}',
   'DELETE /api/users/{userId}/todolists/{todolistId}/todos/{id}',
+  'GET /api/users/{userId}/todos/inbox',
+  'POST /api/users/{userId}/todos',
+  'PUT /api/users/{userId}/todos/{id}',
+  'DELETE /api/users/{userId}/todos/{id}',
 ].sort();
 
 describe('generated OpenAPI document', () => {
@@ -24,7 +28,7 @@ describe('generated OpenAPI document', () => {
 
   afterAll(async () => app.close());
 
-  it('documents exactly the ten authoritative operations with bearer security', () => {
+  it('documents exactly the fourteen authoritative operations with bearer security', () => {
     const document = createOpenApiDocument(app);
     const operations = Object.entries(document.paths)
       .flatMap(([path, item]) =>
