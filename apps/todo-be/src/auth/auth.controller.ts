@@ -13,6 +13,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import {
+  AUTH_THROTTLE_LIMIT,
+  AUTH_THROTTLE_TTL_MS,
+} from '../common/config/throttle.config';
 import {
   CurrentFirebaseUser,
   CurrentUser,
@@ -24,6 +29,9 @@ import { FirebaseTokenGuard } from './firebase-token.guard';
 
 @ApiTags('auth')
 @ApiBearerAuth()
+@Throttle({
+  default: { limit: AUTH_THROTTLE_LIMIT, ttl: AUTH_THROTTLE_TTL_MS },
+})
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
