@@ -3480,6 +3480,46 @@ The backend adopted Nest incrementally: a Nest-first host was established, then 
 
 `@nestjs/swagger` builds the OpenAPI document from the running application's decorated controllers rather than from a hand-maintained YAML file. A test comparing the generated method/path set against the documented API operations catches drift automatically instead of relying on someone remembering to update a separate spec file.
 
+---
+
+## 34.12 API Hardening and Observability Concepts Added in Phase 5
+
+### HTTP security headers
+
+Helmet applies a set of security-related HTTP response headers — Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, and others — with sensible defaults. `app.use(helmet())` in `bootstrap.ts` wires this in ahead of routing, so every response carries these headers without each controller opting in individually.
+
+### CORS policy
+
+Cross-Origin Resource Sharing controls which browser origins may call the API. `resolveCorsOrigin()` reads a comma-separated `CORS_ORIGIN` allowlist from the environment; in local development an unset value falls back to allowing any origin, but the application refuses to start with `NODE_ENV=production` and no origin configured, so a permissive default cannot silently ship to production.
+
+### Rate limiting (throttling)
+
+`@nestjs/throttler` tracks request counts per client within a rolling time window and rejects requests over the limit with `429 Too Many Requests`. A single named `default` throttler is registered globally through `APP_GUARD`, and `AuthController` overrides it with a stricter limit via `@Throttle({ default: { limit, ttl } })`, protecting the highest-risk routes without penalizing the rest of the API.
+
+### Structured logging with Pino
+
+`nestjs-pino`'s `LoggerModule` replaces Nest's default text logger with structured JSON output and `app.useLogger()` routes the framework's own internal logs through it too. Each log line carries a level, timestamp, and context, which is what makes production logs searchable and machine-parseable instead of free-text strings.
+
+### Correlation IDs (request IDs)
+
+Every request is assigned an ID — reused from an incoming `X-Request-Id` header when it matches a safe format, otherwise generated with `randomUUID()` — echoed back in the `X-Request-Id` response header and attached to every log line for that request via `pino-http`'s `genReqId`. `HttpExceptionFilter` reads the same ID off the request and includes it in every error response body, so a user-reported error can be traced directly to its server-side log lines.
+
+### Log redaction
+
+Pino's `redact` option strips configured paths (`req.headers.authorization`, `req.headers.cookie`) from log output before it is written, and a custom `req` serializer additionally limits what gets logged to `id`, `method`, and `url` — so request bodies and headers, which could contain credentials or personal data, never reach the logs in the first place.
+
+### Cursor-based pagination
+
+Offset pagination (`skip`/`limit`) degrades as a collection grows and can skip or repeat rows when records are inserted between pages. Cursor pagination instead orders by a stable, indexed field — here, MongoDB's `_id` — and asks for records strictly after the last-seen cursor. `TodolistService.findAll` fetches `limit + 1` documents, returns `{ items, nextCursor }`, and `nextCursor` comes back `null` once a page is short — giving callers a bounded, stable way to page through an arbitrarily large list.
+
+### Graceful shutdown
+
+`app.enableShutdownHooks()` lets Nest run each module's `onModuleDestroy` lifecycle hook when the process receives a termination signal, closing database connections and finishing in-flight work instead of dropping them when the process is killed — important on platforms like Render that send `SIGTERM` before stopping a container.
+
+### Health and readiness checks
+
+Liveness (`GET /api/health/live`) answers "is the process running," while readiness (`GET /api/health/ready`) answers "can it currently serve traffic" — here, by checking the Mongoose connection state and returning `503` if the database isn't connected. Deployment platforms poll the readiness endpoint to decide whether to route traffic to an instance or restart it; the distinction matters because a live-but-not-ready instance, such as one still connecting to the database at startup, should not receive requests yet but also should not be killed.
+
 # 35. Source Files
 
 This guide was created from the following supplied transcript files:
