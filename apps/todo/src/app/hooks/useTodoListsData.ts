@@ -61,7 +61,7 @@ export const useTodoListsData = () => {
     addTodoMutation.mutate({ todolistId, name, ...opts });
   };
 
-  const handleToggleTodo = (id: string, todolistId: string) => {
+  const handleToggleTodo = (id: string) => {
     const todo = todoLists
       ?.flatMap((list) => list.todos)
       .find((t) => t.id === id);
@@ -69,18 +69,17 @@ export const useTodoListsData = () => {
       const status = todo.status === 'successful' ? 'pending' : 'successful';
       toggleTodoMutation.mutate({
         id,
-        todolistId,
         status,
         completedAt: status === 'successful' ? new Date().toISOString() : null,
       });
     }
   };
 
-  const handleDeleteTodo = (id: string, todolistId: string) => {
+  const handleDeleteTodo = (id: string) => {
     const image = todoLists
       ?.flatMap((list) => list.todos)
       .find((t) => t.id === id)?.image;
-    deleteTodoMutation.mutate({ id, todolistId, image });
+    deleteTodoMutation.mutate({ id, image });
   };
 
   const handleEditList = (todolistId: string, updates: UpdateTodoList) => {
@@ -89,7 +88,6 @@ export const useTodoListsData = () => {
 
   const handleEditTodo = (
     id: string,
-    todolistId: string,
     updates: UpdateTodoItem,
     onError?: () => void
   ) => {
@@ -97,7 +95,7 @@ export const useTodoListsData = () => {
       ?.flatMap((list) => list.todos)
       .find((t) => t.id === id)?.image;
     editTodoMutation.mutate(
-      { id, todolistId, oldImage, ...updates },
+      { id, oldImage, ...updates },
       {
         onError: (err) => {
           console.error(`Failed to save edits for todo ${id}:`, err);
