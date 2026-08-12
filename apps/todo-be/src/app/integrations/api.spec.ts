@@ -55,6 +55,7 @@ describe('Nest API parity', () => {
       (await request(app.getHttpServer()).get('/api/auth/user')).body
     ).toEqual({
       message: 'Authorization token required',
+      requestId: expect.any(String),
     });
     expect(
       (
@@ -62,14 +63,20 @@ describe('Nest API parity', () => {
           .get('/api/auth/user')
           .set(auth('invalid'))
       ).body
-    ).toEqual({ message: 'Invalid or expired token' });
+    ).toEqual({
+      message: 'Invalid or expired token',
+      requestId: expect.any(String),
+    });
     expect(
       (
         await request(app.getHttpServer())
           .get('/api/auth/user')
           .set(auth('token-new'))
       ).body
-    ).toEqual({ message: 'User profile not found' });
+    ).toEqual({
+      message: 'User profile not found',
+      requestId: expect.any(String),
+    });
 
     const profile = await request(app.getHttpServer())
       .get('/api/auth/user')
@@ -94,22 +101,29 @@ describe('Nest API parity', () => {
       .get(`/api/users/${userBId}/todolists`)
       .set(auth());
     expect(mismatch.status).toBe(403);
-    expect(mismatch.body).toEqual({ message: 'Forbidden' });
+    expect(mismatch.body).toEqual({
+      message: 'Forbidden',
+      requestId: expect.any(String),
+    });
 
     const lists = await request(app.getHttpServer())
       .get(`/api/users/${userAId}/todolists`)
       .set(auth());
     expect(lists.status).toBe(200);
-    expect(lists.body.map((list: { id: string }) => list.id)).toEqual([
+    expect(lists.body.items.map((list: { id: string }) => list.id)).toEqual([
       listAId,
     ]);
+    expect(lists.body.nextCursor).toBeNull();
 
     const foreignUpdate = await request(app.getHttpServer())
       .put(`/api/users/${userAId}/todolists/${listBId}`)
       .set(auth())
       .send({ name: 'Stolen' });
     expect(foreignUpdate.status).toBe(404);
-    expect(foreignUpdate.body).toEqual({ message: 'Todolist not found' });
+    expect(foreignUpdate.body).toEqual({
+      message: 'Todolist not found',
+      requestId: expect.any(String),
+    });
     expect((await Todolist.findById(listBId))?.name).toBe('List B');
   });
 
@@ -119,7 +133,10 @@ describe('Nest API parity', () => {
       .set(auth())
       .send({});
     expect(invalid.status).toBe(400);
-    expect(invalid.body).toEqual({ fields: [{ field: 'name', value: '' }] });
+    expect(invalid.body).toEqual({
+      fields: [{ field: 'name', value: '' }],
+      requestId: expect.any(String),
+    });
 
     const created = await request(app.getHttpServer())
       .post(`/api/users/${userAId}/todolists`)
@@ -133,8 +150,9 @@ describe('Nest API parity', () => {
       .get(`/api/users/${userAId}/todolists`)
       .set(auth());
     expect(
-      lists.body.find((list: { id: string }) => list.id === created.body.id)
-        .todos
+      lists.body.items.find(
+        (list: { id: string }) => list.id === created.body.id
+      ).todos
     ).toHaveLength(1);
 
     const removed = await request(app.getHttpServer())
@@ -156,7 +174,10 @@ describe('Nest API parity', () => {
       .set(auth())
       .send({ name: 'Stolen' });
     expect(update.status).toBe(404);
-    expect(update.body).toEqual({ message: 'Todo not found' });
+    expect(update.body).toEqual({
+      message: 'Todo not found',
+      requestId: expect.any(String),
+    });
     expect((await Todo.findById(foreignTodo._id))?.name).toBe('Foreign');
 
     const deletion = await request(app.getHttpServer())
@@ -173,7 +194,10 @@ describe('Nest API parity', () => {
       .post(`/api/users/${userAId}/todolists/${listAId}/todos`)
       .set(auth())
       .send({});
-    expect(invalid.body).toEqual({ fields: [{ field: 'name', value: '' }] });
+    expect(invalid.body).toEqual({
+      fields: [{ field: 'name', value: '' }],
+      requestId: expect.any(String),
+    });
 
     const created = await request(app.getHttpServer())
       .post(`/api/users/${userAId}/todolists/${listAId}/todos`)
@@ -244,6 +268,7 @@ describe('Nest API parity', () => {
       .set(auth());
     expect(invalidId.body).toEqual({
       fields: [{ field: 'id', value: 'not-an-id' }],
+      requestId: expect.any(String),
     });
 
     const oversized = await request(app.getHttpServer())
@@ -262,7 +287,52 @@ describe('Nest API parity', () => {
     expect(failure.body).toEqual({
       message: 'Error fetching todolists',
       error: 'database unavailable',
+      requestId: expect.any(String),
     });
     jest.restoreAllMocks();
+  });
+
+  it('paginates todolists with a stable cursor and rejects invalid cursors', async () => {
+    const extraLists = await Todolist.create(
+      Array.from({ length: 4 }, (_, index) => ({
+        name: `List A${index + 2}`,
+        userId: userAId,
+      }))
+    );
+    const expectedOrder = [
+      listAId,
+      ...extraLists.map((list) => list._id.toString()),
+    ];
+
+    const collected: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await request(app.getHttpServer())
+        .get(`/api/users/${userAId}/todolists`)
+        .query({ limit: 2, ...(cursor ? { cursor } : {}) })
+        .set(auth());
+      expect(page.status).toBe(200);
+      expect(page.body.items.length).toBeLessThanOrEqual(2);
+      collected.push(...page.body.items.map((list: { id: string }) => list.id));
+      cursor = page.body.nextCursor;
+    } while (cursor);
+
+    expect(collected).toEqual(expectedOrder);
+
+    const invalidCursor = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .query({ cursor: 'not-an-id' })
+      .set(auth());
+    expect(invalidCursor.status).toBe(400);
+    expect(invalidCursor.body).toEqual({
+      fields: [{ field: 'cursor', value: 'not-an-id' }],
+      requestId: expect.any(String),
+    });
+
+    const invalidLimit = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .query({ limit: 0 })
+      .set(auth());
+    expect(invalidLimit.status).toBe(400);
   });
 });
