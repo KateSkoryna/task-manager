@@ -6,6 +6,7 @@ services:
     plan: free
     buildCommand: npm install && npx nx build todo-be --configuration=production
     startCommand: node dist/apps/todo-be/main.js
+    healthCheckPath: /api/health/ready
     envVars:
       - key: EMAIL_PROVIDER
         value: resend
@@ -15,3 +16,7 @@ services:
         sync: false
       - key: PORT
         value: 3333
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGIN
+        sync: false

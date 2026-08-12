@@ -56,6 +56,9 @@ npm run serve:fe
 - Backend unit/integration coverage and an authenticated Cypress smoke flow.
 - GitHub Actions checks for lint, typecheck, unit tests, coverage collection,
   production builds, and the authenticated Cypress smoke flow.
+- Security headers, CORS policy, configurable rate limiting on auth routes,
+  structured JSON request logging with request IDs and redaction, bounded
+  cursor pagination for todo lists, and liveness/readiness health checks.
 
 ### Not yet complete
 
@@ -64,7 +67,6 @@ npm run serve:fe
 - API documentation is generated from the NestJS application and served with Swagger UI.
 - Firebase Storage reads are public; writes are restricted to the authenticated user's path.
 - Gemini is installed but no AI feature is connected to the application.
-- Rate limiting, security headers, structured request logging, and pagination are planned rather than shipped.
 
 [`docs/PLAN.md`](docs/PLAN.md) is the source of truth for shipped status, planned work, priorities, and acceptance criteria.
 
@@ -196,6 +198,14 @@ FIREBASE_PRIVATE_KEY=""
 
 # Route Firebase Admin authentication calls to the local emulator
 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
+
+# API hardening (all optional in development; CORS_ORIGIN is required when NODE_ENV=production)
+CORS_ORIGIN=
+LOG_LEVEL=info
+THROTTLE_TTL_MS=60000
+THROTTLE_LIMIT=300
+AUTH_THROTTLE_TTL_MS=60000
+AUTH_THROTTLE_LIMIT=10
 ```
 
 Notes:
@@ -205,6 +215,7 @@ Notes:
 - Store a multiline private key with escaped newlines (`\\n`); the backend converts them at startup.
 - `FIREBASE_AUTH_EMULATOR_HOST` is for local development. Do not set it in production.
 - The Firebase Storage emulator is selected by frontend code whenever `environment.production` is `false`.
+- `CORS_ORIGIN` accepts a comma-separated list of allowed origins; leave unset to allow all origins in local development. The backend refuses to start with `NODE_ENV=production` and no `CORS_ORIGIN` set.
 
 ## Local authentication
 
