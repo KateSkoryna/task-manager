@@ -41,11 +41,13 @@ const todoFields = {
   status: z
     .enum(['pending', 'successful', 'failed'] as [TodoStatus, ...TodoStatus[]])
     .optional(),
+  todolistId: z.string().nullable().optional(),
   dueDate: dateFieldSchema,
   location: optionalTextSchema(MAX_LOCATION_LENGTH),
   notes: optionalTextSchema(MAX_NOTES_LENGTH),
   completedAt: dateFieldSchema,
   image: optionalImage,
+  order: z.number().optional(),
 };
 
 const addCompletionRules = (
