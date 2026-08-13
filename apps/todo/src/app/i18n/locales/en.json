@@ -66,7 +66,14 @@
     "status": "Status:",
     "relativeToday": "Today",
     "relativeDayAgo": "1 day ago",
-    "relativeDaysAgo": "{{count}} days ago"
+    "relativeDaysAgo": "{{count}} days ago",
+    "weekStrip": "Select a day",
+    "todayCompletion": "Today's Completion",
+    "topPriority": "Top Priority Today",
+    "noTopPriority": "No high-priority tasks due today.",
+    "inboxCount": "{{count}} in Inbox",
+    "quickAddPlaceholder": "Quick add to Inbox…",
+    "quickAdd": "Add"
   },
   "tasks": {
     "myTasks": "My Tasks",

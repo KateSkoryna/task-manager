@@ -66,7 +66,14 @@
     "status": "Статус:",
     "relativeToday": "Сьогодні",
     "relativeDayAgo": "1 день тому",
-    "relativeDaysAgo": "{{count}} дні тому"
+    "relativeDaysAgo": "{{count}} дні тому",
+    "weekStrip": "Оберіть день",
+    "todayCompletion": "Виконання за сьогодні",
+    "topPriority": "Головні пріоритети на сьогодні",
+    "noTopPriority": "Немає пріоритетних завдань на сьогодні.",
+    "inboxCount": "{{count}} у вхідних",
+    "quickAddPlaceholder": "Швидко додати до вхідних…",
+    "quickAdd": "Додати"
   },
   "tasks": {
     "myTasks": "Мої завдання",

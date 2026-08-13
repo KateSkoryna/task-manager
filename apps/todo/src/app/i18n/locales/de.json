@@ -66,7 +66,14 @@
     "status": "Status:",
     "relativeToday": "Heute",
     "relativeDayAgo": "vor einem Tag",
-    "relativeDaysAgo": "vor {{count}} Tagen"
+    "relativeDaysAgo": "vor {{count}} Tagen",
+    "weekStrip": "Tag auswählen",
+    "todayCompletion": "Heutiger Fortschritt",
+    "topPriority": "Top-Priorität heute",
+    "noTopPriority": "Keine hochprioritären Aufgaben für heute.",
+    "inboxCount": "{{count}} im Posteingang",
+    "quickAddPlaceholder": "Schnell zum Posteingang hinzufügen…",
+    "quickAdd": "Hinzufügen"
   },
   "tasks": {
     "myTasks": "Meine Aufgaben",
