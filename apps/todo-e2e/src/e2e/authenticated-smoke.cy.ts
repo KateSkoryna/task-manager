@@ -60,7 +60,14 @@ describe('Authenticated todo smoke flow', () => {
       .contains('div[data-testid^="todo-item-"]', todoName)
       .click();
     cy.get('button[aria-label="Edit task"]').last().click();
-    cy.get('select[data-testid^="edit-todo-status-"]').select('successful');
+    const statusSummary = 'summary[data-testid^="edit-todo-status-"]';
+    cy.get(statusSummary).focus();
+    cy.get(statusSummary).should('have.focus');
+    cy.get(statusSummary).type('{enter}');
+    cy.contains('button', 'Completed').should('be.visible');
+    cy.contains('button', 'Completed').focus();
+    cy.contains('button', 'Completed').should('have.focus');
+    cy.contains('button', 'Completed').type('{enter}');
     cy.get('button[data-testid^="save-todo-edit-button-"]').click();
     cy.contains('div[data-testid^="todo-item-"]', todoName).should(
       'contain.text',

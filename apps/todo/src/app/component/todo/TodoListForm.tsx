@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
 import Text from '../elements/Text';
-import DetailsSelect from '../elements/DetailsSelect';
+import Dropdown from '../elements/Dropdown';
 import DatePickerInput from '../elements/DatePickerInput';
 
 type TodoListFormOpts = {
@@ -142,8 +142,8 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label
+              id="list-priority-label"
               className="text-sm font-medium text-dark-bg"
-              htmlFor="list-priority"
             >
               {t('todoListForm.priority')}
             </label>
@@ -151,11 +151,15 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
               name="priority"
               control={control}
               render={({ field }) => (
-                <DetailsSelect
+                <Dropdown
                   id="list-priority"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
+                  ariaLabelledby="list-priority-label"
+                  value={field.value || null}
+                  onChange={(value: TodoListPriority | null) =>
+                    field.onChange(value ?? '')
+                  }
                   options={priorityOptions}
+                  nullOption={{ label: t('todoListForm.noPriority') }}
                   placeholder={t('todoListForm.noPriority')}
                 />
               )}
@@ -164,8 +168,8 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
 
           <div className="flex flex-col gap-1">
             <label
+              id="list-category-label"
               className="text-sm font-medium text-dark-bg"
-              htmlFor="list-category"
             >
               {t('todoListForm.category')}
             </label>
@@ -173,11 +177,15 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
               name="category"
               control={control}
               render={({ field }) => (
-                <DetailsSelect
+                <Dropdown
                   id="list-category"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
+                  ariaLabelledby="list-category-label"
+                  value={field.value || null}
+                  onChange={(value: TodoListCategory | null) =>
+                    field.onChange(value ?? '')
+                  }
                   options={categoryOptions}
+                  nullOption={{ label: t('todoListForm.noCategory') }}
                   placeholder={t('todoListForm.noCategory')}
                 />
               )}
