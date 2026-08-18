@@ -110,7 +110,16 @@
     "category_education": "Education",
     "category_work": "Work",
     "category_family": "Family",
-    "category_health": "Health"
+    "category_health": "Health",
+    "inbox": "Inbox",
+    "emptyInbox": "Inbox is empty.",
+    "emptyFlatView": "No tasks yet.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "moveToList": "Move to list",
+    "viewMode": "View mode",
+    "groupedView": "Grouped",
+    "flatView": "Flat"
   },
   "todoForm": {
     "todoName": "Todo Name:",

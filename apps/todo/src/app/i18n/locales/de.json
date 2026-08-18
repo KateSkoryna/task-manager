@@ -110,7 +110,16 @@
     "category_education": "Bildung",
     "category_work": "Arbeit",
     "category_family": "Familie",
-    "category_health": "Gesundheit"
+    "category_health": "Gesundheit",
+    "inbox": "Posteingang",
+    "emptyInbox": "Der Posteingang ist leer.",
+    "emptyFlatView": "Noch keine Aufgaben.",
+    "moveUp": "Nach oben verschieben",
+    "moveDown": "Nach unten verschieben",
+    "moveToList": "Zu Liste verschieben",
+    "viewMode": "Ansicht",
+    "groupedView": "Gruppiert",
+    "flatView": "Flach"
   },
   "todoForm": {
     "todoName": "Aufgabenname:",

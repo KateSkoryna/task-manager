@@ -52,8 +52,11 @@ export function TodoEditPanel({
   onCancel,
 }: {
   todo: TodoItem;
-  list: TodoList;
-  onSave: (todoUpdates: UpdateTodoItem, listUpdates: UpdateTodoList) => void;
+  list: TodoList | null;
+  onSave: (
+    todoUpdates: UpdateTodoItem,
+    listUpdates: UpdateTodoList | null
+  ) => void;
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
@@ -77,9 +80,9 @@ export function TodoEditPanel({
       dueDate: todo.dueDate ?? '',
       location: todo.location ?? '',
       notes: todo.notes ?? '',
-      listName: list.name,
-      priority: list.priority ?? '',
-      category: list.category ?? '',
+      listName: list?.name ?? '',
+      priority: list?.priority ?? '',
+      category: list?.category ?? '',
       image: todo.image ?? null,
     },
   });
@@ -134,23 +137,25 @@ export function TodoEditPanel({
       notes: data.notes.trim() || null,
       ...(dirtyFields.image ? { image: data.image } : {}),
     });
-    const listResult = todolistUpdateSchema.safeParse({
-      name: data.listName.trim() || list.name,
-      priority: data.priority,
-      category: data.category,
-    });
+    const listResult = list
+      ? todolistUpdateSchema.safeParse({
+          name: data.listName.trim() || list.name,
+          priority: data.priority,
+          category: data.category,
+        })
+      : null;
 
-    if (!todoResult.success || !listResult.success) {
+    if (!todoResult.success || (listResult && !listResult.success)) {
       setValidationError(
         todoResult.error?.issues[0]?.message ??
-          listResult.error?.issues[0]?.message ??
+          listResult?.error?.issues[0]?.message ??
           'Please check the form values.'
       );
       return;
     }
 
     setValidationError(null);
-    onSave(todoResult.data, listResult.data);
+    onSave(todoResult.data, listResult ? listResult.data : null);
   };
 
   const labelClass = 'text-xs text-secondary-dark-bg font-medium w-20 shrink-0';
@@ -249,74 +254,76 @@ export function TodoEditPanel({
           />
         </div>
 
-        <div className="border-t border-secondary-bg pt-3 mt-1 space-y-3">
-          <div className="flex items-center gap-2">
-            <label className={labelClass}>{t('tasks.listName')}</label>
-            <input
-              {...register('listName')}
-              type="text"
-              className={inputClass}
-            />
-          </div>
+        {list && (
+          <div className="border-t border-secondary-bg pt-3 mt-1 space-y-3">
+            <div className="flex items-center gap-2">
+              <label className={labelClass}>{t('tasks.listName')}</label>
+              <input
+                {...register('listName')}
+                type="text"
+                className={inputClass}
+              />
+            </div>
 
-          <div className="flex items-center gap-2">
-            <label
-              id={`edit-todo-priority-label-${todo.id}`}
-              className={labelClass}
-            >
-              {t('tasks.priority')}
-            </label>
-            <Controller
-              name="priority"
-              control={control}
-              render={({ field }) => (
-                <Dropdown
-                  id={`edit-todo-priority-summary-${todo.id}`}
-                  ariaLabelledby={`edit-todo-priority-label-${todo.id}`}
-                  value={field.value || null}
-                  onChange={(value: TodoListPriority | null) =>
-                    field.onChange(value ?? '')
-                  }
-                  options={priorityOptions}
-                  nullOption={{ label: t('tasks.priority_none') }}
-                  placeholder={t('tasks.priority_none')}
-                  className={dropdownClass}
-                  menuClassName={dropdownMenuClass}
-                  fixedPosition
-                />
-              )}
-            />
-          </div>
+            <div className="flex items-center gap-2">
+              <label
+                id={`edit-todo-priority-label-${todo.id}`}
+                className={labelClass}
+              >
+                {t('tasks.priority')}
+              </label>
+              <Controller
+                name="priority"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id={`edit-todo-priority-summary-${todo.id}`}
+                    ariaLabelledby={`edit-todo-priority-label-${todo.id}`}
+                    value={field.value || null}
+                    onChange={(value: TodoListPriority | null) =>
+                      field.onChange(value ?? '')
+                    }
+                    options={priorityOptions}
+                    nullOption={{ label: t('tasks.priority_none') }}
+                    placeholder={t('tasks.priority_none')}
+                    className={dropdownClass}
+                    menuClassName={dropdownMenuClass}
+                    fixedPosition
+                  />
+                )}
+              />
+            </div>
 
-          <div className="flex items-center gap-2">
-            <label
-              id={`edit-todo-category-label-${todo.id}`}
-              className={labelClass}
-            >
-              {t('tasks.category')}
-            </label>
-            <Controller
-              name="category"
-              control={control}
-              render={({ field }) => (
-                <Dropdown
-                  id={`edit-todo-category-summary-${todo.id}`}
-                  ariaLabelledby={`edit-todo-category-label-${todo.id}`}
-                  value={field.value || null}
-                  onChange={(value: TodoListCategory | null) =>
-                    field.onChange(value ?? '')
-                  }
-                  options={categoryOptions}
-                  nullOption={{ label: t('tasks.category_none') }}
-                  placeholder={t('tasks.category_none')}
-                  className={dropdownClass}
-                  menuClassName={dropdownMenuClass}
-                  fixedPosition
-                />
-              )}
-            />
+            <div className="flex items-center gap-2">
+              <label
+                id={`edit-todo-category-label-${todo.id}`}
+                className={labelClass}
+              >
+                {t('tasks.category')}
+              </label>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id={`edit-todo-category-summary-${todo.id}`}
+                    ariaLabelledby={`edit-todo-category-label-${todo.id}`}
+                    value={field.value || null}
+                    onChange={(value: TodoListCategory | null) =>
+                      field.onChange(value ?? '')
+                    }
+                    options={categoryOptions}
+                    nullOption={{ label: t('tasks.category_none') }}
+                    placeholder={t('tasks.category_none')}
+                    className={dropdownClass}
+                    menuClassName={dropdownMenuClass}
+                    fixedPosition
+                  />
+                )}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-start gap-2">
           <label className={`${labelClass} pt-2`}>{t('tasks.image')}</label>
@@ -420,7 +427,7 @@ export function TaskDetailPanel({
   onStartEdit,
 }: {
   todo: TodoItem;
-  list: TodoList;
+  list: TodoList | null;
   onDelete: (id: string) => void;
   onStartEdit: () => void;
 }) {
@@ -440,10 +447,12 @@ export function TaskDetailPanel({
                 <ClipboardList className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
                 <span>
                   {t('tasks.list')}{' '}
-                  <span className="font-medium text-dark-bg">{list.name}</span>
+                  <span className="font-medium text-dark-bg">
+                    {list ? list.name : t('tasks.inbox')}
+                  </span>
                 </span>
               </div>
-              {list.createdAt && (
+              {list?.createdAt && (
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
                   <span>
@@ -477,7 +486,7 @@ export function TaskDetailPanel({
                   </span>
                 </span>
               </div>
-              {list.priority && (
+              {list?.priority && (
                 <div className="flex items-center gap-2">
                   <Flag className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
                   <span>
@@ -492,7 +501,7 @@ export function TaskDetailPanel({
                   </span>
                 </div>
               )}
-              {list.category && (
+              {list?.category && (
                 <div className="flex items-center gap-2">
                   <Tag className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
                   <span>

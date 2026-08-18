@@ -3,6 +3,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { PieChart, Pie, Cell } from 'recharts';
 import {
   ClipboardList,
+  Check,
   CheckSquare,
   CalendarDays,
   Flame,
@@ -146,7 +147,13 @@ function CompletedCard({ item }: { item: FlatItem }) {
   return (
     <div className="rounded-xl border border-secondary-bg bg-white p-4">
       <div className="flex items-start gap-3">
-        <div className="w-5 h-5 rounded-full border-2 border-green-500 shrink-0 mt-0.5" />
+        <div
+          role="img"
+          aria-label={t('dashboard.completed')}
+          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-green-500 bg-transparent"
+        >
+          <Check className="h-3.5 w-3.5 text-green-500" strokeWidth={3} />
+        </div>
         <div className="min-w-0">
           <p className="font-semibold text-dark-bg leading-snug">{item.name}</p>
           {item.notes && (

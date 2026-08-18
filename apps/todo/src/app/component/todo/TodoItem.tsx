@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { Pencil } from 'lucide-react';
+import { Check, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import {
   TodoItem as TodoItemType,
   TodoStatus,
   TodoListPriority,
 } from '@shared/types';
+import MoveToListSelect, { AvailableList } from './MoveToListSelect';
 
 interface TodoItemProps {
   todo: TodoItemType;
@@ -13,18 +15,25 @@ interface TodoItemProps {
   isSelected?: boolean;
   onSelect?: () => void;
   onEdit?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  currentListId?: string | null;
+  availableLists?: AvailableList[];
+  onMoveToList?: (todolistId: string | null) => void;
 }
 
 const STATUS_DOT: Record<TodoStatus, string> = {
   pending: 'border-2 border-triadic-orange bg-transparent',
-  successful: 'bg-green-500 border-2 border-green-500',
-  failed: 'bg-triadic-purple border-2 border-triadic-purple',
+  successful: 'border-2 border-green-500 bg-transparent',
+  failed: 'border-2 border-triadic-purple bg-transparent',
 };
 
-const STATUS_LABELS: Record<TodoStatus, string> = {
-  pending: 'In Progress',
-  successful: 'Completed',
-  failed: 'Not Started',
+const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
+  pending: 'tasks.status_pending',
+  successful: 'tasks.status_successful',
+  failed: 'tasks.status_failed',
 };
 
 const STATUS_TEXT: Record<TodoStatus, string> = {
@@ -45,7 +54,17 @@ function TodoItem({
   isSelected,
   onSelect,
   onEdit,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+  currentListId,
+  availableLists,
+  onMoveToList,
 }: TodoItemProps) {
+  const { t } = useTranslation();
+  const statusLabel = t(STATUS_LABEL_KEYS[todo.status]);
+
   useEffect(() => {
     // auto-fail overdue items is handled server-side / via edit panel
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,10 +87,16 @@ function TodoItem({
         {/* Row 1: status dot + name + edit btn */}
         <div className="flex items-center gap-3">
           <div
-            className={`w-5 h-5 rounded-full shrink-0 ${
+            role="img"
+            aria-label={statusLabel}
+            className={`flex w-5 h-5 items-center justify-center rounded-full shrink-0 ${
               STATUS_DOT[todo.status]
             }`}
-          />
+          >
+            {todo.status === 'successful' && (
+              <Check className="h-3.5 w-3.5 text-green-500" strokeWidth={3} />
+            )}
+          </div>
           <p
             className={`flex-1 min-w-0 font-semibold text-dark-bg leading-snug ${
               todo.status === 'successful'
@@ -125,9 +150,9 @@ function TodoItem({
             </span>
           )}
           <span className="text-xs text-secondary-dark-bg">
-            Status:{' '}
+            {t('tasks.status')}:{' '}
             <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
-              {STATUS_LABELS[todo.status]}
+              {statusLabel}
             </span>
           </span>
           {todo.dueDate && (
@@ -136,6 +161,44 @@ function TodoItem({
             </span>
           )}
         </div>
+
+        {/* Row 4: reorder + move-to-list controls */}
+        {(onMoveUp || onMoveDown || onMoveToList) && (
+          <div
+            className="flex items-center gap-2 mt-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(onMoveUp || onMoveDown) && (
+              <div className="flex items-center border border-secondary-bg rounded-lg overflow-hidden shrink-0">
+                <button
+                  type="button"
+                  onClick={onMoveUp}
+                  disabled={!canMoveUp}
+                  aria-label={t('tasks.moveUp')}
+                  className="p-1 text-secondary-dark-bg hover:text-triadic-orange disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={onMoveDown}
+                  disabled={!canMoveDown}
+                  aria-label={t('tasks.moveDown')}
+                  className="p-1 text-secondary-dark-bg hover:text-triadic-orange disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-secondary-bg"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+            )}
+            {onMoveToList && (
+              <MoveToListSelect
+                value={currentListId ?? null}
+                availableLists={availableLists ?? []}
+                onChange={onMoveToList}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

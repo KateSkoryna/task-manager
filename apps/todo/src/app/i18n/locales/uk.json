@@ -110,7 +110,16 @@
     "category_education": "Освіта",
     "category_work": "Робота",
     "category_family": "Сім'я",
-    "category_health": "Здоров'я"
+    "category_health": "Здоров'я",
+    "inbox": "Вхідні",
+    "emptyInbox": "Вхідні порожні.",
+    "emptyFlatView": "Ще немає завдань.",
+    "moveUp": "Перемістити вгору",
+    "moveDown": "Перемістити вниз",
+    "moveToList": "Перемістити до списку",
+    "viewMode": "Режим перегляду",
+    "groupedView": "Згруповано",
+    "flatView": "Список"
   },
   "todoForm": {
     "todoName": "Назва справи:",

@@ -7,6 +7,8 @@ import {
   useDeleteTodoMutation,
   useEditTodoMutation,
   useTodoListsQuery,
+  useInboxTodosQuery,
+  useAddInboxTodoMutation,
 } from '../fetchers/api';
 import {
   UpdateTodoItem,
@@ -23,14 +25,22 @@ export const useTodoListsData = () => {
     error,
     refetch,
   } = useTodoListsQuery();
+  const { data: inboxTodos = [] } = useInboxTodosQuery();
 
   const createListMutation = useCreateListMutation();
   const editListMutation = useEditListMutation();
   const deleteListMutation = useDeleteListMutation();
   const addTodoMutation = useAddTodoMutation();
+  const addInboxTodoMutation = useAddInboxTodoMutation();
   const toggleTodoMutation = useToggleTodoMutation();
   const deleteTodoMutation = useDeleteTodoMutation();
   const editTodoMutation = useEditTodoMutation();
+
+  const findTodo = (id: string) =>
+    todoLists
+      ?.flatMap((list) => list.todos)
+      .concat(inboxTodos)
+      .find((t) => t.id === id);
 
   const handleCreateList = (
     name: string,
@@ -61,10 +71,20 @@ export const useTodoListsData = () => {
     addTodoMutation.mutate({ todolistId, name, ...opts });
   };
 
+  const handleAddInboxTodo = (
+    name: string,
+    opts?: {
+      dueDate?: string;
+      location?: string;
+      notes?: string;
+      image?: string | null;
+    }
+  ) => {
+    addInboxTodoMutation.mutate({ name, ...opts });
+  };
+
   const handleToggleTodo = (id: string) => {
-    const todo = todoLists
-      ?.flatMap((list) => list.todos)
-      .find((t) => t.id === id);
+    const todo = findTodo(id);
     if (todo) {
       const status = todo.status === 'successful' ? 'pending' : 'successful';
       toggleTodoMutation.mutate({
@@ -76,9 +96,7 @@ export const useTodoListsData = () => {
   };
 
   const handleDeleteTodo = (id: string) => {
-    const image = todoLists
-      ?.flatMap((list) => list.todos)
-      .find((t) => t.id === id)?.image;
+    const image = findTodo(id)?.image;
     deleteTodoMutation.mutate({ id, image });
   };
 
@@ -91,9 +109,7 @@ export const useTodoListsData = () => {
     updates: UpdateTodoItem,
     onError?: () => void
   ) => {
-    const oldImage = todoLists
-      ?.flatMap((list) => list.todos)
-      .find((t) => t.id === id)?.image;
+    const oldImage = findTodo(id)?.image;
     editTodoMutation.mutate(
       { id, oldImage, ...updates },
       {
@@ -107,6 +123,7 @@ export const useTodoListsData = () => {
 
   return {
     todoLists,
+    inboxTodos,
     isLoading,
     isError,
     error,
@@ -115,6 +132,7 @@ export const useTodoListsData = () => {
     handleDeleteList,
     handleEditList,
     handleAddTodo,
+    handleAddInboxTodo,
     handleToggleTodo,
     handleDeleteTodo,
     handleEditTodo,
