@@ -36,8 +36,8 @@ function VitalTaskPage() {
     );
   }
 
-  function handleDeleteSelectedTodo(id: string, listId: string) {
-    handleDeleteTodo(id, listId);
+  function handleDeleteSelectedTodo(id: string) {
+    handleDeleteTodo(id);
     setSelectedTask(null);
   }
 
@@ -72,9 +72,7 @@ function VitalTaskPage() {
           <TaskDetailPanel
             todo={selectedTask.todo}
             list={selectedTask.list}
-            onDelete={(id) =>
-              handleDeleteSelectedTodo(id, selectedTask.list.id)
-            }
+            onDelete={(id) => handleDeleteSelectedTodo(id)}
             onStartEdit={() =>
               navigate('/tasks', {
                 state: {

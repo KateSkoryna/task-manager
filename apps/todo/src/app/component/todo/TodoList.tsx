@@ -6,8 +6,10 @@ import {
   TodoItem as TodoItemType,
 } from '@shared/types';
 import TodoItem from './TodoItem';
+import { AvailableList } from './MoveToListSelect';
 import TodoForm from './TodoForm';
 import Text from '../elements/Text';
+import { sortByOrder } from '../../lib/reorder';
 import dayjs from 'dayjs';
 
 type NewTodoOpts = {
@@ -24,6 +26,9 @@ interface TodoListProps {
   onSelectTodo?: (todo: TodoItemType) => void;
   onEditTodo?: (todo: TodoItemType) => void;
   dataTestId?: string;
+  availableLists?: AvailableList[];
+  onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
+  onMoveTodo?: (id: string, todolistId: string | null) => void;
 }
 
 function formatDate(iso: string | null | undefined): string | null {
@@ -40,11 +45,15 @@ function TodoList({
   onSelectTodo,
   onEditTodo,
   dataTestId,
+  availableLists,
+  onReorderTodo,
+  onMoveTodo,
 }: TodoListProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
 
+  const sortedTodos = sortByOrder(todoList.todos);
   const completedCount = todoList.todos.filter(
     (t) => t.status === 'successful'
   ).length;
@@ -181,7 +190,7 @@ function TodoList({
               {t('todoList.noTasksAfter')}
             </Text>
           ) : (
-            todoList.todos.map((todo) => (
+            sortedTodos.map((todo, index) => (
               <TodoItem
                 key={todo.id}
                 todo={todo}
@@ -189,6 +198,23 @@ function TodoList({
                 isSelected={selectedTodoId === todo.id}
                 onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
                 onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
+                onMoveUp={
+                  onReorderTodo ? () => onReorderTodo(todo.id, 'up') : undefined
+                }
+                onMoveDown={
+                  onReorderTodo
+                    ? () => onReorderTodo(todo.id, 'down')
+                    : undefined
+                }
+                canMoveUp={index > 0}
+                canMoveDown={index < sortedTodos.length - 1}
+                currentListId={todoList.id}
+                availableLists={availableLists}
+                onMoveToList={
+                  onMoveTodo
+                    ? (todolistId) => onMoveTodo(todo.id, todolistId)
+                    : undefined
+                }
               />
             ))
           )}

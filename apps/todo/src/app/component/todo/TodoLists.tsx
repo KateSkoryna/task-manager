@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import TodoList from './TodoList';
+import { AvailableList } from './MoveToListSelect';
 import Loader from '../elements/Loader';
 import ErrorFallback from '../elements/ErrorFallback';
 import { TodoList as TodoListType, TodoItem } from '@shared/types';
@@ -21,6 +22,9 @@ interface TodoListsProps {
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItem, list: TodoListType) => void;
   onEditTodo?: (todo: TodoItem, list: TodoListType) => void;
+  availableLists?: AvailableList[];
+  onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
+  onMoveTodo?: (id: string, todolistId: string | null) => void;
 }
 
 function TodoLists({
@@ -34,6 +38,9 @@ function TodoLists({
   selectedTodoId,
   onSelectTodo,
   onEditTodo,
+  availableLists,
+  onReorderTodo,
+  onMoveTodo,
 }: TodoListsProps) {
   const { t } = useTranslation();
 
@@ -84,6 +91,9 @@ function TodoLists({
           }
           onEditTodo={onEditTodo ? (todo) => onEditTodo(todo, list) : undefined}
           dataTestId={'todolist-item-' + list.id}
+          availableLists={availableLists}
+          onReorderTodo={onReorderTodo}
+          onMoveTodo={onMoveTodo}
         />
       ))}
     </div>

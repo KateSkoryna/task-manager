@@ -8,6 +8,8 @@ import {
   updateTodoFetcher,
   deleteTodoFetcher,
   getTodoListsFetcher,
+  getInboxTodosFetcher,
+  createInboxTodoFetcher,
   CreateTodoListOpts,
 } from './todolist';
 import {
@@ -24,6 +26,17 @@ export const useTodoListsQuery = () => {
   return useQuery<TodoListType[], Error>({
     queryKey: ['todoLists', user?.id],
     queryFn: () => getTodoListsFetcher(user!.id),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+};
+
+export const useInboxTodosQuery = () => {
+  const user = useAuthStore((s) => s.user);
+  return useQuery<TodoItemType[], Error>({
+    queryKey: ['inboxTodos', user?.id],
+    queryFn: () => getInboxTodosFetcher(user!.id),
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
@@ -117,6 +130,54 @@ export const useAddTodoMutation = () => {
   });
 };
 
+export const useAddInboxTodoMutation = () => {
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  return useMutation<
+    TodoItemType,
+    Error,
+    {
+      name: string;
+      dueDate?: string;
+      location?: string;
+      notes?: string;
+      image?: string | null;
+    }
+  >({
+    mutationFn: ({ name, dueDate, location, notes, image }) =>
+      createInboxTodoFetcher(user!.id, name, {
+        dueDate,
+        location,
+        notes,
+        image,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inboxTodos', user?.id] });
+    },
+    onError: async (err, { image }) => {
+      console.error('Error creating inbox todo:', err);
+      if (image) {
+        try {
+          await deleteObject(ref(storage, image));
+        } catch (cleanupErr) {
+          console.error(
+            'Failed to delete orphaned image from storage:',
+            cleanupErr
+          );
+        }
+      }
+    },
+  });
+};
+
+const invalidateTodoCaches = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  userId?: string
+) => {
+  queryClient.invalidateQueries({ queryKey: ['todoLists', userId] });
+  queryClient.invalidateQueries({ queryKey: ['inboxTodos', userId] });
+};
+
 export const useToggleTodoMutation = () => {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
@@ -125,15 +186,14 @@ export const useToggleTodoMutation = () => {
     Error,
     {
       id: string;
-      todolistId: string;
       status: string;
       completedAt: string | null;
     }
   >({
-    mutationFn: ({ id, todolistId, status, completedAt }) =>
-      updateTodoFetcher(id, todolistId, user!.id, { status, completedAt }),
+    mutationFn: ({ id, status, completedAt }) =>
+      updateTodoFetcher(id, user!.id, { status, completedAt }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todoLists', user?.id] });
+      invalidateTodoCaches(queryClient, user?.id);
     },
     onError: (err) => console.error('Error updating todo:', err),
   });
@@ -147,12 +207,11 @@ export const useEditTodoMutation = () => {
     Error,
     {
       id: string;
-      todolistId: string;
       oldImage?: string | null;
     } & UpdateTodoItem
   >({
-    mutationFn: ({ id, todolistId, oldImage: _, ...updates }) =>
-      updateTodoFetcher(id, todolistId, user!.id, updates),
+    mutationFn: ({ id, oldImage: _, ...updates }) =>
+      updateTodoFetcher(id, user!.id, updates),
     onSuccess: async (_, { oldImage, image }) => {
       if (oldImage && image !== undefined && oldImage !== image) {
         try {
@@ -161,7 +220,7 @@ export const useEditTodoMutation = () => {
           console.error('Failed to delete old image from storage:', err);
         }
       }
-      queryClient.invalidateQueries({ queryKey: ['todoLists', user?.id] });
+      invalidateTodoCaches(queryClient, user?.id);
     },
     onError: async (err, { oldImage, image }) => {
       console.error('Error editing todo:', err);
@@ -182,13 +241,8 @@ export const useEditTodoMutation = () => {
 export const useDeleteTodoMutation = () => {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
-  return useMutation<
-    void,
-    Error,
-    { id: string; todolistId: string; image?: string | null }
-  >({
-    mutationFn: ({ id, todolistId }) =>
-      deleteTodoFetcher(id, todolistId, user!.id),
+  return useMutation<void, Error, { id: string; image?: string | null }>({
+    mutationFn: ({ id }) => deleteTodoFetcher(id, user!.id),
     onSuccess: async (_, { image }) => {
       if (image) {
         try {
@@ -197,7 +251,7 @@ export const useDeleteTodoMutation = () => {
           console.error('Failed to delete image from storage:', err);
         }
       }
-      queryClient.invalidateQueries({ queryKey: ['todoLists', user?.id] });
+      invalidateTodoCaches(queryClient, user?.id);
     },
     onError: (err) => console.error('Error deleting todo:', err),
   });

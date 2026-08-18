@@ -7,6 +7,7 @@ import {
   todolistSchema,
 } from '../app/models/todoList.model';
 import { TodoController } from './todo.controller';
+import { TodoInboxController } from './todo-inbox.controller';
 import { TodoService } from './todo.service';
 
 @Module({
@@ -17,7 +18,7 @@ import { TodoService } from './todo.service';
       { name: TODOLIST_MODEL_NAME, schema: todolistSchema },
     ]),
   ],
-  controllers: [TodoController],
+  controllers: [TodoController, TodoInboxController],
   providers: [TodoService],
   exports: [TodoService],
 })

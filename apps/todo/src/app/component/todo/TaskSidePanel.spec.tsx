@@ -13,6 +13,7 @@ const todo: TodoItem = {
   id: 'todo-1',
   name: 'Write tests',
   status: 'pending',
+  order: 0,
   todolistId: 'list-1',
 };
 

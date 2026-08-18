@@ -19,6 +19,7 @@ const todo = (
   todolistId: 'l',
   dueDate: date,
   completedAt: null,
+  order: 0,
 });
 const list = (category: TodoList['category'], todos: TodoItem[]): TodoList => ({
   id: String(category),

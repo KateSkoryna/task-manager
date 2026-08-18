@@ -81,7 +81,6 @@ export const createTodoFetcher = async (
 
 export const updateTodoFetcher = async (
   id: string,
-  todolistId: string,
   userId: string,
   updates: {
     name?: string;
@@ -91,21 +90,43 @@ export const updateTodoFetcher = async (
     location?: string | null;
     notes?: string | null;
     image?: string | null;
+    todolistId?: string | null;
+    order?: number;
   }
 ): Promise<TodoItemType> => {
-  const { data } = await apiClient.put(
-    `/users/${userId}/todolists/${todolistId}/todos/${id}`,
-    updates
-  );
+  const { data } = await apiClient.put(`/users/${userId}/todos/${id}`, updates);
   return data;
 };
 
 export const deleteTodoFetcher = async (
   id: string,
-  todolistId: string,
   userId: string
 ): Promise<void> => {
-  await apiClient.delete(
-    `/users/${userId}/todolists/${todolistId}/todos/${id}`
+  await apiClient.delete(`/users/${userId}/todos/${id}`);
+};
+
+export const getInboxTodosFetcher = async (
+  userId: string
+): Promise<TodoItemType[]> => {
+  const { data } = await apiClient.get<TodoItemType[]>(
+    `/users/${userId}/todos/inbox`
   );
+  return data;
+};
+
+export const createInboxTodoFetcher = async (
+  userId: string,
+  name: string,
+  opts?: {
+    dueDate?: string;
+    location?: string;
+    notes?: string;
+    image?: string | null;
+  }
+): Promise<TodoItemType> => {
+  const { data } = await apiClient.post(`/users/${userId}/todos`, {
+    name,
+    ...opts,
+  });
+  return data;
 };

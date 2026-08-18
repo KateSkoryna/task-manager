@@ -10,13 +10,14 @@ const makeTodo = (
   name: 'Write tests',
   status,
   todolistId: 'l',
+  order: 0,
   ...extra,
 });
 describe('TodoItem', () => {
   test.each([
-    ['pending', 'In Progress'],
-    ['successful', 'Completed'],
-    ['failed', 'Not Started'],
+    ['pending', 'tasks.status_pending'],
+    ['successful', 'tasks.status_successful'],
+    ['failed', 'tasks.status_failed'],
   ] as const)('shows %s status', (status, label) => {
     render(<TodoItem todo={makeTodo(status)} />);
     expect(screen.getByText(label)).toBeInTheDocument();
@@ -60,5 +61,11 @@ describe('TodoItem', () => {
   test('marks completed task text as struck through', () => {
     render(<TodoItem todo={makeTodo('successful')} />);
     expect(screen.getByText('Write tests')).toHaveClass('line-through');
+    const indicator = screen.getByRole('img', {
+      name: 'tasks.status_successful',
+    });
+    expect(indicator).toHaveClass('border-green-500', 'bg-transparent');
+    expect(indicator).not.toHaveClass('bg-green-500');
+    expect(indicator.querySelector('svg')).toBeInTheDocument();
   });
 });

@@ -27,16 +27,22 @@ export class TodoService {
     return doc ? (doc.toJSON() as TodoItem) : null;
   }
 
-  create(todolistId: string, input: TodoCreateInput): Promise<TodoItem> {
+  create(
+    todolistId: string | null,
+    input: TodoCreateInput,
+    userId?: string
+  ): Promise<TodoItem> {
     return executeOperation('Error creating todo', async () => {
       const doc = await this.todoModel.create({
         ...input,
+        userId,
         todolistId,
         dueDate: input.dueDate ?? null,
         location: input.location ?? null,
         notes: input.notes ?? null,
         completedAt: input.completedAt ?? null,
         image: input.image ?? null,
+        order: input.order ?? 0,
       });
       return doc.toJSON() as TodoItem;
     });
@@ -68,6 +74,59 @@ export class TodoService {
       return doc
         ? ((doc as unknown as { toJSON(): unknown }).toJSON() as TodoItem)
         : null;
+    });
+  }
+
+  /**
+   * Ownership-based lookup used by the inbox/unified todo routes, where a
+   * todo may not belong to any list. Falls back to list ownership for todos
+   * created before the userId field existed.
+   */
+  private async findOwned(
+    id: string,
+    userId: string
+  ): Promise<ITodoDocument | null> {
+    const doc = await this.todoModel.findById(id);
+    if (!doc) return null;
+    if (doc.userId) return doc.userId.toString() === userId ? doc : null;
+    if (
+      doc.todolistId &&
+      (await this.listExists(doc.todolistId.toString(), userId))
+    ) {
+      return doc;
+    }
+    return null;
+  }
+
+  findInbox(userId: string): Promise<TodoItem[]> {
+    return executeOperation('Error fetching inbox todos', async () => {
+      const docs = await this.todoModel
+        .find({ userId, todolistId: null })
+        .sort({ order: 1, createdAt: 1 });
+      return docs.map((doc) => doc.toJSON() as TodoItem);
+    });
+  }
+
+  updateOwned(
+    id: string,
+    userId: string,
+    input: TodoUpdateInput
+  ): Promise<TodoItem | null> {
+    return executeOperation('Error updating todo', async () => {
+      const doc = await this.findOwned(id, userId);
+      if (!doc) return null;
+      doc.set({ ...input, userId: doc.userId ?? userId });
+      await doc.save();
+      return doc.toJSON() as TodoItem;
+    });
+  }
+
+  deleteOwned(id: string, userId: string): Promise<TodoItem | null> {
+    return executeOperation('Error deleting todo', async () => {
+      const doc = await this.findOwned(id, userId);
+      if (!doc) return null;
+      await doc.deleteOne();
+      return doc.toJSON() as TodoItem;
     });
   }
 }

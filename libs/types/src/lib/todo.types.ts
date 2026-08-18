@@ -4,27 +4,32 @@ export type TodoStatus = 'pending' | 'successful' | 'failed';
 export interface NewTodoItem {
   name: string;
   status?: TodoStatus;
-  todolistId: string;
+  todolistId?: string | null;
   dueDate?: string | null;
   location?: string | null;
   notes?: string | null;
   completedAt?: string | null;
   image?: string | null;
+  order?: number;
 }
 
 export interface TodoItem extends NewTodoItem {
   id: string;
   status: TodoStatus;
+  todolistId: string | null;
+  order: number;
 }
 
 export interface UpdateTodoItem {
   name?: string;
   status?: TodoStatus;
+  todolistId?: string | null;
   dueDate?: string | null;
   location?: string | null;
   notes?: string | null;
   completedAt?: string | null;
   image?: string | null;
+  order?: number;
 }
 
 // --- TODOLIST TYPES ---

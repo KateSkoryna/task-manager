@@ -1,16 +1,30 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { PieChart, Pie, Cell } from 'recharts';
-import { ClipboardList, CheckSquare, CalendarDays } from 'lucide-react';
+import {
+  ClipboardList,
+  Check,
+  CheckSquare,
+  CalendarDays,
+  Flame,
+  Inbox as InboxIcon,
+  Plus,
+} from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/src/style.css';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { TodoItem, TodoList } from '@shared/types';
-import { useTodoListsQuery } from '../../fetchers/api';
+import {
+  useTodoListsQuery,
+  useInboxTodosQuery,
+  useAddInboxTodoMutation,
+} from '../../fetchers/api';
 import { useDateStore } from '../../store/dateStore';
 import TodoItemComponent from '../todo/TodoItem';
+import Input from '../elements/Input';
+import Button from '../elements/Button';
 
 const DAY_PICKER_STYLE: React.CSSProperties = {
   '--rdp-today-color': '#eb8a4a',
@@ -44,6 +58,16 @@ function relativeDate(
   if (diff === 0) return t('dashboard.relativeToday');
   if (diff === 1) return t('dashboard.relativeDayAgo');
   return t('dashboard.relativeDaysAgo', { count: diff });
+}
+
+function localeFor(language: string): string {
+  if (language === 'de') return 'de-DE';
+  if (language === 'uk') return 'uk-UA';
+  return 'en-US';
+}
+
+function startOfWeek(d: Dayjs): Dayjs {
+  return d.subtract((d.day() + 6) % 7, 'day');
 }
 
 // ─── flat item type ──────────────────────────────────────────────────────────
@@ -123,7 +147,13 @@ function CompletedCard({ item }: { item: FlatItem }) {
   return (
     <div className="rounded-xl border border-secondary-bg bg-white p-4">
       <div className="flex items-start gap-3">
-        <div className="w-5 h-5 rounded-full border-2 border-green-500 shrink-0 mt-0.5" />
+        <div
+          role="img"
+          aria-label={t('dashboard.completed')}
+          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-green-500 bg-transparent"
+        >
+          <Check className="h-3.5 w-3.5 text-green-500" strokeWidth={3} />
+        </div>
         <div className="min-w-0">
           <p className="font-semibold text-dark-bg leading-snug">{item.name}</p>
           {item.notes && (
@@ -168,12 +198,7 @@ function TodoPanel({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
-  const locale =
-    i18n.language === 'de'
-      ? 'de-DE'
-      : i18n.language === 'uk'
-      ? 'uk-UA'
-      : 'en-US';
+  const locale = localeFor(i18n.language);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -358,13 +383,195 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
   );
 }
 
+// ─── daily-focus strip ─────────────────────────────────────────────────────────
+
+function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
+  const { t, i18n } = useTranslation();
+  const setSelectedDate = useDateStore((s) => s.setSelectedDate);
+  const locale = localeFor(i18n.language);
+  const weekStart = startOfWeek(selectedDate);
+  const days = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day')),
+    [weekStart]
+  );
+
+  return (
+    <div
+      role="tablist"
+      aria-label={t('dashboard.weekStrip')}
+      className="flex items-center gap-2 overflow-x-auto"
+    >
+      {days.map((day) => {
+        const selected = day.isSame(selectedDate, 'day');
+        const today = isToday(day);
+        return (
+          <button
+            key={day.format('YYYY-MM-DD')}
+            role="tab"
+            aria-selected={selected}
+            aria-label={day.toDate().toLocaleDateString(locale, {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+            })}
+            onClick={() => setSelectedDate(day)}
+            className={`flex flex-col items-center justify-center w-12 h-14 shrink-0 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+              selected
+                ? 'bg-accent border-accent text-dark-bg'
+                : 'bg-white border-secondary-bg text-dark-bg hover:border-accent'
+            }`}
+          >
+            <span className="text-[10px] uppercase tracking-wide opacity-70">
+              {day.toDate().toLocaleDateString(locale, { weekday: 'short' })}
+            </span>
+            <span
+              className={`text-sm font-bold ${
+                today && !selected ? 'text-triadic-orange' : ''
+              }`}
+            >
+              {day.format('D')}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function TodayCompletionRing({
+  successful,
+  total,
+}: {
+  successful: number;
+  total: number;
+}) {
+  const { t } = useTranslation();
+  return (
+    <DonutChart
+      value={successful}
+      total={total}
+      color="#22c55e"
+      dotColor="#22c55e"
+      label={t('dashboard.todayCompletion')}
+    />
+  );
+}
+
+function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
+  const { t } = useTranslation();
+  const [name, setName] = useState('');
+  const addInboxTodo = useAddInboxTodoMutation();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    addInboxTodo.mutate({ name: trimmed });
+    setName('');
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center gap-2 flex-1 min-w-[240px]"
+    >
+      <div className="flex items-center gap-1.5 text-secondary-dark-bg shrink-0">
+        <InboxIcon className="w-4 h-4" />
+        <span className="text-sm font-medium">
+          {t('dashboard.inboxCount', { count: inboxCount })}
+        </span>
+      </div>
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder={t('dashboard.quickAddPlaceholder')}
+        className="flex-1 px-4 py-2 rounded-lg border-2 border-secondary-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-white text-dark-bg placeholder-secondary-dark-bg text-sm"
+        inputTestId="dashboard-quick-add-input"
+      />
+      <Button
+        type="submit"
+        className="flex items-center gap-1 px-4 py-2 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 shrink-0"
+        dataTestId="dashboard-quick-add-submit"
+      >
+        <Plus className="w-4 h-4" />
+        {t('dashboard.quickAdd')}
+      </Button>
+    </form>
+  );
+}
+
+function DailyFocusStrip({
+  selectedDate,
+  todaySuccessful,
+  todayTotal,
+  inboxCount,
+}: {
+  selectedDate: Dayjs;
+  todaySuccessful: number;
+  todayTotal: number;
+  inboxCount: number;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-secondary-bg p-5 flex flex-col lg:flex-row lg:items-center gap-5">
+      <WeekStrip selectedDate={selectedDate} />
+      <div className="hidden lg:block w-px h-14 bg-secondary-bg" />
+      <TodayCompletionRing successful={todaySuccessful} total={todayTotal} />
+      <div className="hidden lg:block w-px h-14 bg-secondary-bg" />
+      <QuickAddInbox inboxCount={inboxCount} />
+    </div>
+  );
+}
+
+// ─── top priority panel ─────────────────────────────────────────────────────────
+
+function TopPriorityPanel({ items }: { items: FlatItem[] }) {
+  const { t } = useTranslation();
+  const topThree = items
+    .filter((item) => item.listPriority === 'high')
+    .slice(0, 3);
+
+  return (
+    <div className="bg-white rounded-xl border border-secondary-bg p-5">
+      <div className="flex items-center gap-2 text-triadic-orange mb-4">
+        <Flame className="w-5 h-5" />
+        <h3 className="font-bold text-lg">{t('dashboard.topPriority')}</h3>
+      </div>
+      {topThree.length === 0 ? (
+        <p className="text-secondary-dark-bg text-sm">
+          {t('dashboard.noTopPriority')}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {topThree.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-xl border border-triadic-orange/40 bg-triadic-orange/5 p-3"
+            >
+              <p className="font-semibold text-dark-bg text-sm leading-snug line-clamp-2">
+                {item.name}
+              </p>
+              {item.dueDate && (
+                <p className="text-xs text-secondary-dark-bg mt-1.5">
+                  {dayjs(item.dueDate).format('DD/MM/YYYY')}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 function DashboardPage() {
   const navigate = useNavigate();
   const { data: todoLists = [] } = useTodoListsQuery();
+  const { data: inboxTodos = [] } = useInboxTodosQuery();
   const selectedDate = useDateStore((s) => s.selectedDate);
   const selectedDateStr = toDateStr(selectedDate);
+  const todayStr = toDateStr(dayjs());
 
   const allItems = useMemo(() => flattenLists(todoLists), [todoLists]);
 
@@ -376,6 +583,17 @@ function DashboardPage() {
           : isToday(selectedDate)
       ),
     [allItems, selectedDateStr, selectedDate]
+  );
+
+  // Today's completion ring and top-priority panel only count tasks with a
+  // due date of today, independent of whichever day is selected in the strip.
+  const todayItems = useMemo(
+    () => allItems.filter((item) => item.dueDate?.startsWith(todayStr)),
+    [allItems, todayStr]
+  );
+  const todaySuccessful = useMemo(
+    () => todayItems.filter((item) => item.status === 'successful').length,
+    [todayItems]
   );
 
   const todoItems = useMemo(
@@ -408,25 +626,36 @@ function DashboardPage() {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-      <TodoPanel
-        items={todoItems}
+    <div className="flex flex-col gap-6 h-full">
+      <DailyFocusStrip
         selectedDate={selectedDate}
-        onEditTodo={(item) =>
-          navigate('/tasks', {
-            state: { todoId: item.id, listId: item.todolistId },
-          })
-        }
+        todaySuccessful={todaySuccessful}
+        todayTotal={todayItems.length}
+        inboxCount={inboxTodos.length}
       />
 
-      <div className="space-y-6">
-        <TaskStatusPanel
-          successful={successful}
-          pending={pending}
-          failed={failed}
-          total={allItems.length}
+      <TopPriorityPanel items={todayItems} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+        <TodoPanel
+          items={todoItems}
+          selectedDate={selectedDate}
+          onEditTodo={(item) =>
+            navigate('/tasks', {
+              state: { todoId: item.id, listId: item.todolistId },
+            })
+          }
         />
-        <CompletedPanel items={completedItems} />
+
+        <div className="space-y-6">
+          <TaskStatusPanel
+            successful={successful}
+            pending={pending}
+            failed={failed}
+            total={dateItems.length}
+          />
+          <CompletedPanel items={completedItems} />
+        </div>
       </div>
     </div>
   );

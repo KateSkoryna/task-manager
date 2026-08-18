@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   NotFoundException,
   Param,
@@ -31,11 +32,17 @@ import { MongoIdPipe } from '../common/pipes/mongo-id.pipe';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { TodoService } from './todo.service';
 
+/**
+ * List-agnostic todo operations: the inbox (todos with no list) plus
+ * updating/deleting a todo regardless of which list, if any, currently owns
+ * it. Moving a todo between the inbox and a list is just an update with a
+ * different `todolistId`.
+ */
 @ApiTags('todos')
 @ApiBearerAuth()
 @UseGuards(FirebaseAuthGuard)
-@Controller('users/:userId/todolists/:todolistId/todos')
-export class TodoController {
+@Controller('users/:userId/todos')
+export class TodoInboxController {
   constructor(private readonly todoService: TodoService) {}
 
   private async requireList(id: string, userId: string): Promise<void> {
@@ -44,36 +51,51 @@ export class TodoController {
     }
   }
 
-  @Post()
-  @ApiOperation({ summary: 'Create a todo in a list' })
+  @Get('inbox')
+  @ApiOperation({ summary: 'List the authenticated user inbox todos' })
   @ApiParam({ name: 'userId' })
-  @ApiParam({ name: 'todolistId' })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'array', items: { type: 'object' } },
+  })
+  findInbox(@CurrentUser() user: AuthenticatedUser) {
+    return this.todoService.findInbox(user.id);
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: 'Create a todo without choosing a list (inbox by default)',
+  })
+  @ApiParam({ name: 'userId' })
   @ApiBody({ schema: zodToApiSchema(todoCreateSchema) })
   @ApiResponse({ status: 201, schema: { type: 'object' } })
   async create(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('todolistId', new MongoIdPipe('todolistId')) todolistId: string,
     @Body(new ZodValidationPipe(todoCreateSchema)) body: TodoCreateInput
   ) {
-    await this.requireList(todolistId, user.id);
-    return this.todoService.create(todolistId, body, user.id);
+    if (body.todolistId) {
+      await this.requireList(body.todolistId, user.id);
+    }
+    return this.todoService.create(body.todolistId ?? null, body, user.id);
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update a todo' })
+  @ApiOperation({
+    summary: 'Update a todo, optionally moving it between the inbox and a list',
+  })
   @ApiParam({ name: 'userId' })
-  @ApiParam({ name: 'todolistId' })
   @ApiParam({ name: 'id' })
   @ApiBody({ schema: zodToApiSchema(todoUpdateSchema) })
   @ApiResponse({ status: 200, schema: { type: 'object' } })
   async update(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('todolistId', new MongoIdPipe('todolistId')) todolistId: string,
     @Param('id', new MongoIdPipe()) id: string,
     @Body(new ZodValidationPipe(todoUpdateSchema)) body: TodoUpdateInput
   ) {
-    await this.requireList(todolistId, user.id);
-    const todo = await this.todoService.update(id, todolistId, body);
+    if (body.todolistId) {
+      await this.requireList(body.todolistId, user.id);
+    }
+    const todo = await this.todoService.updateOwned(id, user.id, body);
     if (!todo) throw new NotFoundException({ message: 'Todo not found' });
     return todo;
   }
@@ -82,16 +104,13 @@ export class TodoController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a todo' })
   @ApiParam({ name: 'userId' })
-  @ApiParam({ name: 'todolistId' })
   @ApiParam({ name: 'id' })
   @ApiResponse({ status: 204, description: 'Deleted' })
   async delete(
     @CurrentUser() user: AuthenticatedUser,
-    @Param('todolistId', new MongoIdPipe('todolistId')) todolistId: string,
     @Param('id', new MongoIdPipe()) id: string
   ) {
-    await this.requireList(todolistId, user.id);
-    const todo = await this.todoService.delete(id, todolistId);
+    const todo = await this.todoService.deleteOwned(id, user.id);
     if (!todo) throw new NotFoundException({ message: 'Todo not found' });
   }
 }
