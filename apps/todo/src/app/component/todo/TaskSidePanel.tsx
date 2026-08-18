@@ -29,6 +29,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { uploadImage } from '../../lib/imageUtils';
 import DatePickerInput from '../elements/DatePickerInput';
+import Dropdown, { DropdownOption } from '../elements/Dropdown';
 
 // ─── Edit Panel ───────────────────────────────────────────────────────────────
 
@@ -85,6 +86,24 @@ export function TodoEditPanel({
 
   const editImage = watch('image');
 
+  const statusOptions: DropdownOption<TodoStatus>[] = [
+    { value: 'pending', label: t('tasks.status_pending') },
+    { value: 'successful', label: t('tasks.status_successful') },
+    { value: 'failed', label: t('tasks.status_failed') },
+  ];
+  const priorityOptions: DropdownOption<TodoListPriority>[] = [
+    { value: 'low', label: t('tasks.priority_low') },
+    { value: 'medium', label: t('tasks.priority_medium') },
+    { value: 'high', label: t('tasks.priority_high') },
+  ];
+  const categoryOptions: DropdownOption<TodoListCategory>[] = [
+    { value: 'home', label: t('tasks.category_home') },
+    { value: 'education', label: t('tasks.category_education') },
+    { value: 'work', label: t('tasks.category_work') },
+    { value: 'family', label: t('tasks.category_family') },
+    { value: 'health', label: t('tasks.category_health') },
+  ];
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
@@ -137,6 +156,10 @@ export function TodoEditPanel({
   const labelClass = 'text-xs text-secondary-dark-bg font-medium w-20 shrink-0';
   const inputClass =
     'flex-1 px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm';
+  const dropdownClass =
+    'flex min-w-[160px] cursor-pointer list-none items-center justify-between rounded-lg border border-secondary-bg bg-white px-2 py-2 text-sm text-dark-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
+  const dropdownMenuClass =
+    'z-50 w-max min-w-[160px] max-w-[220px] list-none overflow-hidden rounded-lg border border-secondary-bg bg-white p-0 shadow-lg';
   const actionBtnClass =
     'w-6 h-6 flex items-center justify-center shrink-0 rounded-lg text-secondary-dark-bg transition-colors outline-none cursor-pointer';
 
@@ -161,16 +184,32 @@ export function TodoEditPanel({
         </div>
 
         <div className="flex items-center gap-2">
-          <label className={labelClass}>{t('tasks.status')}</label>
-          <select
-            {...register('status')}
-            className="px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm min-w-[160px]"
-            data-testid={'edit-todo-status-' + todo.id}
+          <label
+            id={`edit-todo-status-label-${todo.id}`}
+            className={labelClass}
           >
-            <option value="pending">{t('tasks.status_pending')}</option>
-            <option value="successful">{t('tasks.status_successful')}</option>
-            <option value="failed">{t('tasks.status_failed')}</option>
-          </select>
+            {t('tasks.status')}
+          </label>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                id={`edit-todo-status-summary-${todo.id}`}
+                data-testid={`edit-todo-status-${todo.id}`}
+                ariaLabelledby={`edit-todo-status-label-${todo.id}`}
+                value={field.value}
+                onChange={(value: TodoStatus | null) =>
+                  value && field.onChange(value)
+                }
+                options={statusOptions}
+                placeholder={t('tasks.status')}
+                className={dropdownClass}
+                menuClassName={dropdownMenuClass}
+                fixedPosition
+              />
+            )}
+          />
         </div>
 
         <div className="flex items-center gap-2">
@@ -221,31 +260,61 @@ export function TodoEditPanel({
           </div>
 
           <div className="flex items-center gap-2">
-            <label className={labelClass}>{t('tasks.priority')}</label>
-            <select
-              {...register('priority')}
-              className="px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm min-w-[160px]"
+            <label
+              id={`edit-todo-priority-label-${todo.id}`}
+              className={labelClass}
             >
-              <option value="">{t('tasks.priority_none')}</option>
-              <option value="low">{t('tasks.priority_low')}</option>
-              <option value="medium">{t('tasks.priority_medium')}</option>
-              <option value="high">{t('tasks.priority_high')}</option>
-            </select>
+              {t('tasks.priority')}
+            </label>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  id={`edit-todo-priority-summary-${todo.id}`}
+                  ariaLabelledby={`edit-todo-priority-label-${todo.id}`}
+                  value={field.value || null}
+                  onChange={(value: TodoListPriority | null) =>
+                    field.onChange(value ?? '')
+                  }
+                  options={priorityOptions}
+                  nullOption={{ label: t('tasks.priority_none') }}
+                  placeholder={t('tasks.priority_none')}
+                  className={dropdownClass}
+                  menuClassName={dropdownMenuClass}
+                  fixedPosition
+                />
+              )}
+            />
           </div>
 
           <div className="flex items-center gap-2">
-            <label className={labelClass}>{t('tasks.category')}</label>
-            <select
-              {...register('category')}
-              className="px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm min-w-[160px]"
+            <label
+              id={`edit-todo-category-label-${todo.id}`}
+              className={labelClass}
             >
-              <option value="">{t('tasks.category_none')}</option>
-              <option value="home">{t('tasks.category_home')}</option>
-              <option value="education">{t('tasks.category_education')}</option>
-              <option value="work">{t('tasks.category_work')}</option>
-              <option value="family">{t('tasks.category_family')}</option>
-              <option value="health">{t('tasks.category_health')}</option>
-            </select>
+              {t('tasks.category')}
+            </label>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  id={`edit-todo-category-summary-${todo.id}`}
+                  ariaLabelledby={`edit-todo-category-label-${todo.id}`}
+                  value={field.value || null}
+                  onChange={(value: TodoListCategory | null) =>
+                    field.onChange(value ?? '')
+                  }
+                  options={categoryOptions}
+                  nullOption={{ label: t('tasks.category_none') }}
+                  placeholder={t('tasks.category_none')}
+                  className={dropdownClass}
+                  menuClassName={dropdownMenuClass}
+                  fixedPosition
+                />
+              )}
+            />
           </div>
         </div>
 
