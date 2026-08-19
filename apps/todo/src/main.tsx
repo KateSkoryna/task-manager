@@ -56,7 +56,7 @@ function AuthRoute({
   const isAuthenticated = useAuthStore((s) => !!s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
 
-  if (isLoading) return <Loader message="Loading…" />;
+  if (isLoading) return <Loader message="Loading…" className="min-h-screen" />;
   if (requireAuth && !isAuthenticated) return <Navigate to="/login" replace />;
   if (!requireAuth && isAuthenticated) return <Navigate to="/" replace />;
   return children;
