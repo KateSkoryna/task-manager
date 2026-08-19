@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -114,13 +115,18 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
         <Button
           type="button"
           onClick={() => setShowMore((v) => !v)}
-          className="px-4 py-2 bg-secondary-bg text-dark-bg font-medium rounded hover:bg-accent hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+          className="inline-flex items-center gap-1 px-4 py-2 border-2 border-secondary-bg bg-secondary-bg text-dark-bg font-medium rounded-lg hover:bg-accent hover:border-accent hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {showMore ? t('todoListForm.less') : t('todoListForm.more')}
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 transition-transform ${
+              showMore ? 'rotate-180' : ''
+            }`}
+          />
         </Button>
         <Button
           type="submit"
-          className="px-6 py-2 bg-accent text-black font-semibold rounded hover:bg-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+          className="px-6 py-2 border-2 border-accent bg-accent text-black font-semibold rounded-lg hover:bg-dark-bg hover:border-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
           disabled={isSubmitting}
           dataTestId="todolist-form-submit-button"
         >
