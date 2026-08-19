@@ -89,6 +89,14 @@ function flattenLists(lists: TodoList[]): FlatItem[] {
   );
 }
 
+function flattenInbox(todos: TodoItem[]): FlatItem[] {
+  return todos.map((todo) => ({
+    ...todo,
+    listPriority: undefined,
+    listCreatedAt: undefined,
+  }));
+}
+
 // ─── donut chart ─────────────────────────────────────────────────────────────
 
 function DonutChart({
@@ -599,7 +607,10 @@ function DashboardPage() {
   const selectedDateStr = toDateStr(selectedDate);
   const todayStr = toDateStr(dayjs());
 
-  const allItems = useMemo(() => flattenLists(todoLists), [todoLists]);
+  const allItems = useMemo(
+    () => [...flattenLists(todoLists), ...flattenInbox(inboxTodos)],
+    [todoLists, inboxTodos]
+  );
 
   const dateItems = useMemo(
     () =>
