@@ -119,7 +119,8 @@
     "moveToList": "Move to list",
     "viewMode": "View mode",
     "groupedView": "Grouped",
-    "flatView": "Flat"
+    "flatView": "Flat",
+    "dueSoon": "Due soon"
   },
   "todoForm": {
     "todoName": "Todo Name:",

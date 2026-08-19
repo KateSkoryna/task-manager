@@ -14,6 +14,14 @@ const makeTodo = (
   ...extra,
 });
 describe('TodoItem', () => {
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T20:30:00'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   test.each([
     ['pending', 'tasks.status_pending'],
     ['successful', 'tasks.status_successful'],
@@ -67,5 +75,28 @@ describe('TodoItem', () => {
     expect(indicator).toHaveClass('border-green-500', 'bg-transparent');
     expect(indicator).not.toHaveClass('bg-green-500');
     expect(indicator.querySelector('svg')).toBeInTheDocument();
+  });
+
+  test('shows a due-soon badge and pulse dot for pending tasks due within 4 hours of end of day', () => {
+    // system time is 20:30 on 2026-08-18, so a task due that day is ~3.5h from its deadline
+    const { container } = render(
+      <TodoItem todo={makeTodo('pending', { dueDate: '2026-08-18' })} />
+    );
+    expect(screen.getByText('tasks.dueSoon')).toBeInTheDocument();
+    expect(container.querySelector('.bg-red-500.rounded-full')).toHaveClass(
+      'animate-pulse'
+    );
+  });
+
+  test('does not show a due-soon badge when the due date is far away', () => {
+    render(<TodoItem todo={makeTodo('pending', { dueDate: '2026-08-25' })} />);
+    expect(screen.queryByText('tasks.dueSoon')).not.toBeInTheDocument();
+  });
+
+  test('does not show a due-soon badge for completed tasks', () => {
+    render(
+      <TodoItem todo={makeTodo('successful', { dueDate: '2026-08-18' })} />
+    );
+    expect(screen.queryByText('tasks.dueSoon')).not.toBeInTheDocument();
   });
 });

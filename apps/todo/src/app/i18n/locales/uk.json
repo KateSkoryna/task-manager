@@ -119,7 +119,8 @@
     "moveToList": "Перемістити до списку",
     "viewMode": "Режим перегляду",
     "groupedView": "Згруповано",
-    "flatView": "Список"
+    "flatView": "Список",
+    "dueSoon": "Скоро термін"
   },
   "todoForm": {
     "todoName": "Назва справи:",

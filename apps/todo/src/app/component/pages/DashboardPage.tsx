@@ -22,6 +22,8 @@ import {
   useAddInboxTodoMutation,
 } from '../../fetchers/api';
 import { useDateStore } from '../../store/dateStore';
+import { isDueWithinHours } from '../../lib/urgency';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import TodoItemComponent from '../todo/TodoItem';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
@@ -526,6 +528,7 @@ function DailyFocusStrip({
 
 function TopPriorityPanel({ items }: { items: FlatItem[] }) {
   const { t } = useTranslation();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const topThree = items
     .filter((item) => item.listPriority === 'high')
     .slice(0, 3);
@@ -542,21 +545,44 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {topThree.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-xl border border-triadic-orange/40 bg-triadic-orange/5 p-3"
-            >
-              <p className="font-semibold text-dark-bg text-sm leading-snug line-clamp-2">
-                {item.name}
-              </p>
-              {item.dueDate && (
-                <p className="text-xs text-secondary-dark-bg mt-1.5">
-                  {dayjs(item.dueDate).format('DD/MM/YYYY')}
+          {topThree.map((item) => {
+            const isUrgent =
+              item.status === 'pending' && isDueWithinHours(item.dueDate);
+            return (
+              <div
+                key={item.id}
+                className="rounded-xl border border-triadic-orange/40 bg-triadic-orange/5 p-3"
+              >
+                <p className="font-semibold text-dark-bg text-sm leading-snug line-clamp-2">
+                  {item.name}
                 </p>
-              )}
-            </div>
-          ))}
+                {item.dueDate && (
+                  <p
+                    className={`flex items-center gap-1 text-xs mt-1.5 ${
+                      isUrgent
+                        ? 'text-red-600 font-semibold'
+                        : 'text-secondary-dark-bg'
+                    }`}
+                  >
+                    {isUrgent && (
+                      <span
+                        aria-hidden="true"
+                        className={`h-1.5 w-1.5 rounded-full bg-red-500 ${
+                          prefersReducedMotion ? '' : 'animate-pulse'
+                        }`}
+                      />
+                    )}
+                    {dayjs(item.dueDate).format('DD/MM/YYYY')}
+                    {isUrgent && (
+                      <span className="rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                        {t('tasks.dueSoon')}
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
