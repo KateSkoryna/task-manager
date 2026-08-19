@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, ClipboardList, Rows3, LayoutList } from 'lucide-react';
+import { Plus, Rows3, LayoutList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoItem,
@@ -16,7 +16,9 @@ import TodoListForm from '../todo/TodoListForm';
 import TodoLists from '../todo/TodoLists';
 import InboxSection from '../todo/InboxSection';
 import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
+import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import { TaskDetailPanel, TodoEditPanel } from '../todo/TaskSidePanel';
+import TasksPageSkeleton from './TasksPageSkeleton';
 
 type CreateListOpts = {
   priority?: TodoListPriority;
@@ -200,6 +202,10 @@ function TasksPage() {
     setIsEditing(false);
   }
 
+  if (isLoading) {
+    return <TasksPageSkeleton />;
+  }
+
   return (
     <div className="flex min-h-full -m-6">
       {/* Left panel */}
@@ -329,12 +335,7 @@ function TasksPage() {
             />
           )
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-secondary-dark-bg gap-3 p-6">
-            <ClipboardList className="w-16 h-16 opacity-20" />
-            <p className="text-base font-medium opacity-40">
-              {t('tasks.selectTask')}
-            </p>
-          </div>
+          <SelectTaskPlaceholder />
         )}
       </div>
     </div>

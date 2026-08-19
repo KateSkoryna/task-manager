@@ -18,7 +18,9 @@ import ContentSkeleton from './app/component/elements/ContentSkeleton';
 import DashboardPage from './app/component/pages/DashboardPage';
 import DashboardSkeleton from './app/component/pages/DashboardSkeleton';
 import TasksPage from './app/component/pages/TasksPage';
+import TasksPageSkeleton from './app/component/pages/TasksPageSkeleton';
 import VitalTaskPage from './app/component/pages/VitalTaskPage';
+import VitalTaskPageSkeleton from './app/component/pages/VitalTaskPageSkeleton';
 import SettingsPage from './app/component/pages/SettingsPage';
 import HelpPage from './app/component/pages/HelpPage';
 import StatisticsPage from './app/component/statistics/StatisticsPage';
@@ -31,6 +33,12 @@ import { auth } from './app/lib/firebase';
 import apiClient from './app/lib/apiClient';
 
 const queryClient = new QueryClient();
+
+const PAGE_SKELETONS: Record<string, ReactElement> = {
+  '/': <DashboardSkeleton />,
+  '/vital': <VitalTaskPageSkeleton />,
+  '/tasks': <TasksPageSkeleton />,
+};
 
 function AuthBootstrap({ children }: { children: ReactElement }) {
   const setUser = useAuthStore((s) => s.setUser);
@@ -75,7 +83,7 @@ function AuthRoute({
           <div className="flex flex-1 min-h-0 overflow-hidden pt-8">
             <SidebarSkeleton />
             <main className="flex-1 overflow-y-auto p-6">
-              {pathname === '/' ? <DashboardSkeleton /> : <ContentSkeleton />}
+              {PAGE_SKELETONS[pathname] ?? <ContentSkeleton />}
             </main>
           </div>
         </div>

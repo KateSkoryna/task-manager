@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { TodoItem, TodoList } from '@shared/types';
@@ -8,6 +7,8 @@ import { useTodoListsData } from '../../hooks/useTodoListsData';
 import TodoLists from '../todo/TodoLists';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
 import VitalTaskHero, { VitalTodoEntry } from '../todo/VitalTaskHero';
+import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
+import VitalTaskPageSkeleton from './VitalTaskPageSkeleton';
 
 type SelectedTask = {
   todo: TodoItem;
@@ -66,6 +67,10 @@ function VitalTaskPage() {
     navigate('/tasks', { state: { todoId: todo.id, listId: todo.todolistId } });
   }
 
+  if (isLoading) {
+    return <VitalTaskPageSkeleton />;
+  }
+
   return (
     <div className="flex min-h-full -m-6">
       {/* Left panel */}
@@ -114,12 +119,7 @@ function VitalTaskPage() {
             }
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-secondary-dark-bg gap-3 p-6">
-            <ClipboardList className="w-16 h-16 opacity-20" />
-            <p className="text-base font-medium opacity-40">
-              {t('tasks.selectTask')}
-            </p>
-          </div>
+          <SelectTaskPlaceholder />
         )}
       </div>
     </div>

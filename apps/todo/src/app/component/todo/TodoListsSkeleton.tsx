@@ -1,6 +1,6 @@
 import Skeleton from '../elements/Skeleton';
 
-function TodoListCardSkeleton() {
+export function TodoListCardSkeleton() {
   return (
     <div className="bg-white rounded-xl border border-secondary-bg overflow-hidden">
       <div className="px-4 py-3 bg-dark-bg">
