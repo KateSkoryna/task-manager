@@ -25,6 +25,7 @@ interface TodoListsProps {
   availableLists?: AvailableList[];
   onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
+  onCreateList?: () => void;
 }
 
 function TodoLists({
@@ -41,6 +42,7 @@ function TodoLists({
   availableLists,
   onReorderTodo,
   onMoveTodo,
+  onCreateList,
 }: TodoListsProps) {
   const { t } = useTranslation();
 
@@ -68,9 +70,20 @@ function TodoLists({
           data-testid="empty-todolists-message"
         >
           {t('todoLists.emptyBefore')}{' '}
-          <span className="font-semibold text-triadic-orange">
-            {t('todoLists.emptyNewList')}
-          </span>{' '}
+          {onCreateList ? (
+            <button
+              type="button"
+              onClick={onCreateList}
+              data-testid="todolists-empty-create-list"
+              className="font-semibold text-triadic-orange hover:underline focus:outline-none"
+            >
+              {t('todoLists.emptyNewList')}
+            </button>
+          ) : (
+            <span className="font-semibold text-triadic-orange">
+              {t('todoLists.emptyNewList')}
+            </span>
+          )}{' '}
           {t('todoLists.emptyAfter')}
         </p>
       </div>

@@ -33,6 +33,7 @@ type SelectedTask = {
 type LocationState = {
   todoId?: string;
   listId?: string;
+  openCreateList?: boolean;
 } | null;
 
 type ViewMode = 'grouped' | 'flat';
@@ -111,6 +112,16 @@ function TasksPage() {
       }
     }
   }, [locationState, todoLists, inboxTodos]);
+
+  // Open the create-list form when navigated from another page requesting it
+  const createListStateHandled = useRef(false);
+  useEffect(() => {
+    if (createListStateHandled.current || !locationState?.openCreateList) {
+      return;
+    }
+    setShowCreateForm(true);
+    createListStateHandled.current = true;
+  }, [locationState]);
 
   function handleCreateListSubmit(name: string, opts?: CreateListOpts) {
     handleCreateList(name, opts);
@@ -279,6 +290,7 @@ function TasksPage() {
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
+                onCreateList={() => setShowCreateForm(true)}
               />
             </>
           ) : (

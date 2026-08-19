@@ -91,6 +91,9 @@ function VitalTaskPage() {
           selectedTodoId={selectedTask?.todo.id ?? null}
           onSelectTodo={handleSelectTodo}
           onEditTodo={(todo) => handleEditTodo(todo)}
+          onCreateList={() =>
+            navigate('/tasks', { state: { openCreateList: true } })
+          }
         />
       </div>
 
