@@ -27,6 +27,8 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import TodoItemComponent from '../todo/TodoItem';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
+import Loader from '../elements/Loader';
+import ErrorFallback from '../elements/ErrorFallback';
 
 const DAY_PICKER_STYLE: React.CSSProperties = {
   '--rdp-today-color': '#eb8a4a',
@@ -600,9 +602,22 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: todoLists = [] } = useTodoListsQuery();
-  const { data: inboxTodos = [] } = useInboxTodosQuery();
+  const {
+    data: todoLists = [],
+    isLoading: isTodoListsLoading,
+    isError: isTodoListsError,
+    error: todoListsError,
+    refetch: refetchTodoLists,
+  } = useTodoListsQuery();
+  const {
+    data: inboxTodos = [],
+    isLoading: isInboxLoading,
+    isError: isInboxError,
+    error: inboxError,
+    refetch: refetchInbox,
+  } = useInboxTodosQuery();
   const selectedDate = useDateStore((s) => s.selectedDate);
   const selectedDateStr = toDateStr(selectedDate);
   const todayStr = toDateStr(dayjs());
@@ -661,6 +676,23 @@ function DashboardPage() {
         .slice(0, 5),
     [dateItems]
   );
+
+  if (isTodoListsLoading || isInboxLoading) {
+    return <Loader message={t('dashboard.loading')} className="h-full" />;
+  }
+
+  if (isTodoListsError || isInboxError) {
+    return (
+      <ErrorFallback
+        error={(todoListsError ?? inboxError) as Error}
+        resetErrorBoundary={() => {
+          refetchTodoLists();
+          refetchInbox();
+        }}
+        className="max-w-md mx-auto mt-6"
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 h-full">

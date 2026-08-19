@@ -53,6 +53,7 @@
     }
   },
   "dashboard": {
+    "loading": "Dashboard wird geladen…",
     "todo": "Aufgaben",
     "calendar": "Kalender",
     "today": "Heute",
