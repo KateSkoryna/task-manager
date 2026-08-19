@@ -169,7 +169,11 @@
     "emptyAfter": "um zu beginnen!"
   },
   "vitalTask": {
-    "description": "Anzeige von Listen mit hoher Priorität."
+    "description": "Anzeige von Listen mit hoher Priorität.",
+    "ruleOfThreeTitle": "Deine 3 wichtigsten Aufgaben",
+    "goalLabel": "Ziel: {{list}}",
+    "markDone": "Erledigt",
+    "focusWarning": "Du hast {{count}} wichtige Aufgaben. Eine Fokussierung auf die obersten 3-5 hilft dir, konzentriert zu bleiben."
   },
   "settings": {
     "title": "Einstellungen",

@@ -2,15 +2,26 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 import { TodoItem, TodoList } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
 import TodoLists from '../todo/TodoLists';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
+import VitalTaskHero, { VitalTodoEntry } from '../todo/VitalTaskHero';
 
 type SelectedTask = {
   todo: TodoItem;
   list: TodoList;
 };
+
+function compareVitalEntries(a: VitalTodoEntry, b: VitalTodoEntry): number {
+  if (a.todo.dueDate && b.todo.dueDate) {
+    return dayjs(a.todo.dueDate).valueOf() - dayjs(b.todo.dueDate).valueOf();
+  }
+  if (a.todo.dueDate) return -1;
+  if (b.todo.dueDate) return 1;
+  return a.todo.name.localeCompare(b.todo.name);
+}
 
 function VitalTaskPage() {
   const { t } = useTranslation();
@@ -24,11 +35,21 @@ function VitalTaskPage() {
     handleDeleteList,
     handleAddTodo,
     handleDeleteTodo,
+    handleToggleTodo,
   } = useTodoListsData();
 
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
 
   const vitalLists = todoLists?.filter((l) => l.priority === 'high');
+
+  const vitalTodoEntries: VitalTodoEntry[] = (vitalLists ?? [])
+    .flatMap((list) =>
+      list.todos
+        .filter((todo) => todo.status === 'pending')
+        .map((todo) => ({ todo, list }))
+    )
+    .sort(compareVitalEntries);
+  const topThreeVitalTodos = vitalTodoEntries.slice(0, 3);
 
   function handleSelectTodo(todo: TodoItem, list: TodoList) {
     setSelectedTask((prev) =>
@@ -52,6 +73,13 @@ function VitalTaskPage() {
         <p className="text-secondary-dark-bg text-sm mb-4">
           {t('vitalTask.description')}
         </p>
+        <VitalTaskHero
+          entries={topThreeVitalTodos}
+          totalVitalCount={vitalTodoEntries.length}
+          selectedTodoId={selectedTask?.todo.id ?? null}
+          onSelect={handleSelectTodo}
+          onToggleComplete={handleToggleTodo}
+        />
         <TodoLists
           todoLists={vitalLists}
           isLoading={isLoading}
