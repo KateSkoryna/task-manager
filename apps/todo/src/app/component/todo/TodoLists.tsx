@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import TodoList from './TodoList';
 import { AvailableList } from './MoveToListSelect';
-import Loader from '../elements/Loader';
+import TodoListsSkeleton from './TodoListsSkeleton';
 import ErrorFallback from '../elements/ErrorFallback';
 import { TodoList as TodoListType, TodoItem } from '@shared/types';
 
@@ -47,7 +47,7 @@ function TodoLists({
   const { t } = useTranslation();
 
   if (isLoading) {
-    return <Loader message={t('todoLists.loading')} />;
+    return <TodoListsSkeleton />;
   }
 
   if (isError) {

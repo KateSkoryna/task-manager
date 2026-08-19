@@ -17,9 +17,11 @@ const baseProps = {
 };
 
 describe('TodoLists', () => {
-  test('shows a loader while loading', () => {
-    const { container } = render(<TodoLists {...baseProps} isLoading />);
-    expect(container.querySelector('.animate-spin')).toBeInTheDocument();
+  test('shows a skeleton placeholder while loading', () => {
+    render(<TodoLists {...baseProps} isLoading />);
+    expect(
+      screen.getByRole('status', { name: 'Loading todo lists' })
+    ).toBeInTheDocument();
   });
 
   test('shows a retryable error state', () => {

@@ -53,7 +53,6 @@
     }
   },
   "dashboard": {
-    "loading": "Dashboard wird geladen…",
     "todo": "Aufgaben",
     "calendar": "Kalender",
     "today": "Heute",
@@ -165,7 +164,6 @@
     "nameEmpty": "Name der Aufgabenliste darf nicht leer sein."
   },
   "todoLists": {
-    "loading": "Aufgabenlisten werden geladen...",
     "emptyBefore": "Noch keine Listen. Klicken Sie auf",
     "emptyNewList": "Neue Liste",
     "emptyAfter": "um zu beginnen!"

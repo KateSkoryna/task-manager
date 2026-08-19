@@ -77,7 +77,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('buy shoes')).toBeInTheDocument();
   });
 
-  test('shows a loader while todo lists or inbox are loading', () => {
+  test('shows a skeleton placeholder while todo lists or inbox are loading', () => {
     useTodoListsQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -91,7 +91,9 @@ describe('DashboardPage', () => {
       </MemoryRouter>
     );
     expect(screen.queryByText('Go to Kik')).not.toBeInTheDocument();
-    expect(screen.getByText('dashboard.loading')).toBeInTheDocument();
+    expect(
+      screen.getByRole('status', { name: 'Loading dashboard' })
+    ).toBeInTheDocument();
   });
 
   test('shows a retryable error when loading fails', () => {

@@ -27,8 +27,8 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import TodoItemComponent from '../todo/TodoItem';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
-import Loader from '../elements/Loader';
 import ErrorFallback from '../elements/ErrorFallback';
+import DashboardSkeleton from './DashboardSkeleton';
 
 const DAY_PICKER_STYLE: React.CSSProperties = {
   '--rdp-today-color': '#eb8a4a',
@@ -602,7 +602,6 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 function DashboardPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     data: todoLists = [],
@@ -678,7 +677,7 @@ function DashboardPage() {
   );
 
   if (isTodoListsLoading || isInboxLoading) {
-    return <Loader message={t('dashboard.loading')} className="h-full" />;
+    return <DashboardSkeleton />;
   }
 
   if (isTodoListsError || isInboxError) {
