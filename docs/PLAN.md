@@ -29,16 +29,16 @@
 
 ### Gaps that weaken the portfolio story
 
-| Area | Current weakness | Portfolio signal to create |
-| --- | --- | --- |
-| Frontend tests | No meaningful component/hook suite | RTL/MSW tests with an enforced coverage threshold |
-| Backend architecture | Routes and static controllers wired manually in Express | NestJS modules, DI, guards, pipes, filters, and testable services |
-| Validation | Hand-written backend checks duplicate frontend rules | Shared Zod schemas enforced on both sides |
-| Image storage | Base64 data stored inside MongoDB documents | Firebase Storage URLs with user-scoped rules |
-| Security | No consistent headers, throttling, request IDs, or pagination | Verifiable hardening and bounded list endpoints |
-| AI | `@google/genai` is installed but unused | One narrow feature with evals, privacy controls, and measured latency |
-| Developer experience | Full stack needs several services and environment variables | One-command local setup, seed/demo data, and reliable setup docs |
-| Portfolio presentation | Features exist but architectural decisions are hard to skim | Architecture diagram, ADRs, screenshots, live demo, and concise case study |
+| Area                   | Current weakness                                              | Portfolio signal to create                                                 |
+| ---------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Frontend tests         | No meaningful component/hook suite                            | RTL/MSW tests with an enforced coverage threshold                          |
+| Backend architecture   | Routes and static controllers wired manually in Express       | NestJS modules, DI, guards, pipes, filters, and testable services          |
+| Validation             | Hand-written backend checks duplicate frontend rules          | Shared Zod schemas enforced on both sides                                  |
+| Image storage          | Base64 data stored inside MongoDB documents                   | Firebase Storage URLs with user-scoped rules                               |
+| Security               | No consistent headers, throttling, request IDs, or pagination | Verifiable hardening and bounded list endpoints                            |
+| AI                     | `@google/genai` is installed but unused                       | One narrow feature with evals, privacy controls, and measured latency      |
+| Developer experience   | Full stack needs several services and environment variables   | One-command local setup, seed/demo data, and reliable setup docs           |
+| Portfolio presentation | Features exist but architectural decisions are hard to skim   | Architecture diagram, ADRs, screenshots, live demo, and concise case study |
 
 ## Scope and priorities
 
@@ -261,6 +261,84 @@
 - Mobile layouts work at 320px without horizontal overflow.
 - New visible strings exist in English, German, and Ukrainian locale files.
 - Component tests cover the critical interactions and optimistic rollback.
+
+---
+
+## Blockers — resolve before Phase 7 and the n8n agent
+
+**Why:** Phase 6 is shipped. Everything from Phase 7 onward, and all of [`docs/N8N-AGENT-PLAN.md`](./N8N-AGENT-PLAN.md), depends on external accounts, a production data audit, and infrastructure decisions that cannot be made from inside the repository. Each item below either blocks a phase outright or turns into a rebuild when discovered late.
+
+**How to use:** do not start a gated phase until its blockers are closed. "n8n Phase N" refers to `N8N-AGENT-PLAN.md`; bare "Phase N" refers to this file.
+
+| ID  | Blocker                             | Gates                | Status                                         |
+| --- | ----------------------------------- | -------------------- | ---------------------------------------------- |
+| B1  | Production legacy-todo audit        | n8n Phase 1          | Closed 2026-08-20 — audited, 3 todos, no wipe  |
+| B2  | Atlas Vector Search availability    | n8n Phase 8          | Closed 2026-08-20 — available                  |
+| B3  | Local development database decision | n8n Phase 1          | Closed 2026-08-20 — `todo_dev` on Atlas        |
+| B4  | Cloudflare domain and named tunnel  | n8n Phase 5          | Open                                           |
+| B5  | Existing unmanaged n8n container    | n8n Phase 5          | Closed 2026-08-20 — keep it, run two instances |
+| B6  | Secret custody                      | n8n Phase 5          | Vault set up — entries added as secrets exist  |
+| B7  | Two Telegram bots                   | n8n Phase 5          | Open                                           |
+| B8  | Gemini API key and model access     | Phase 7, n8n Phase 6 | Closed 2026-08-20 — key in Render and `.env`   |
+| B9  | Hetzner account                     | n8n Phase 13         | Not needed yet                                 |
+
+### Data blockers
+
+**B1 — Production legacy-todo audit.** `userId` was added to `Todo` on 2026-08-12 in `5abc738` as part of Inbox support. It is declared `required: false`, no backfill migration was ever written, and `todo.service.ts` carries a compatibility shim that resolves ownership through the parent list when `userId` is absent. The local audit on 2026-08-20 found 22 todos, 15 without `userId`; of those, 14 pointed at lists that no longer existed and 1 was recoverable. Local data has been cleaned (14 deleted with a backup retained, 1 backfilled) and now holds 8 todos, all carrying `userId`.
+
+**Closed 2026-08-20.** Production was audited and holds almost nothing: 3 todos, 2 users, 1 todolist, 0 MB of data, on a replica set running MongoDB 8.0.29. Two of the three todos have `todolistId: null`, and none carry `priority`. A wipe was considered and rejected as unnecessary — at this volume, backfilling costs the same as deleting and discards nothing.
+
+`tools/migrations/001-agent-fields.ts` should therefore backfill rather than delete: set `userId` from the parent list where it is missing and a list resolves, and log rather than remove anything that resolves through neither. It must stay idempotent and safe to run twice, per the n8n Phase 1 acceptance checks. n8n Phase 1 still flips `userId` to `required: true`; the migration is what makes that flip safe for documents created before the change.
+
+Note that production is a replica set, so multi-document transactions are available there. The local MongoDB is a standalone and cannot serve them, so migrations and services must not depend on transactions to be correct.
+
+**B2 — Atlas Vector Search availability.** **Closed 2026-08-20.** `$vectorSearch` exists only on Atlas; it is absent from the local Docker MongoDB and from `mongodb-memory-server`, which is why this had to be confirmed before n8n Phase 1 committed schema decisions built around it. On the production cluster `db.collection.aggregate([{ $listSearchIndexes: {} }])` returns an empty array rather than failing with `SearchNotEnabled`, so Atlas Search is enabled and n8n Phase 8 can proceed as written. The 512 MB free-tier storage budget still needs the calculation required by that phase's acceptance checks; current usage is effectively zero.
+
+**Missing indexes, found during the same audit.** Both `todos` and `todolists` carry only the default `_id_` index in production — there is no index on `userId` or `todolistId`, so every user-scoped query and the statistics aggregation are full collection scans. This is harmless at three documents and will not stay harmless. n8n Phase 1 should add these indexes alongside its schema work.
+
+**B3 — Local development database decision.** **Closed 2026-08-20.** Local development previously pointed at Docker MongoDB, which cannot serve `$vectorSearch` and would have failed on first contact with n8n Phase 8. It now points at a `todo_dev` database on the same Atlas cluster as production, verified connecting with `{"status":"ok","mongo":"connected"}` against MongoDB 8.0.29. Production `todo` and development `todo_dev` share a cluster and share nothing else.
+
+Consequences for later phases:
+
+- Migration `001` targets two databases, `todo` and `todo_dev`, and must be run against each.
+- Tests are unaffected: they use `mongodb-memory-server` and stay offline, so CI needs no Atlas credentials. The vector-search interface substitution required by n8n Phase 8 is what keeps that true once embeddings exist.
+- Local development now requires network access. The previous Docker connection string is retained, commented out, in `.env` as an offline fallback.
+- The Docker MongoDB in `tools/mongodb/` remains available but is no longer the default development database. The README local-services table and `.env` template were updated on 2026-08-20 to say so; `docs/runbooks/` should repeat it when n8n Phase 5 documents local services.
+- `DATABASE_NAME` was removed on 2026-08-20 from `.env`, `render.yaml`, and the README template. It was read nowhere — `app.module.ts` passes only `MONGODB_URI` to Mongoose, so the database name comes from the connection string path, and a variable that looks like configuration but configures nothing is a trap. The value still set in the Render dashboard is inert and can be deleted there.
+
+### Infrastructure blockers
+
+**B4 — Cloudflare domain and named tunnel.** No domain is currently owned. A _named_ tunnel requires a domain whose nameservers point at Cloudflare. A quick tunnel is not a substitute: its `*.trycloudflare.com` hostname changes on every restart, which forces re-registering the Telegram webhook and loses any update delivered in between. Cloudflare Registrar is the shortest path, since nameservers are correct on registration with no propagation wait; any other registrar works if the nameservers are moved to Cloudflare, at the cost of up to 24 hours of propagation. `cloudflared` v24.14.1 is already installed locally.
+
+**B5 — Existing unmanaged n8n container.** **Investigated 2026-08-20; decision: run two independent instances.** An `n8nio/n8n:latest` container created 2026-08-07 runs on `:5678` from outside this repository, on the `n8n_data` Docker volume. It is not disposable — it holds 7 active workflows (Ideas Collector — Slack, Telegram Content Organizer, BrainCollector — Thread Replies, Chat AI Agent, Web Search Workflow, Error handling workflow, News Feed Translation), 9 credentials (Slack, Telegram, Notion, Miro, Google Sheets OAuth2, Google PaLM, Groq, and two HTTP header auths), and 123 executions.
+
+It runs on SQLite with no `DB_TYPE` set, and no `N8N_ENCRYPTION_KEY` in its environment, so n8n auto-generated one and wrote it to `/home/node/.n8n/config` inside the volume. That key is the only thing that can decrypt those 9 credentials and exists nowhere else; destroying the volume means re-authenticating every connected service by hand. The volume was archived to `~/Desktop/n8n-backup-2026-08-20.tar.gz` and the key copied into the B6 vault.
+
+**Therefore n8n Phase 5 must not replace this container.** It assumed it was creating the only n8n on the machine, which is false. The todo agent gets its own stack under `tools/n8n/` — Postgres-backed, its own volume, its own explicit `N8N_ENCRYPTION_KEY`, and a port other than 5678. Merging the two would mean a SQLite-to-Postgres migration that risks those credentials for no benefit.
+
+The existing container also reveals why B4 matters in practice: its `N8N_WEBHOOK_URL` is a quick tunnel (`https://operate-pierre-vertical-sugar.trycloudflare.com/`) and no `cloudflared` process is running, so that hostname is dead and all 7 workflows show as active while receiving nothing. A named tunnel on an owned domain fixes both instances, not just the new one. Its `GENERIC_TIMEZONE` is `Europe/Berlin`, which is the timezone n8n Phase 10 report scheduling should expect for the owner's account.
+
+**B6 — Secret custody.** Vault chosen 2026-08-20: the macOS built-in Passwords app. `GEMINI_API_KEY` is stored there. Remaining entries are created as each secret comes into existence: both Telegram bot tokens (B7), then `N8N_ENCRYPTION_KEY` and `N8N_SHARED_SECRET` at the first managed n8n start (n8n Phase 5). None belong in the repository, and `N8N_ENCRYPTION_KEY` cannot be reconstructed after the fact — it is the only secret here whose loss is unrecoverable rather than merely inconvenient.
+
+### Account blockers
+
+**B7 — Two Telegram bots.** Telegram permits exactly one webhook per bot token, so a single bot shared between environments means each silently overwrites the other. Create a dev bot and a prod bot in BotFather and record both tokens under B6.
+
+**B8 — Gemini API key and model access.** **Closed 2026-08-20.** `@google/genai` v2.13.0 is already a dependency and is currently imported nowhere; no new SDK is needed. `GEMINI_API_KEY` is set in the Render dashboard and in the local `.env`, and `render.yaml` declares it with `sync: false` so the variable is documented in code while the value stays out of the repository. A GitHub repository secret of the same name also exists (added 2026-07-28) but is referenced by no workflow; it is only needed if evals are ever run in CI.
+
+The key must never be exposed to the frontend. Frontend variables use the `NX_` prefix and are compiled into the browser bundle, so an `NX_GEMINI_API_KEY` would publish a billable credential to every visitor. The browser calls this backend; only the backend calls Gemini.
+
+Still to confirm when the first call is written: that the key has access to a structured-output text model (Phase 7 and n8n Phase 6) and to `gemini-embedding-001` with `outputDimensionality: 768` (n8n Phase 8). Note also that no `.env.example` exists in the repository yet; n8n Phase 3 introduces one, and it should document this variable with a placeholder.
+
+**B9 — Hetzner account.** No action needed now. New accounts sometimes require identity verification that takes a day or more, so create the account before the deployment phase rather than during it.
+
+### Resolved
+
+**Todo orphaning on list delete.** Fixed 2026-08-20. Deleting a list previously removed only the list document and abandoned its todos, which is where all 14 local orphans in B1 came from. `todolist.service.ts` now reparents a list's todos to the Inbox — `todolistId: null` with `userId` preserved — before deleting the list, ordered so that a failure leaves an empty list rather than unreachable todos. Multi-document transactions are deliberately not used because the local MongoDB is a standalone and cannot serve them. Covered by the `api.spec.ts` case "moves todos to the inbox when their list is deleted", verified to fail without the fix. Inbox remains a virtual list (`todolistId: null`), which is how `MoveToListSelect` and `TodoService.findInbox` already treat it.
+
+### Relationship to the n8n agent plan
+
+Phase 7 below and n8n Phase 6 both parse natural language into tasks with Gemini, and both are gated on B8. Phase 7 is the in-app parser with a review step before saving; n8n Phase 6 is the conversational capture path with no review step. Decide whether they share `libs/types` schemas and an eval fixture set before implementing the second one, or the two will drift into separate prompt and validation stacks.
 
 ---
 
