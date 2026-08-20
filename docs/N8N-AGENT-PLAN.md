@@ -10,6 +10,7 @@
 - **Prerequisites live in [`docs/PLAN.md`](./PLAN.md), in the "Blockers — resolve before Phase 7 and the n8n agent" section.** Accounts, domains, production data decisions, and the existing unmanaged n8n container are tracked there as B1–B9, each naming the phase it gates. Check it before starting any phase below.
 - Implement phases in order. Phases 1–5 are prerequisites and unlock everything after them.
 - Run one phase per `task/<id>-<slug>` branch via the `run-task-workflow` skill, or with `implement-step` using `N8N-AGENT-PLAN.md phase <N>`.
+- **For step-by-step execution, use [`docs/N8N-IMPLEMENTATION-STEPS.md`](./N8N-IMPLEMENTATION-STEPS.md).** It breaks the phases below into single-session units with exact file paths, explicit constraints, and per-step acceptance checks. This document remains the source of truth for intent; that one is the source of truth for execution.
 - Treat every **Goal (measurable)** as the definition of done for that phase.
 - Update **Current state** below after each merge.
 - Do not commit, push, or deploy from the implementation workflow. Leave changes for review.
