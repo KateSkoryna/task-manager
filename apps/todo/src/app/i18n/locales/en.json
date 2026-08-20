@@ -177,9 +177,15 @@
     "minutesLabel": "Minutes",
     "secondsLabel": "Seconds",
     "editHint": "Click to edit the duration",
+    "minDurationHint": "Minimum duration is {{seconds}} seconds.",
     "start": "Start",
     "pause": "Pause",
-    "reset": "Reset"
+    "reset": "Reset",
+    "notifyWorkDoneTitle": "Focus session complete",
+    "notifyWorkDoneBody": "Nice work on \"{{taskName}}\" — time for a break.",
+    "notifyBreakDoneTitle": "Break's over",
+    "notifyBreakDoneBody": "Ready to get back to \"{{taskName}}\"?",
+    "dismiss": "Dismiss"
   },
   "settings": {
     "title": "Settings",

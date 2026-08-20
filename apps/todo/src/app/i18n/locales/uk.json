@@ -177,9 +177,15 @@
     "minutesLabel": "Хвилини",
     "secondsLabel": "Секунди",
     "editHint": "Натисніть, щоб змінити тривалість",
+    "minDurationHint": "Мінімальна тривалість — {{seconds}} секунд.",
     "start": "Почати",
     "pause": "Пауза",
-    "reset": "Скинути"
+    "reset": "Скинути",
+    "notifyWorkDoneTitle": "Сесія фокусу завершена",
+    "notifyWorkDoneBody": "Чудова робота над «{{taskName}}» — час для перерви.",
+    "notifyBreakDoneTitle": "Перерва закінчилась",
+    "notifyBreakDoneBody": "Готові повернутися до «{{taskName}}»?",
+    "dismiss": "Закрити"
   },
   "settings": {
     "title": "Налаштування",

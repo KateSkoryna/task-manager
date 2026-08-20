@@ -1,14 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { X } from 'lucide-react';
 import {
   usePomodoroTimer,
   WORK_SECONDS,
   PomodoroPhase,
 } from '../../hooks/usePomodoroTimer';
+import { playChime } from '../../lib/pomodoroSound';
+import {
+  requestNotificationPermission,
+  showOsNotification,
+} from '../../lib/pomodoroNotifications';
 import Button from '../elements/Button';
 
-const MIN_TOTAL_SECONDS = 60;
-const MAX_MINUTES = 180;
+const BANNER_DISMISS_MS = 6000;
+
+interface PhaseCompleteBanner {
+  title: string;
+  body: string;
+}
+
+const MIN_TOTAL_SECONDS = 10;
+const MAX_MINUTES = 99;
 const MAX_SECONDS_PART = 59;
 
 interface PomodoroTimerProps {
@@ -29,10 +42,76 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
     Math.floor(WORK_SECONDS / 60)
   );
   const [draftSeconds, setDraftSeconds] = useState(WORK_SECONDS % 60);
+  const [banner, setBanner] = useState<PhaseCompleteBanner | null>(null);
+
+  function handlePhaseComplete(completedPhase: PomodoroPhase) {
+    playChime();
+    const title =
+      completedPhase === 'work'
+        ? t('pomodoro.notifyWorkDoneTitle')
+        : t('pomodoro.notifyBreakDoneTitle');
+    const body =
+      completedPhase === 'work'
+        ? t('pomodoro.notifyWorkDoneBody', { taskName })
+        : t('pomodoro.notifyBreakDoneBody', { taskName });
+
+    // The OS can silently swallow a granted notification (Do Not Disturb,
+    // system-level notification settings for the browser, etc.), so the
+    // in-app banner always shows too rather than only as a fallback.
+    showOsNotification(title, body);
+    setBanner({ title, body });
+    onPhaseComplete?.(completedPhase);
+  }
+
   const { phase, status, secondsLeft, start, pause, reset } = usePomodoroTimer(
     workSeconds,
-    onPhaseComplete
+    handlePhaseComplete
   );
+
+  useEffect(() => {
+    if (!banner) return;
+    const id = setTimeout(() => setBanner(null), BANNER_DISMISS_MS);
+    return () => clearTimeout(id);
+  }, [banner]);
+
+  // While the duration editor is open, validity is based on what's currently
+  // typed — not the last committed value — so the Start button reacts as the
+  // user types instead of waiting for Enter/blur to commit.
+  const currentDurationSeconds = isEditingDuration
+    ? draftMinutes * 60 + draftSeconds
+    : workSeconds;
+  const isBelowMinDuration = currentDurationSeconds < MIN_TOTAL_SECONDS;
+
+  const [pendingStart, setPendingStart] = useState(false);
+
+  // Starting mid-edit commits the draft first; secondsLeft only syncs to the
+  // newly committed workSeconds once idle, so starting is deferred until
+  // that sync has happened rather than racing it in the same update.
+  useEffect(() => {
+    if (!pendingStart) return;
+    if (status !== 'idle' || secondsLeft !== workSeconds) return;
+    setPendingStart(false);
+    requestNotificationPermission();
+    start();
+  }, [pendingStart, status, secondsLeft, workSeconds, start]);
+
+  function handleStart() {
+    if (isBelowMinDuration) return;
+    if (isEditingDuration) {
+      commitEditor();
+      setPendingStart(true);
+    } else {
+      requestNotificationPermission();
+      start();
+    }
+  }
+
+  function handleReset() {
+    setIsEditingDuration(false);
+    setPendingStart(false);
+    setWorkSeconds(WORK_SECONDS);
+    reset();
+  }
 
   function openEditor() {
     if (status !== 'idle') return;
@@ -44,8 +123,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
   function commitEditor() {
     const minutes = clamp(draftMinutes, 0, MAX_MINUTES);
     const seconds = clamp(draftSeconds, 0, MAX_SECONDS_PART);
-    const total = Math.max(MIN_TOTAL_SECONDS, minutes * 60 + seconds);
-    setWorkSeconds(total);
+    setWorkSeconds(minutes * 60 + seconds);
     setIsEditingDuration(false);
   }
 
@@ -88,9 +166,9 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
       </div>
 
       <div
-        className={`h-14 flex items-center justify-center my-2 ${
+        className={`h-14 flex items-center justify-center my-2 rounded-lg transition-colors ${
           !isEditingDuration && status === 'idle'
-            ? 'cursor-pointer hover:opacity-70 transition-opacity'
+            ? 'cursor-pointer hover:bg-accent/10'
             : ''
         }`}
         onClick={!isEditingDuration ? openEditor : undefined}
@@ -109,7 +187,13 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             pattern="[0-9]*"
             value={draftMinutes.toString().padStart(2, '0')}
             onChange={(e) =>
-              setDraftMinutes(Number(e.target.value.replace(/\D/g, '')) || 0)
+              setDraftMinutes(
+                clamp(
+                  Number(e.target.value.replace(/\D/g, '')) || 0,
+                  0,
+                  MAX_MINUTES
+                )
+              )
             }
             onKeyDown={handleEditorKeyDown}
             autoFocus
@@ -134,7 +218,13 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             pattern="[0-9]*"
             value={draftSeconds.toString().padStart(2, '0')}
             onChange={(e) =>
-              setDraftSeconds(Number(e.target.value.replace(/\D/g, '')) || 0)
+              setDraftSeconds(
+                clamp(
+                  Number(e.target.value.replace(/\D/g, '')) || 0,
+                  0,
+                  MAX_SECONDS_PART
+                )
+              )
             }
             onKeyDown={handleEditorKeyDown}
             className="w-14 px-0 text-4xl font-bold text-dark-bg text-center tabular-nums focus:outline-none"
@@ -158,19 +248,48 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
           </Button>
         ) : (
           <Button
-            onClick={start}
-            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-accent text-dark-bg hover:opacity-90 transition-opacity"
+            onClick={handleStart}
+            disabled={isBelowMinDuration}
+            dataTestId="pomodoro-start"
+            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-accent text-dark-bg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             {t('pomodoro.start')}
           </Button>
         )}
         <Button
-          onClick={reset}
+          onClick={handleReset}
           className="px-4 py-1.5 text-sm font-semibold rounded-lg border border-secondary-bg text-dark-bg hover:border-triadic-orange hover:text-triadic-orange transition-colors"
         >
           {t('pomodoro.reset')}
         </Button>
       </div>
+
+      {isBelowMinDuration && status === 'idle' && (
+        <p className="mt-2 text-center text-xs text-triadic-orange">
+          {t('pomodoro.minDurationHint', { seconds: MIN_TOTAL_SECONDS })}
+        </p>
+      )}
+
+      {banner && (
+        <div
+          role="status"
+          data-testid="pomodoro-banner"
+          className="mt-3 flex items-start justify-between gap-2 rounded-lg bg-accent px-3 py-2 text-sm text-dark-bg"
+        >
+          <div>
+            <p className="font-semibold">{banner.title}</p>
+            <p>{banner.body}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBanner(null)}
+            aria-label={t('pomodoro.dismiss')}
+            className="shrink-0 hover:opacity-70 transition-opacity"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

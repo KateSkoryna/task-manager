@@ -61,10 +61,13 @@ export function usePomodoroTimer(
     setStatus('paused');
   }
 
+  // secondsLeft isn't set here directly — the idle-duration-sync effect
+  // above picks it up from the (possibly just-changed) workSeconds prop
+  // once status flips to idle, so callers can reset the duration itself
+  // by changing workSeconds and calling reset() together.
   function reset() {
     setStatus('idle');
     setPhase('work');
-    setSecondsLeft(workSeconds);
   }
 
   return { phase, status, secondsLeft, start, pause, reset };

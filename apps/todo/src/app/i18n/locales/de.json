@@ -177,9 +177,15 @@
     "minutesLabel": "Minuten",
     "secondsLabel": "Sekunden",
     "editHint": "Klicken, um die Dauer zu ändern",
+    "minDurationHint": "Mindestdauer ist {{seconds}} Sekunden.",
     "start": "Start",
     "pause": "Pause",
-    "reset": "Zurücksetzen"
+    "reset": "Zurücksetzen",
+    "notifyWorkDoneTitle": "Fokus-Sitzung abgeschlossen",
+    "notifyWorkDoneBody": "Gut gemacht bei \"{{taskName}}\" — Zeit für eine Pause.",
+    "notifyBreakDoneTitle": "Pause vorbei",
+    "notifyBreakDoneBody": "Bereit, weiter an \"{{taskName}}\" zu arbeiten?",
+    "dismiss": "Schließen"
   },
   "settings": {
     "title": "Einstellungen",
