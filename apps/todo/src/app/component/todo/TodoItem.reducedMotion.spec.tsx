@@ -13,6 +13,8 @@ const makeTodo = (extra: Partial<Todo> = {}): Todo => ({
   todolistId: 'l',
   order: 0,
   dueDate: '2026-08-18',
+  priority: 'medium',
+  source: 'web',
   ...extra,
 });
 

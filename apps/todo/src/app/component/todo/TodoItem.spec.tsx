@@ -11,6 +11,8 @@ const makeTodo = (
   status,
   todolistId: 'l',
   order: 0,
+  priority: 'medium',
+  source: 'web',
   ...extra,
 });
 describe('TodoItem', () => {

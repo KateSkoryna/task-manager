@@ -20,6 +20,8 @@ const todo = (
   dueDate: date,
   completedAt: null,
   order: 0,
+  priority: 'medium',
+  source: 'web',
 });
 const list = (category: TodoList['category'], todos: TodoItem[]): TodoList => ({
   id: String(category),

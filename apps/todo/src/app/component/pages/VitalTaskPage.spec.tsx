@@ -21,6 +21,8 @@ const vitalList: TodoList = {
       status: 'pending',
       todolistId: 'l1',
       order: 0,
+      priority: 'medium',
+      source: 'web',
     },
     {
       id: 't2',
@@ -28,6 +30,8 @@ const vitalList: TodoList = {
       status: 'successful',
       todolistId: 'l1',
       order: 1,
+      priority: 'medium',
+      source: 'web',
     },
   ],
 };

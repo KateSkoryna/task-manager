@@ -1,6 +1,12 @@
 // --- TODO TYPES ---
 export type TodoStatus = 'pending' | 'successful' | 'failed';
 
+/** How urgent the task is, independent of which list it belongs to. */
+export type TodoPriority = 'low' | 'medium' | 'high';
+
+/** Which surface created the task. */
+export type TodoSource = 'web' | 'telegram';
+
 export interface NewTodoItem {
   name: string;
   status?: TodoStatus;
@@ -11,6 +17,8 @@ export interface NewTodoItem {
   completedAt?: string | null;
   image?: string | null;
   order?: number;
+  priority?: TodoPriority;
+  source?: TodoSource;
 }
 
 export interface TodoItem extends NewTodoItem {
@@ -18,6 +26,8 @@ export interface TodoItem extends NewTodoItem {
   status: TodoStatus;
   todolistId: string | null;
   order: number;
+  priority: TodoPriority;
+  source: TodoSource;
 }
 
 export interface UpdateTodoItem {
@@ -30,6 +40,7 @@ export interface UpdateTodoItem {
   completedAt?: string | null;
   image?: string | null;
   order?: number;
+  priority?: TodoPriority;
 }
 
 // --- TODOLIST TYPES ---

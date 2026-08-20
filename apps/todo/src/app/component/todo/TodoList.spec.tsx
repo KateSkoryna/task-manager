@@ -71,6 +71,8 @@ describe('TodoList', () => {
         status: 'successful' as const,
         todolistId: 'list-1',
         order: 0,
+        priority: 'medium' as const,
+        source: 'web' as const,
       },
     ];
     render(
@@ -92,6 +94,8 @@ describe('TodoList', () => {
       status: 'pending' as const,
       todolistId: 'list-1',
       order: 0,
+      priority: 'medium' as const,
+      source: 'web' as const,
     };
     render(
       <TodoList

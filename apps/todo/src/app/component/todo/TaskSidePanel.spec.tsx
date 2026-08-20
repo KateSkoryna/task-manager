@@ -15,6 +15,8 @@ const todo: TodoItem = {
   status: 'pending',
   order: 0,
   todolistId: 'list-1',
+  priority: 'medium',
+  source: 'web',
 };
 
 const list: TodoList = {

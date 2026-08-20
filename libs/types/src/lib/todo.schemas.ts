@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
-import { TodoStatus } from './todo.types';
+import { TodoPriority, TodoStatus } from './todo.types';
 import { dateFieldSchema, optionalTextSchema } from './common.schemas';
+
+export const TODO_PRIORITIES = ['low', 'medium', 'high'] as const;
 
 const MAX_LOCATION_LENGTH = 200;
 const MAX_NOTES_LENGTH = 2000;
@@ -48,7 +50,16 @@ const todoFields = {
   completedAt: dateFieldSchema,
   image: optionalImage,
   order: z.number().optional(),
+  priority: z
+    .enum(TODO_PRIORITIES as unknown as [TodoPriority, ...TodoPriority[]])
+    .optional(),
 };
+
+/**
+ * `source` is deliberately absent from both input schemas. It records which
+ * surface created the task and is set server-side from the route, so a web
+ * client cannot claim a task arrived from Telegram.
+ */
 
 const addCompletionRules = (
   data: { status?: TodoStatus; completedAt?: string | null },

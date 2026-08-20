@@ -8,6 +8,8 @@ function todo(id: string, order: number): TodoItem {
     status: 'pending',
     todolistId: 'list-1',
     order,
+    priority: 'medium',
+    source: 'web',
   };
 }
 
