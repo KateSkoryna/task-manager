@@ -115,6 +115,14 @@ export const runMigration = async (
 
 const isEntryPoint = require.main === module;
 
+/**
+ * Removes anything resembling `user:password@` from text before it is printed.
+ * Driver errors occasionally echo the connection string, and this script exists
+ * to be run against production by hand.
+ */
+export const redactCredentials = (text: string): string =>
+  text.replace(/\/\/[^/@\s]*:[^/@\s]*@/g, '//<redacted>@');
+
 /** Swaps the database name in a connection string, leaving credentials alone. */
 export const withDatabase = (uri: string, database: string): string => {
   const [base, query] = uri.split('?');
@@ -161,8 +169,12 @@ if (isEntryPoint) {
         );
       }
     })
-    .catch((error) => {
-      console.error('Migration failed:', error);
+    .catch((error: unknown) => {
+      const message =
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : String(error);
+      console.error('Migration failed:', redactCredentials(message));
       process.exit(1);
     });
 }

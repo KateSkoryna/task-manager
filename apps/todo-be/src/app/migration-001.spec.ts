@@ -2,7 +2,11 @@ import mongoose from 'mongoose';
 import { Todo } from './models/todo.model';
 import { Todolist } from './models/todoList.model';
 import { UserModel } from './models/user.model';
-import { runMigration, withDatabase } from '../migrations/001-agent-fields';
+import {
+  redactCredentials,
+  runMigration,
+  withDatabase,
+} from '../migrations/001-agent-fields';
 
 describe('migration 001 — agent fields', () => {
   const uri = () => process.env.MONGODB_URI as string;
@@ -168,5 +172,34 @@ describe('withDatabase', () => {
     const result = withDatabase(developmentUri, 'todo');
     expect(result).toContain('user:p%40ss-word@');
     expect(result).toContain('/todo?w=1');
+  });
+});
+
+describe('redactCredentials', () => {
+  it('removes user and password from a connection string', () => {
+    const uri = withCredentials(
+      'mongodb+srv',
+      'kate:S3cret',
+      'cluster.abc.mongodb.net/todo'
+    );
+
+    expect(
+      redactCredentials(`failed to connect to ${uri}`)
+    ).toBe(
+      'failed to connect to mongodb+srv://<redacted>@cluster.abc.mongodb.net/todo'
+    );
+  });
+
+  it('leaves a credential-free string untouched', () => {
+    const text = 'querySrv EBADNAME _mongodb._tcp.cluster.abc.mongodb.net';
+    expect(redactCredentials(text)).toBe(text);
+  });
+
+  it('redacts every occurrence', () => {
+    const firstUri = withCredentials('mongodb', 'a:b', 'one.net');
+    const secondUri = withCredentials('mongodb', 'c:d', 'two.net');
+    const result = redactCredentials(`${firstUri} and ${secondUri}`);
+    expect(result).not.toContain('a:b@');
+    expect(result).not.toContain('c:d@');
   });
 });
