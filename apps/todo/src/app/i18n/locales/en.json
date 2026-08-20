@@ -169,11 +169,7 @@
     "emptyAfter": "to get started!"
   },
   "vitalTask": {
-    "description": "Showing high-priority task lists.",
-    "ruleOfThreeTitle": "Your top 3 vital tasks",
-    "goalLabel": "Goal: {{list}}",
-    "markDone": "Mark done",
-    "focusWarning": "You have {{count}} vital tasks. Narrowing to your top 3-5 keeps focus sharp."
+    "description": "Showing high-priority task lists."
   },
   "settings": {
     "title": "Settings",
