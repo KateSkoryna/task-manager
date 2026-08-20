@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { Todo } from './models/todo.model';
 import { Todolist } from './models/todoList.model';
 import { UserModel } from './models/user.model';
-import { runMigration } from '../../../../tools/migrations/001-agent-fields';
+import { runMigration } from '../migrations/001-agent-fields';
 
 describe('migration 001 — agent fields', () => {
   const uri = () => process.env.MONGODB_URI as string;
