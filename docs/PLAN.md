@@ -332,9 +332,21 @@ Still to confirm when the first call is written: that the key has access to a st
 
 **B9 — Hetzner account.** No action needed now. New accounts sometimes require identity verification that takes a day or more, so create the account before the deployment phase rather than during it.
 
+### Dependency review
+
+Reviewed 2026-08-20 against every phase from Phase 7 onward: **no new npm dependency is required.** `recharts`, `dayjs`, `@tanstack/react-query`, `react-hook-form`, `@hookform/resolvers`, `zod`, `react-i18next`, `react-router-dom`, `@google/genai`, and `msw` are all installed and sufficient. Phase 3 uses Node's built-in `crypto`. The only new software is infrastructure, not packages: Docker images for n8n, Postgres, and `cloudflared`.
+
+A mapping library was considered and rejected. `location` is free text on `Todo`, no phase reads it geographically, and adding Mapbox would introduce a paid API and another key to manage for a feature the agent never touches. It belongs in the stretch roadmap if it is wanted at all.
+
 ### Resolved
 
 **Todo orphaning on list delete.** Fixed 2026-08-20. Deleting a list previously removed only the list document and abandoned its todos, which is where all 14 local orphans in B1 came from. `todolist.service.ts` now reparents a list's todos to the Inbox — `todolistId: null` with `userId` preserved — before deleting the list, ordered so that a failure leaves an empty list rather than unreachable todos. Multi-document transactions are deliberately not used because the local MongoDB is a standalone and cannot serve them. Covered by the `api.spec.ts` case "moves todos to the inbox when their list is deleted", verified to fail without the fix. Inbox remains a virtual list (`todolistId: null`), which is how `MoveToListSelect` and `TodoService.findInbox` already treat it.
+
+**No timezone capability on the backend.** Fixed 2026-08-20. `dayjs` was a frontend-only dependency, `dayjs.extend` appeared nowhere in the codebase, and the backend computed dates from `new Date()` — server time, which is UTC on Render. Four separate phases assume otherwise: relative date resolution (n8n Phase 6), day boundaries for analytics (n8n Phase 9), per-user delivery hours (n8n Phase 10), and greeting buckets (n8n Phase 12).
+
+`libs/types/src/lib/datetime.ts` now extends dayjs with the `utc` and `timezone` plugins once, and exports `isValidTimezone`, `detectTimezone`, `inZone`, `startOfDayInZone`, `endOfDayInZone`, `hourInZone`, `dayKeyInZone`, and `isSameDayInZone` through `@shared/types`. Boundary helpers return plain `Date` instants so no dayjs object reaches Mongoose. An unknown zone falls back to UTC rather than throwing, so a corrupted `timezone` field degrades a greeting instead of taking down the report scheduler.
+
+Covered by `apps/todo-be/src/app/shared-datetime.spec.ts`, including the 23-hour and 25-hour Berlin days across both 2026 DST transitions — the cases where plain `dayjs` silently reports 24 hours and analytics quietly drop or double-count an hour twice a year. The n8n Phase 9 acceptance check for DST correctness is therefore satisfied at the helper level before that phase begins.
 
 ### Relationship to the n8n agent plan
 

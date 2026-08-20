@@ -77,7 +77,13 @@ React app ── dashboard, tasks, reports, settings
 
 **Concepts:** schema evolution, backward-compatible migrations, IANA timezone identifiers, TTL indexes, discriminated unions, shared contracts at trust boundaries.
 
-**Libs/deps:** none.
+**Libs/deps:** none. The shared timezone helpers in `@shared/types` (`libs/types/src/lib/datetime.ts`) already exist — validate the `timezone` field with `isValidTimezone` rather than a regex or a second dayjs setup.
+
+**Already done ahead of this phase (2026-08-20):**
+
+- Deleting a list reparents its todos to the inbox instead of orphaning them, so `todolistId: null` is now only ever a deliberate state.
+- Shared timezone helpers with DST coverage.
+- Production and `todo_dev` audited; see the blockers section of [`docs/PLAN.md`](./PLAN.md).
 
 **Files:**
 
@@ -91,7 +97,8 @@ React app ── dashboard, tasks, reports, settings
 - `libs/types/src/lib/todo.schemas.ts` and `todo.types.ts` — extend with `priority` and `source`.
 - `libs/types/src/index.ts`
 - `apps/todo-be/src/user/user.service.ts` — replace the `$lookup`/`$unwind` join with a direct `userId` match so Inbox todos are counted.
-- `tools/migrations/001-agent-fields.ts` — idempotent backfill of defaults on existing documents.
+- `tools/migrations/001-agent-fields.ts` — idempotent backfill of defaults on existing documents. Also backfill `userId` on todos that predate the field, resolving it through the parent list, and flip `userId` to `required: true` only once that backfill is proven. Must be run against **both** `todo` (production) and `todo_dev` (local development), which live on the same Atlas cluster.
+- Indexes on `todos` for `userId` and `todolistId`. Both collections currently carry only the default `_id_` index in production, so every user-scoped query and the statistics aggregation is a full collection scan.
 
 **Acceptance checks:**
 
@@ -111,7 +118,7 @@ React app ── dashboard, tasks, reports, settings
 
 **Concepts:** preference persistence, `Intl.DateTimeFormat().resolvedOptions().timeZone` detection with manual override, consent as an explicit gate, partial-update schemas, optimistic UI with React Query.
 
-**Libs/deps:** none. Reuse `react-hook-form`, `@hookform/resolvers`, `zod`, `@tanstack/react-query`.
+**Libs/deps:** none. Reuse `react-hook-form`, `@hookform/resolvers`, `zod`, `@tanstack/react-query`, and the shared timezone helpers in `@shared/types`.
 
 **Files:**
 
@@ -125,7 +132,7 @@ React app ── dashboard, tasks, reports, settings
 
 **Acceptance checks:**
 
-- Timezone is auto-detected on first visit and can be overridden; the stored value is a valid IANA identifier, validated server-side.
+- Timezone is auto-detected on first visit and can be overridden; the stored value is a valid IANA identifier, validated server-side. Use `detectTimezone()` and `isValidTimezone()` from `@shared/types` rather than a second implementation.
 - Setting cadence to `off` disables report delivery end to end, verified in Phase 10.
 - AI consent defaults to off, and every Gemini call in this plan is gated on it.
 - A user cannot read or write another user's preferences; covered by an authorization test.
@@ -358,7 +365,7 @@ React app ── dashboard, tasks, reports, settings
 
 **Concepts:** metric design, deterministic scoring, normalization, edge-case handling, timezone-correct day boundaries, avoiding punitive metrics.
 
-**Libs/deps:** reuse `dayjs`.
+**Libs/deps:** reuse `dayjs` through the shared timezone helpers in `@shared/types`. Do not call `dayjs()` on a raw server date for anything day-boundary related — the backend runs in UTC, and `startOfDayInZone` / `endOfDayInZone` exist for exactly this.
 
 **Files:**
 
@@ -380,7 +387,7 @@ Combine into a 0–100 score with documented weights. Handle the zero-task day e
 **Acceptance checks:**
 
 - Identical input produces an identical score across runs.
-- Day boundaries follow the user's timezone, verified across a DST transition.
+- Day boundaries follow the user's timezone, verified across a DST transition. The helpers themselves are already covered for the 23-hour and 25-hour Berlin days in `apps/todo-be/src/app/shared-datetime.spec.ts`; this check is about the analytics built on top of them.
 - A user with no tasks due receives a neutral result, not a zero.
 - Every component metric has direct unit-test coverage.
 - The endpoint enforces user isolation.
@@ -395,7 +402,7 @@ Combine into a 0–100 score with documented weights. Handle the zero-task day e
 
 **Concepts:** per-user timezone scheduling, cron fan-out, idempotent generation, unique-index guards, grounded generation, tone control, delivery-failure handling.
 
-**Libs/deps:** reuse `@google/genai`, `dayjs`.
+**Libs/deps:** reuse `@google/genai`, and `dayjs` through the shared timezone helpers in `@shared/types`. `hourInZone` is what decides whether a user's configured delivery hour has arrived.
 
 **Files:**
 
@@ -467,7 +474,7 @@ n8n runs hourly. Each run calls `POST /api/integrations/reports/due`, which retu
 
 **Concepts:** timezone-correct time-of-day bucketing, localized greetings, time-series aggregation, chart accessibility, deterministic tests under fake timers.
 
-**Libs/deps:** reuse `recharts`, `dayjs`, `react-i18next`.
+**Libs/deps:** reuse `recharts`, `react-i18next`, and the shared timezone helpers in `@shared/types`. `dayKeyInZone` resolves the greeting bucket against the stored timezone rather than the browser's.
 
 **Files:**
 
