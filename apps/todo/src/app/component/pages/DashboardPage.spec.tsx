@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import dayjs from 'dayjs';
 import DashboardPage from './DashboardPage';
+import { useDateStore } from '../../store/dateStore';
 import type { TodoList, TodoItem } from '@shared/types';
 
 const mockTodoLists: TodoList[] = [
@@ -46,6 +48,10 @@ jest.mock('../../fetchers/api', () => ({
 describe('DashboardPage', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-19T09:00:00'));
+    // dateStore's default selectedDate is set once at module-load time using
+    // the real clock, before fake timers exist — pin it explicitly so this
+    // test doesn't drift as the real calendar date moves on.
+    useDateStore.setState({ selectedDate: dayjs() });
     useTodoListsQuery.mockReturnValue({
       data: mockTodoLists,
       isLoading: false,
