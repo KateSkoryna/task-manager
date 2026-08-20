@@ -101,11 +101,7 @@ export const runMigration = async (
 
     if (!dryRun) {
       await users.updateMany(preferencesFilter, {
-        $set: {
-          preferences: DEFAULT_PREFERENCES,
-          timezone: DEFAULT_PREFERENCES.timezone,
-          locale: DEFAULT_PREFERENCES.locale,
-        },
+        $set: { preferences: DEFAULT_PREFERENCES },
       });
     }
 

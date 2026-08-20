@@ -1,3 +1,5 @@
+import { UserPreferences } from './user-preferences.schemas';
+
 // --- USER TYPES ---
 
 /**
@@ -14,6 +16,13 @@ export interface User {
   username?: string;
   createdAt: string;
   updatedAt: string;
+  /** All six preference fields, matching `userPreferencesSchema`. */
+  preferences: UserPreferences;
+  /**
+   * Whether a Telegram chat is bound to this account. The chat id itself is
+   * never exposed to the browser.
+   */
+  telegramLinked: boolean;
 }
 
 /**

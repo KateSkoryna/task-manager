@@ -46,21 +46,21 @@ These are not suggestions. A phase is not complete until all of them hold.
 
 ## Step-to-plan mapping
 
-| Step | Covers                      | Agent-plan phase |
-| ---- | --------------------------- | ---------------- |
-| 1    | User model fields           | Phase 1          |
-| 2    | Session and report models   | Phase 1          |
-| 3    | Preferences API             | Phase 2          |
-| 4    | Preferences data layer      | Phase 2          |
-| 5    | Settings page UI            | Phase 2          |
-| 6    | Raw body and service config | Phase 3          |
-| 7    | HMAC guard                  | Phase 3          |
-| 8    | Integrations module         | Phase 3          |
-| 9    | Link code model and service | Phase 4          |
-| 10   | Link endpoints              | Phase 4          |
-| 11   | Telegram linking UI         | Phase 4          |
+| Step | Covers                      | Agent-plan phase | Status          |
+| ---- | --------------------------- | ---------------- | --------------- |
+| 1    | User model fields           | Phase 1          | Done 2026-08-20 |
+| 2    | Session and report models   | Phase 1          | Done 2026-08-20 |
+| 3    | Preferences API             | Phase 2          | **Start here**  |
+| 4    | Preferences data layer      | Phase 2          | Not started     |
+| 5    | Settings page UI            | Phase 2          | Not started     |
+| 6    | Raw body and service config | Phase 3          | Not started     |
+| 7    | HMAC guard                  | Phase 3          | Not started     |
+| 8    | Integrations module         | Phase 3          | Not started     |
+| 9    | Link code model and service | Phase 4          | Not started     |
+| 10   | Link endpoints              | Phase 4          | Not started     |
+| 11   | Telegram linking UI         | Phase 4          | Not started     |
 
-Steps 6–11 are gated on nothing external. Agent-plan Phase 5 onward needs a Cloudflare domain, which is not yet bought.
+**Agent-plan Phase 1 is complete.** Steps 3–11 are gated on nothing external. Agent-plan Phase 5 onward needs a Cloudflare domain, which is not yet bought.
 
 ## Already done — do not redo
 
@@ -73,10 +73,19 @@ Merged or committed on `task/n8n-phase-1-data-model`:
 - `user.service.ts` — statistics now match `userId` directly instead of joining through `todolists`, so inbox todos are counted.
 - `apps/todo-be/src/migrations/001-agent-fields.ts` — backfills `userId`, `priority`, `source`, and user preferences. Idempotent, supports `--dry-run`.
 - `todolist.service.ts` — deleting a list reparents its todos to the inbox.
+- `user.model.ts` — `preferences` subdocument holding **all six** preference fields, `telegram` subdocument, and a unique partial index on `telegram.chatId`. `toJSON` emits `telegramLinked` and never the chat id.
+- `agent-session.model.ts` — TTL index on `expiresAt`, unique `{userId, chatId}`, `version` field for optimistic concurrency.
+- `report.model.ts` — unique `{userId, period, periodStart}` and a `{userId, periodStart: -1}` index for the list page.
+
+**Deviation from the agent plan, deliberate.** That plan puts `timezone` and `locale` at the top level of `User` with a separate `preferences` subdocument. They are instead all six inside `preferences`, so `userPreferencesSchema.parse(user.preferences)` works directly and there is one place a timezone can live rather than two that can disagree. Treat `preferences` as the only source.
+
+**Note on the chat id index.** It uses `partialFilterExpression`, not `sparse` — MongoDB rejects combining the two, and the partial filter is the stronger guarantee because it also tolerates an explicit `null`.
 
 ---
 
 ## Phase 1 — User model fields
+
+> **Done 2026-08-20.** Kept for reference; do not re-run.
 
 **Goal:** `User` documents carry timezone, locale, preferences, and Telegram linkage, with defaults that leave existing users working unchanged.
 
@@ -110,6 +119,8 @@ Merged or committed on `task/n8n-phase-1-data-model`:
 ---
 
 ## Phase 2 — Session and report models
+
+> **Done 2026-08-20.** Kept for reference; do not re-run.
 
 **Goal:** `AgentSession` and `Report` collections exist with the indexes that make later phases correct rather than merely working.
 
