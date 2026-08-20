@@ -265,9 +265,19 @@ describe('Nest API parity', () => {
 
   it('preserves statistics and excludes another user data', async () => {
     await Todo.create([
-      { name: 'Pending', todolistId: listAId },
-      { name: 'Done', todolistId: listAId, status: 'successful' },
-      { name: 'Foreign', todolistId: listBId, status: 'failed' },
+      { name: 'Pending', todolistId: listAId, userId: userAId },
+      {
+        name: 'Done',
+        todolistId: listAId,
+        userId: userAId,
+        status: 'successful',
+      },
+      {
+        name: 'Foreign',
+        todolistId: listBId,
+        userId: userBId,
+        status: 'failed',
+      },
     ]);
     const response = await request(app.getHttpServer())
       .get(`/api/users/${userAId}/stats`)
@@ -292,6 +302,42 @@ describe('Nest API parity', () => {
         .set(auth());
       expect(valid.status).toBe(200);
     }
+  });
+
+  it('counts inbox todos in statistics', async () => {
+    await Todo.create([
+      { name: 'In a list', todolistId: listAId, userId: userAId },
+      { name: 'In the inbox', todolistId: null, userId: userAId },
+      {
+        name: 'Inbox, done',
+        todolistId: null,
+        userId: userAId,
+        status: 'successful',
+      },
+    ]);
+
+    const response = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/stats`)
+      .set(auth());
+
+    expect(response.body).toMatchObject({
+      total: 3,
+      pending: 2,
+      successful: 1,
+    });
+  });
+
+  it('keeps statistics scoped to the owner when todos carry a userId', async () => {
+    await Todo.create([
+      { name: 'Mine', todolistId: null, userId: userAId },
+      { name: 'Theirs', todolistId: null, userId: userBId },
+    ]);
+
+    const response = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/stats`)
+      .set(auth());
+
+    expect(response.body.total).toBe(1);
   });
 
   it('keeps validation and operation failures in the established shapes', async () => {
