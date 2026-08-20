@@ -12,11 +12,11 @@ services:
         value: resend
       - key: MONGODB_URI
         sync: false
-      - key: DATABASE_NAME
-        sync: false
       - key: PORT
         value: 3333
       - key: NODE_ENV
         value: production
       - key: CORS_ORIGIN
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false
