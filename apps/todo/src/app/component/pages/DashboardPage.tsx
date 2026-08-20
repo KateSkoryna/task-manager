@@ -22,9 +22,13 @@ import {
   useAddInboxTodoMutation,
 } from '../../fetchers/api';
 import { useDateStore } from '../../store/dateStore';
+import { isDueWithinHours } from '../../lib/urgency';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import TodoItemComponent from '../todo/TodoItem';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
+import ErrorFallback from '../elements/ErrorFallback';
+import DashboardSkeleton from './DashboardSkeleton';
 
 const DAY_PICKER_STYLE: React.CSSProperties = {
   '--rdp-today-color': '#eb8a4a',
@@ -85,6 +89,14 @@ function flattenLists(lists: TodoList[]): FlatItem[] {
       listCreatedAt: list.createdAt,
     }))
   );
+}
+
+function flattenInbox(todos: TodoItem[]): FlatItem[] {
+  return todos.map((todo) => ({
+    ...todo,
+    listPriority: undefined,
+    listCreatedAt: undefined,
+  }));
 }
 
 // ─── donut chart ─────────────────────────────────────────────────────────────
@@ -526,6 +538,7 @@ function DailyFocusStrip({
 
 function TopPriorityPanel({ items }: { items: FlatItem[] }) {
   const { t } = useTranslation();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const topThree = items
     .filter((item) => item.listPriority === 'high')
     .slice(0, 3);
@@ -542,21 +555,44 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {topThree.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-xl border border-triadic-orange/40 bg-triadic-orange/5 p-3"
-            >
-              <p className="font-semibold text-dark-bg text-sm leading-snug line-clamp-2">
-                {item.name}
-              </p>
-              {item.dueDate && (
-                <p className="text-xs text-secondary-dark-bg mt-1.5">
-                  {dayjs(item.dueDate).format('DD/MM/YYYY')}
+          {topThree.map((item) => {
+            const isUrgent =
+              item.status === 'pending' && isDueWithinHours(item.dueDate);
+            return (
+              <div
+                key={item.id}
+                className="rounded-xl border border-triadic-orange/40 bg-triadic-orange/5 p-3"
+              >
+                <p className="font-semibold text-dark-bg text-sm leading-snug line-clamp-2">
+                  {item.name}
                 </p>
-              )}
-            </div>
-          ))}
+                {item.dueDate && (
+                  <p
+                    className={`flex items-center gap-1 text-xs mt-1.5 ${
+                      isUrgent
+                        ? 'text-red-600 font-semibold'
+                        : 'text-secondary-dark-bg'
+                    }`}
+                  >
+                    {isUrgent && (
+                      <span
+                        aria-hidden="true"
+                        className={`h-1.5 w-1.5 rounded-full bg-red-500 ${
+                          prefersReducedMotion ? '' : 'animate-pulse'
+                        }`}
+                      />
+                    )}
+                    {dayjs(item.dueDate).format('DD/MM/YYYY')}
+                    {isUrgent && (
+                      <span className="rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                        {t('tasks.dueSoon')}
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -567,13 +603,28 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
 
 function DashboardPage() {
   const navigate = useNavigate();
-  const { data: todoLists = [] } = useTodoListsQuery();
-  const { data: inboxTodos = [] } = useInboxTodosQuery();
+  const {
+    data: todoLists = [],
+    isLoading: isTodoListsLoading,
+    isError: isTodoListsError,
+    error: todoListsError,
+    refetch: refetchTodoLists,
+  } = useTodoListsQuery();
+  const {
+    data: inboxTodos = [],
+    isLoading: isInboxLoading,
+    isError: isInboxError,
+    error: inboxError,
+    refetch: refetchInbox,
+  } = useInboxTodosQuery();
   const selectedDate = useDateStore((s) => s.selectedDate);
   const selectedDateStr = toDateStr(selectedDate);
   const todayStr = toDateStr(dayjs());
 
-  const allItems = useMemo(() => flattenLists(todoLists), [todoLists]);
+  const allItems = useMemo(
+    () => [...flattenLists(todoLists), ...flattenInbox(inboxTodos)],
+    [todoLists, inboxTodos]
+  );
 
   const dateItems = useMemo(
     () =>
@@ -624,6 +675,23 @@ function DashboardPage() {
         .slice(0, 5),
     [dateItems]
   );
+
+  if (isTodoListsLoading || isInboxLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (isTodoListsError || isInboxError) {
+    return (
+      <ErrorFallback
+        error={(todoListsError ?? inboxError) as Error}
+        resetErrorBoundary={() => {
+          refetchTodoLists();
+          refetchInbox();
+        }}
+        className="max-w-md mx-auto mt-6"
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 h-full">

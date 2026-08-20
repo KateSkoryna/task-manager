@@ -119,7 +119,8 @@
     "moveToList": "Zu Liste verschieben",
     "viewMode": "Ansicht",
     "groupedView": "Gruppiert",
-    "flatView": "Flach"
+    "flatView": "Flach",
+    "dueSoon": "Bald fällig"
   },
   "todoForm": {
     "todoName": "Aufgabenname:",
@@ -163,13 +164,28 @@
     "nameEmpty": "Name der Aufgabenliste darf nicht leer sein."
   },
   "todoLists": {
-    "loading": "Aufgabenlisten werden geladen...",
     "emptyBefore": "Noch keine Listen. Klicken Sie auf",
     "emptyNewList": "Neue Liste",
     "emptyAfter": "um zu beginnen!"
   },
   "vitalTask": {
     "description": "Anzeige von Listen mit hoher Priorität."
+  },
+  "pomodoro": {
+    "workPhase": "Fokus",
+    "breakPhase": "Pause",
+    "minutesLabel": "Minuten",
+    "secondsLabel": "Sekunden",
+    "editHint": "Klicken, um die Dauer zu ändern",
+    "minDurationHint": "Mindestdauer ist {{seconds}} Sekunden.",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Zurücksetzen",
+    "notifyWorkDoneTitle": "Fokus-Sitzung abgeschlossen",
+    "notifyWorkDoneBody": "Gut gemacht bei \"{{taskName}}\" — Zeit für eine Pause.",
+    "notifyBreakDoneTitle": "Pause vorbei",
+    "notifyBreakDoneBody": "Bereit, weiter an \"{{taskName}}\" zu arbeiten?",
+    "dismiss": "Schließen"
   },
   "settings": {
     "title": "Einstellungen",

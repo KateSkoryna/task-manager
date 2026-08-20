@@ -48,12 +48,16 @@ npm run serve:fe
 - Todo-list CRUD with priority, category, due date, notes, and sorting.
 - Todo CRUD with status, due date, location, notes, completion date, and image attachment.
 - Direct image uploads to Firebase Storage with client-side resizing and compression.
-- Dashboard with date selection, task-status charts, and recently completed tasks.
-- Vital Tasks view based on high-priority lists.
+- Dashboard with date selection, task-status charts, recently completed tasks, a daily-focus week strip, a completion ring scoped to tasks due that day, a Top Priority panel, and an Inbox quick-add.
+- Inbox support for tasks without a list, with flat and grouped task views and keyboard-accessible reordering and move-to-list controls.
+- Vital Tasks view scoped to in-progress todos on high-priority lists, sharing the same list UI as the Tasks page.
+- Optional local Pomodoro focus timer on Vital Tasks with an adjustable, click-to-edit duration, and phase-completion alerts (sound, OS notification, and an in-app banner that always shows alongside it).
+- Restrained urgency styling for tasks due within four hours that respects reduced-motion preferences.
+- Consistent skeleton loading states across the dashboard, tasks, and vital tasks pages, and the initial auth-loading app shell.
 - Statistics view with week/month/year filtering, status breakdowns, time series, weekday activity, and category charts.
 - Responsive authentication screens and a shared application shell.
 - English, German, and Ukrainian translations.
-- Backend unit/integration coverage and an authenticated Cypress smoke flow.
+- Backend unit/integration coverage, frontend component and hook tests, and an authenticated Cypress smoke flow.
 - GitHub Actions checks for lint, typecheck, unit tests, coverage collection,
   production builds, and the authenticated Cypress smoke flow.
 - Security headers, CORS policy, configurable rate limiting on auth routes,
@@ -63,7 +67,7 @@ npm run serve:fe
 ### Not yet complete
 
 - Settings and Help routes currently contain placeholder content.
-- There are no frontend component or hook tests yet.
+- Frontend test coverage is not yet comprehensive or threshold-enforced project-wide.
 - API documentation is generated from the NestJS application and served with Swagger UI.
 - Firebase Storage reads are public; writes are restricted to the authenticated user's path.
 - Gemini is installed but no AI feature is connected to the application.
@@ -138,9 +142,9 @@ todo-list/
 │   │       │   │   ├── statistics/   # Charts and statistics helpers
 │   │       │   │   └── todo/         # Forms, lists, cards, detail/edit panel
 │   │       │   ├── fetchers/          # REST queries and mutations
-│   │       │   ├── hooks/             # Todo-list orchestration
+│   │       │   ├── hooks/             # Todo-list orchestration, Pomodoro timer, reduced-motion
 │   │       │   ├── i18n/              # en/de/uk locales
-│   │       │   ├── lib/               # API client, Firebase, image uploads
+│   │       │   ├── lib/               # API client, Firebase, image uploads, Pomodoro sound/notifications
 │   │       │   └── store/             # Auth and selected-date state
 │   │       └── environments/
 │   ├── todo-be/                       # NestJS/Mongoose API
@@ -230,17 +234,17 @@ After Firebase authentication, the frontend calls `POST /api/auth/provision` to 
 
 ## Frontend routes
 
-| Route              | Access        | Current behavior                                        |
-| ------------------ | ------------- | ------------------------------------------------------- |
-| `/`                | Authenticated | Date-filtered dashboard, status donuts, completed tasks |
-| `/tasks`           | Authenticated | Todo-list and todo CRUD with detail/edit panel          |
-| `/vital`           | Authenticated | Lists with `high` priority and task details             |
-| `/statistics`      | Authenticated | Client-side week/month/year analytics and charts        |
-| `/settings`        | Authenticated | Placeholder                                             |
-| `/help`            | Authenticated | Placeholder                                             |
-| `/login`           | Public-only   | Email/password and Google sign-in                       |
-| `/register`        | Public-only   | Validated account creation and Google sign-up           |
-| `/forgot-password` | Public        | Firebase password-reset request                         |
+| Route              | Access        | Current behavior                                                                         |
+| ------------------ | ------------- | ---------------------------------------------------------------------------------------- |
+| `/`                | Authenticated | Date-filtered dashboard, status donuts, completed tasks                                  |
+| `/tasks`           | Authenticated | Todo-list and todo CRUD with detail/edit panel                                           |
+| `/vital`           | Authenticated | In-progress todos on `high`-priority lists, task details, and an optional Pomodoro timer |
+| `/statistics`      | Authenticated | Client-side week/month/year analytics and charts                                         |
+| `/settings`        | Authenticated | Placeholder                                                                              |
+| `/help`            | Authenticated | Placeholder                                                                              |
+| `/login`           | Public-only   | Email/password and Google sign-in                                                        |
+| `/register`        | Public-only   | Validated account creation and Google sign-up                                            |
+| `/forgot-password` | Public        | Firebase password-reset request                                                          |
 
 Authenticated and public-only routes redirect appropriately after Firebase auth state is restored. Unknown routes redirect to `/`.
 
@@ -424,11 +428,10 @@ Before deploying, run the full local build and test suite and smoke-test the aut
 The next high-value improvements are:
 
 1. Shared Zod validation across frontend and backend.
-2. Frontend component/hook tests with MSW and an enforced coverage threshold.
+2. Broader frontend component/hook tests with MSW and an enforced coverage threshold.
 3. Incremental Express-to-NestJS migration.
 4. Security headers, throttling, structured logging, pagination, and accurate OpenAPI generation.
-5. Dashboard/Inbox/Vital Tasks UX and accessibility improvements.
-6. A Gemini Smart Parser with structured-output validation, evals, consent, and rate limiting.
-7. One-command local setup, CI E2E coverage, and portfolio-focused architecture documentation.
+5. A Gemini Smart Parser with structured-output validation, evals, consent, and rate limiting.
+6. One-command local setup, CI E2E coverage, and portfolio-focused architecture documentation.
 
 [`docs/PLAN.md`](docs/PLAN.md) expands these items into measurable phases and acceptance checks and is the project's planning source of truth.

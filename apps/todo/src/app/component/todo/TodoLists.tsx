@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import TodoList from './TodoList';
 import { AvailableList } from './MoveToListSelect';
-import Loader from '../elements/Loader';
+import TodoListsSkeleton from './TodoListsSkeleton';
 import ErrorFallback from '../elements/ErrorFallback';
 import { TodoList as TodoListType, TodoItem } from '@shared/types';
 
@@ -25,6 +25,7 @@ interface TodoListsProps {
   availableLists?: AvailableList[];
   onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
+  onCreateList?: () => void;
 }
 
 function TodoLists({
@@ -41,11 +42,12 @@ function TodoLists({
   availableLists,
   onReorderTodo,
   onMoveTodo,
+  onCreateList,
 }: TodoListsProps) {
   const { t } = useTranslation();
 
   if (isLoading) {
-    return <Loader message={t('todoLists.loading')} />;
+    return <TodoListsSkeleton />;
   }
 
   if (isError) {
@@ -68,9 +70,20 @@ function TodoLists({
           data-testid="empty-todolists-message"
         >
           {t('todoLists.emptyBefore')}{' '}
-          <span className="font-semibold text-triadic-orange">
-            {t('todoLists.emptyNewList')}
-          </span>{' '}
+          {onCreateList ? (
+            <button
+              type="button"
+              onClick={onCreateList}
+              data-testid="todolists-empty-create-list"
+              className="font-semibold text-triadic-orange hover:underline focus:outline-none"
+            >
+              {t('todoLists.emptyNewList')}
+            </button>
+          ) : (
+            <span className="font-semibold text-triadic-orange">
+              {t('todoLists.emptyNewList')}
+            </span>
+          )}{' '}
           {t('todoLists.emptyAfter')}
         </p>
       </div>

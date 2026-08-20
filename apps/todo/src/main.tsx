@@ -2,13 +2,25 @@ import './app/i18n/i18n';
 import { StrictMode, ReactElement, useEffect } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 
 import AppShell from './app/component/elements/AppShell';
+import TopHeader from './app/component/elements/TopHeader';
+import SidebarSkeleton from './app/component/elements/SidebarSkeleton';
+import ContentSkeleton from './app/component/elements/ContentSkeleton';
 import DashboardPage from './app/component/pages/DashboardPage';
+import DashboardSkeleton from './app/component/pages/DashboardSkeleton';
 import TasksPage from './app/component/pages/TasksPage';
+import TasksPageSkeleton from './app/component/pages/TasksPageSkeleton';
 import VitalTaskPage from './app/component/pages/VitalTaskPage';
+import VitalTaskPageSkeleton from './app/component/pages/VitalTaskPageSkeleton';
 import SettingsPage from './app/component/pages/SettingsPage';
 import HelpPage from './app/component/pages/HelpPage';
 import StatisticsPage from './app/component/statistics/StatisticsPage';
@@ -21,6 +33,12 @@ import { auth } from './app/lib/firebase';
 import apiClient from './app/lib/apiClient';
 
 const queryClient = new QueryClient();
+
+const PAGE_SKELETONS: Record<string, ReactElement> = {
+  '/': <DashboardSkeleton />,
+  '/vital': <VitalTaskPageSkeleton />,
+  '/tasks': <TasksPageSkeleton />,
+};
 
 function AuthBootstrap({ children }: { children: ReactElement }) {
   const setUser = useAuthStore((s) => s.setUser);
@@ -55,8 +73,24 @@ function AuthRoute({
 }) {
   const isAuthenticated = useAuthStore((s) => !!s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const { pathname } = useLocation();
 
-  if (isLoading) return <Loader message="Loading…" />;
+  if (isLoading) {
+    if (requireAuth) {
+      return (
+        <div className="flex flex-col h-screen overflow-hidden bg-base-bg">
+          <TopHeader />
+          <div className="flex flex-1 min-h-0 overflow-hidden pt-8">
+            <SidebarSkeleton />
+            <main className="flex-1 overflow-y-auto p-6">
+              {PAGE_SKELETONS[pathname] ?? <ContentSkeleton />}
+            </main>
+          </div>
+        </div>
+      );
+    }
+    return <Loader message="Loading…" className="min-h-screen" />;
+  }
   if (requireAuth && !isAuthenticated) return <Navigate to="/login" replace />;
   if (!requireAuth && isAuthenticated) return <Navigate to="/" replace />;
   return children;

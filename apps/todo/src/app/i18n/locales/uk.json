@@ -119,7 +119,8 @@
     "moveToList": "Перемістити до списку",
     "viewMode": "Режим перегляду",
     "groupedView": "Згруповано",
-    "flatView": "Список"
+    "flatView": "Список",
+    "dueSoon": "Скоро термін"
   },
   "todoForm": {
     "todoName": "Назва справи:",
@@ -149,8 +150,8 @@
     "createNewList": "Створити новий список",
     "listName": "Назва списку:",
     "listNamePlaceholder": "Введіть назву списку...",
-    "more": "Більше ▼",
-    "less": "Менше ▲",
+    "more": "Більше",
+    "less": "Менше",
     "create": "Створити список",
     "creating": "Створення...",
     "priority": "Пріоритет",
@@ -163,13 +164,28 @@
     "nameEmpty": "Назва списку справ не може бути порожньою."
   },
   "todoLists": {
-    "loading": "Завантаження списків справ...",
     "emptyBefore": "Списків завдань ще немає. Натисніть",
     "emptyNewList": "Новий список",
     "emptyAfter": ", щоб почати!"
   },
   "vitalTask": {
     "description": "Показ списків з високим пріоритетом."
+  },
+  "pomodoro": {
+    "workPhase": "Фокус",
+    "breakPhase": "Перерва",
+    "minutesLabel": "Хвилини",
+    "secondsLabel": "Секунди",
+    "editHint": "Натисніть, щоб змінити тривалість",
+    "minDurationHint": "Мінімальна тривалість — {{seconds}} секунд.",
+    "start": "Почати",
+    "pause": "Пауза",
+    "reset": "Скинути",
+    "notifyWorkDoneTitle": "Сесія фокусу завершена",
+    "notifyWorkDoneBody": "Чудова робота над «{{taskName}}» — час для перерви.",
+    "notifyBreakDoneTitle": "Перерва закінчилась",
+    "notifyBreakDoneBody": "Готові повернутися до «{{taskName}}»?",
+    "dismiss": "Закрити"
   },
   "settings": {
     "title": "Налаштування",

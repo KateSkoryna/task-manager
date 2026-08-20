@@ -119,7 +119,8 @@
     "moveToList": "Move to list",
     "viewMode": "View mode",
     "groupedView": "Grouped",
-    "flatView": "Flat"
+    "flatView": "Flat",
+    "dueSoon": "Due soon"
   },
   "todoForm": {
     "todoName": "Todo Name:",
@@ -149,8 +150,8 @@
     "createNewList": "Create New List",
     "listName": "List Name:",
     "listNamePlaceholder": "Enter list name...",
-    "more": "More \u25bc",
-    "less": "Less \u25b2",
+    "more": "More",
+    "less": "Less",
     "create": "Create List",
     "creating": "Creating...",
     "priority": "Priority",
@@ -163,13 +164,28 @@
     "nameEmpty": "Todo list name cannot be empty."
   },
   "todoLists": {
-    "loading": "Loading todo lists...",
     "emptyBefore": "No task lists yet. Click",
     "emptyNewList": "New List",
     "emptyAfter": "to get started!"
   },
   "vitalTask": {
     "description": "Showing high-priority task lists."
+  },
+  "pomodoro": {
+    "workPhase": "Focus",
+    "breakPhase": "Break",
+    "minutesLabel": "Minutes",
+    "secondsLabel": "Seconds",
+    "editHint": "Click to edit the duration",
+    "minDurationHint": "Minimum duration is {{seconds}} seconds.",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset",
+    "notifyWorkDoneTitle": "Focus session complete",
+    "notifyWorkDoneBody": "Nice work on \"{{taskName}}\" — time for a break.",
+    "notifyBreakDoneTitle": "Break's over",
+    "notifyBreakDoneBody": "Ready to get back to \"{{taskName}}\"?",
+    "dismiss": "Dismiss"
   },
   "settings": {
     "title": "Settings",

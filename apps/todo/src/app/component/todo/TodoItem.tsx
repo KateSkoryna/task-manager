@@ -8,6 +8,8 @@ import {
   TodoListPriority,
 } from '@shared/types';
 import MoveToListSelect, { AvailableList } from './MoveToListSelect';
+import { isDueWithinHours } from '../../lib/urgency';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 interface TodoItemProps {
   todo: TodoItemType;
@@ -64,6 +66,8 @@ function TodoItem({
 }: TodoItemProps) {
   const { t } = useTranslation();
   const statusLabel = t(STATUS_LABEL_KEYS[todo.status]);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const isUrgent = todo.status === 'pending' && isDueWithinHours(todo.dueDate);
 
   useEffect(() => {
     // auto-fail overdue items is handled server-side / via edit panel
@@ -156,8 +160,27 @@ function TodoItem({
             </span>
           </span>
           {todo.dueDate && (
-            <span className="text-xs text-secondary-dark-bg ml-auto">
+            <span
+              className={`flex items-center gap-1 text-xs ml-auto ${
+                isUrgent
+                  ? 'text-red-600 font-semibold'
+                  : 'text-secondary-dark-bg'
+              }`}
+            >
+              {isUrgent && (
+                <span
+                  aria-hidden="true"
+                  className={`h-1.5 w-1.5 rounded-full bg-red-500 ${
+                    prefersReducedMotion ? '' : 'animate-pulse'
+                  }`}
+                />
+              )}
               Due: {dayjs(todo.dueDate).format('DD/MM/YYYY')}
+              {isUrgent && (
+                <span className="rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                  {t('tasks.dueSoon')}
+                </span>
+              )}
             </span>
           )}
         </div>
