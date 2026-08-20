@@ -56,3 +56,18 @@ docs/portfolio-improvement-plan.md
 docs/software-engineering-guide.md
 .nx/polygraph
 .claude/settings.local.json
+
+.claude/worktrees
+
+# AI agent instructions regenerated on every session by the nx@nx-claude-plugins
+# plugin enabled in .claude/settings.json. One copy per detected tool, so they
+# are reproducible from the plugin and do not belong in review diffs.
+# run-task-workflow is hand-written and stays tracked.
+.agents/skills/*
+!.agents/skills/run-task-workflow/
+.codex/
+.opencode/
+opencode.json
+.github/agents/
+.github/prompts/
+.github/skills/

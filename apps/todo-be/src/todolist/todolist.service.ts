@@ -12,13 +12,16 @@ import {
   ITodolistDocument,
   TODOLIST_MODEL_NAME,
 } from '../app/models/todoList.model';
+import { ITodoDocument, TODO_MODEL_NAME } from '../app/models/todo.model';
 import { executeOperation } from '../common/utils/execute-operation';
 
 @Injectable()
 export class TodolistService {
   constructor(
     @InjectModel(TODOLIST_MODEL_NAME)
-    private readonly todolistModel: Model<ITodolistDocument>
+    private readonly todolistModel: Model<ITodolistDocument>,
+    @InjectModel(TODO_MODEL_NAME)
+    private readonly todoModel: Model<ITodoDocument>
   ) {}
 
   findAll(
@@ -79,15 +82,23 @@ export class TodolistService {
     });
   }
 
+  /**
+   * Deleting a list keeps its todos: they move to the inbox rather than being
+   * removed with it. The todos are reparented before the list is deleted, so a
+   * failure leaves an empty list instead of todos with no reachable owner.
+   */
   delete(id: string, userId: string): Promise<TodoList | null> {
     return executeOperation('Error deleting todolist', async () => {
-      const doc = await this.todolistModel.findOneAndDelete({
-        _id: id,
-        userId,
-      });
-      return doc
-        ? ((doc as unknown as { toJSON(): unknown }).toJSON() as TodoList)
-        : null;
+      const doc = await this.todolistModel.findOne({ _id: id, userId });
+      if (!doc) return null;
+
+      await this.todoModel.updateMany(
+        { todolistId: doc._id },
+        { $set: { todolistId: null, userId: doc.userId } }
+      );
+      await doc.deleteOne();
+
+      return doc.toJSON() as TodoList;
     });
   }
 }

@@ -5,6 +5,7 @@ import {
   TODOLIST_MODEL_NAME,
   todolistSchema,
 } from '../app/models/todoList.model';
+import { TODO_MODEL_NAME, todoSchema } from '../app/models/todo.model';
 import { TodolistController } from './todolist.controller';
 import { TodolistService } from './todolist.service';
 
@@ -13,6 +14,7 @@ import { TodolistService } from './todolist.service';
     AuthModule,
     MongooseModule.forFeature([
       { name: TODOLIST_MODEL_NAME, schema: todolistSchema },
+      { name: TODO_MODEL_NAME, schema: todoSchema },
     ]),
   ],
   controllers: [TodolistController],
