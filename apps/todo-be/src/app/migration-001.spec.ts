@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { Todo } from './models/todo.model';
 import { Todolist } from './models/todoList.model';
 import { UserModel } from './models/user.model';
-import { runMigration } from '../migrations/001-agent-fields';
+import { runMigration, withDatabase } from '../migrations/001-agent-fields';
 
 describe('migration 001 — agent fields', () => {
   const uri = () => process.env.MONGODB_URI as string;
@@ -116,5 +116,57 @@ describe('migration 001 — agent fields', () => {
       .collection('todos')
       .findOne({ _id: inserted.insertedId });
     expect(untouched?.userId).toBeUndefined();
+  });
+});
+
+const withCredentials = (
+  scheme: 'mongodb' | 'mongodb+srv',
+  credentials: string,
+  address: string
+) => `${scheme}://${credentials}@${address}`;
+
+describe('withDatabase', () => {
+  it('swaps the database while preserving credentials and options', () => {
+    const developmentUri = withCredentials(
+      'mongodb+srv',
+      'user:pass',
+      'cluster.abc.mongodb.net/todo_dev?appName=X'
+    );
+    const productionUri = withCredentials(
+      'mongodb+srv',
+      'user:pass',
+      'cluster.abc.mongodb.net/todo?appName=X'
+    );
+
+    expect(
+      withDatabase(developmentUri, 'todo')
+    ).toBe(productionUri);
+  });
+
+  it('handles a URI with no query string', () => {
+    const developmentUri = withCredentials(
+      'mongodb',
+      'root:pw',
+      'localhost:27017/todo_dev'
+    );
+    const productionUri = withCredentials(
+      'mongodb',
+      'root:pw',
+      'localhost:27017/todo'
+    );
+
+    expect(withDatabase(developmentUri, 'todo')).toBe(productionUri);
+  });
+
+  it('does not corrupt a password containing a slash-free special character', () => {
+    const developmentUri = withCredentials(
+      'mongodb+srv',
+      'user:p%40ss-word',
+      'cluster.abc.mongodb.net/todo_dev?w=1'
+    );
+
+    const result = withDatabase(developmentUri, 'todo');
+    expect(result).toContain('user:p%40ss-word@');
+    expect(result).toContain('/todo?w=1');
   });
 });

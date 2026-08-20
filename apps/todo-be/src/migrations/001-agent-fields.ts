@@ -1,16 +1,18 @@
 /**
  * Backfills the fields the Telegram agent depends on.
  *
- * Idempotent and safe to run twice. Run it against every database before
- * deploying the statistics change, which matches `userId` on the todo directly
- * and therefore cannot see documents created before that field existed:
+ * Idempotent and safe to run twice. Credentials come from `MONGODB_URI` in
+ * `.env`; `--database` chooses which database on that cluster to target, so no
+ * connection string is ever typed at a shell prompt.
  *
- *   MONGODB_URI="mongodb+srv://.../todo" npx ts-node -P apps/todo-be/tsconfig.app.json \
- *     apps/todo-be/src/migrations/001-agent-fields.ts --dry-run
+ *   npx ts-node -P apps/todo-be/tsconfig.app.json \
+ *     apps/todo-be/src/migrations/001-agent-fields.ts --database todo --dry-run
  *
- * Drop --dry-run to write. Repeat for todo_dev. This is a one-time script, so
- * it deliberately has no npm alias.
+ * Drop --dry-run to write. Run it before deploying the statistics change, which
+ * matches `userId` on the todo directly and so cannot see documents created
+ * before that field existed.
  */
+import { config as loadEnv } from 'dotenv';
 import { MongoClient, ObjectId } from 'mongodb';
 
 interface MigrationReport {
@@ -113,14 +115,40 @@ export const runMigration = async (
 
 const isEntryPoint = require.main === module;
 
-if (isEntryPoint) {
-  const uri = process.env.MONGODB_URI;
-  const dryRun = process.argv.includes('--dry-run');
+/** Swaps the database name in a connection string, leaving credentials alone. */
+export const withDatabase = (uri: string, database: string): string => {
+  const [base, query] = uri.split('?');
+  const withoutDatabase = base.replace(/\/[^/]*$/, '');
+  return `${withoutDatabase}/${database}${query ? `?${query}` : ''}`;
+};
 
-  if (!uri) {
-    console.error('MONGODB_URI is required.');
+if (isEntryPoint) {
+  loadEnv();
+
+  const dryRun = process.argv.includes('--dry-run');
+  const databaseFlag = process.argv.indexOf('--database');
+  const database =
+    databaseFlag === -1 ? undefined : process.argv[databaseFlag + 1];
+  const baseUri = process.env.MONGODB_URI;
+
+  if (!baseUri) {
+    console.error('MONGODB_URI is not set in .env.');
     process.exit(1);
   }
+
+  if (!database) {
+    console.error(
+      'Pass --database <name>, for example --database todo or --database todo_dev.'
+    );
+    process.exit(1);
+  }
+
+  const uri = withDatabase(baseUri, database);
+  console.log(
+    `Target: ${database}${
+      dryRun ? '  (dry run, nothing will be written)' : '  (WRITING)'
+    }`
+  );
 
   runMigration(uri, dryRun)
     .then((report) => {
