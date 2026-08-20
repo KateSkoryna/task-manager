@@ -6,6 +6,7 @@ import { useTodoListsData } from '../../hooks/useTodoListsData';
 import TodoLists from '../todo/TodoLists';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
+import PomodoroTimer from '../todo/PomodoroTimer';
 import VitalTaskPageSkeleton from './VitalTaskPageSkeleton';
 
 type SelectedTask = {
@@ -84,19 +85,29 @@ function VitalTaskPage() {
       {/* Right panel */}
       <div className="flex flex-col w-1/2">
         {selectedTask ? (
-          <TaskDetailPanel
-            todo={selectedTask.todo}
-            list={selectedTask.list}
-            onDelete={(id) => handleDeleteSelectedTodo(id)}
-            onStartEdit={() =>
-              navigate('/tasks', {
-                state: {
-                  todoId: selectedTask.todo.id,
-                  listId: selectedTask.list.id,
-                },
-              })
-            }
-          />
+          <>
+            {selectedTask.todo.status === 'pending' && (
+              <div className="px-6 pt-6">
+                <PomodoroTimer
+                  key={selectedTask.todo.id}
+                  taskName={selectedTask.todo.name}
+                />
+              </div>
+            )}
+            <TaskDetailPanel
+              todo={selectedTask.todo}
+              list={selectedTask.list}
+              onDelete={(id) => handleDeleteSelectedTodo(id)}
+              onStartEdit={() =>
+                navigate('/tasks', {
+                  state: {
+                    todoId: selectedTask.todo.id,
+                    listId: selectedTask.list.id,
+                  },
+                })
+              }
+            />
+          </>
         ) : (
           <SelectTaskPlaceholder />
         )}

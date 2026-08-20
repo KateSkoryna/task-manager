@@ -171,6 +171,16 @@
   "vitalTask": {
     "description": "Показ списків з високим пріоритетом."
   },
+  "pomodoro": {
+    "workPhase": "Фокус",
+    "breakPhase": "Перерва",
+    "minutesLabel": "Хвилини",
+    "secondsLabel": "Секунди",
+    "editHint": "Натисніть, щоб змінити тривалість",
+    "start": "Почати",
+    "pause": "Пауза",
+    "reset": "Скинути"
+  },
   "settings": {
     "title": "Налаштування",
     "comingSoon": "Незабаром."

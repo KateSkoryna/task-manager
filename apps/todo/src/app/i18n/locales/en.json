@@ -171,6 +171,16 @@
   "vitalTask": {
     "description": "Showing high-priority task lists."
   },
+  "pomodoro": {
+    "workPhase": "Focus",
+    "breakPhase": "Break",
+    "minutesLabel": "Minutes",
+    "secondsLabel": "Seconds",
+    "editHint": "Click to edit the duration",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset"
+  },
   "settings": {
     "title": "Settings",
     "comingSoon": "Coming soon."
