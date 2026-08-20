@@ -17,21 +17,30 @@ Open the app at `http://localhost:4200`. See [Prerequisites](#prerequisites) and
 
 ## Local services
 
-| Service                   | URL                              |
-| ------------------------- | -------------------------------- |
-| Frontend                  | `http://localhost:4200`          |
-| Backend                   | `http://localhost:3333`          |
-| Swagger UI                | `http://localhost:3333/api-docs` |
-| Firebase Emulator UI      | `http://localhost:4000`          |
-| Firebase Auth emulator    | `http://localhost:9099`          |
-| Firebase Storage emulator | `http://localhost:9199`          |
-| MongoDB                   | `mongodb://localhost:27017`      |
-| mongo-express             | `http://localhost:8081`          |
+| Service                     | URL                              |
+| --------------------------- | -------------------------------- |
+| Frontend                    | `http://localhost:4200`          |
+| Backend                     | `http://localhost:3333`          |
+| Swagger UI                  | `http://localhost:3333/api-docs` |
+| Firebase Emulator UI        | `http://localhost:4000`          |
+| Firebase Auth emulator      | `http://localhost:9099`          |
+| Firebase Storage emulator   | `http://localhost:9199`          |
+| MongoDB (optional, offline) | `mongodb://localhost:27017`      |
+| mongo-express (optional)    | `http://localhost:8081`          |
+
+The backend connects to a `todo_dev` database on MongoDB Atlas by default, not to
+the Docker stack. Atlas Vector Search is unavailable in the MongoDB Docker image,
+so features that rely on it only work against Atlas. The Docker stack in
+`tools/mongodb/` remains available for offline work — switch `MONGODB_URI` to the
+commented local line in `.env` to use it.
+
+Tests are unaffected either way: they run against `mongodb-memory-server` and
+never reach the network.
 
 You can also start services separately:
 
 ```bash
-npm run docker:mongodb
+npm run docker:mongodb   # only when working offline
 npm run emulator
 npm run serve:be
 npm run serve:fe
@@ -183,9 +192,12 @@ NODE_ENV=development
 PORT=3333
 NX_API_URL=http://localhost:3333/api
 
-# MongoDB
-MONGODB_URI=mongodb://root:password@localhost:27017/?authSource=admin
-DATABASE_NAME=todo
+# MongoDB — the database name is the path segment of the URI.
+# Local development uses a `todo_dev` database on MongoDB Atlas, because
+# Atlas Vector Search does not exist in the Docker image. Swap in the
+# commented line to work offline against the Docker stack instead.
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/todo_dev?retryWrites=true&w=majority
+# MONGODB_URI=mongodb://root:password@localhost:27017/todo?authSource=admin
 
 # Firebase client configuration
 NX_FIREBASE_API_KEY=
