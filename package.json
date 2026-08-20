@@ -19,7 +19,6 @@
     "lint": "nx run-many --target=lint",
     "typecheck": "tsc --build apps/todo apps/todo-be libs/types",
     "emulator": "firebase emulators:start",
-    "migrate:001": "ts-node -P apps/todo-be/tsconfig.app.json apps/todo-be/src/migrations/001-agent-fields.ts",
     "all": "npm run docker:mongodb & npm run emulator & npm run serve:be & npm run serve:fe"
   },
   "private": true,

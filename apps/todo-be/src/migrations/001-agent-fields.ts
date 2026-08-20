@@ -5,10 +5,11 @@
  * deploying the statistics change, which matches `userId` on the todo directly
  * and therefore cannot see documents created before that field existed:
  *
- *   MONGODB_URI="mongodb+srv://.../todo"     npm run migrate:001
- *   MONGODB_URI="mongodb+srv://.../todo_dev" npm run migrate:001
+ *   MONGODB_URI="mongodb+srv://.../todo" npx ts-node -P apps/todo-be/tsconfig.app.json \
+ *     apps/todo-be/src/migrations/001-agent-fields.ts --dry-run
  *
- * Pass --dry-run to report what would change without writing anything.
+ * Drop --dry-run to write. Repeat for todo_dev. This is a one-time script, so
+ * it deliberately has no npm alias.
  */
 import { MongoClient, ObjectId } from 'mongodb';
 
