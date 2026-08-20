@@ -162,6 +162,38 @@ describe('Nest API parity', () => {
     expect(removed.text).toBe('');
   });
 
+  it('moves todos to the inbox when their list is deleted', async () => {
+    const created = await request(app.getHttpServer())
+      .post(`/api/users/${userAId}/todolists`)
+      .set(auth())
+      .send({ name: 'Doomed', notes: '' });
+
+    const nested = await Todo.create({
+      name: 'Survivor',
+      todolistId: created.body.id,
+      userId: userAId,
+    });
+
+    const removed = await request(app.getHttpServer())
+      .delete(`/api/users/${userAId}/todolists/${created.body.id}`)
+      .set(auth());
+    expect(removed.status).toBe(204);
+
+    const survivor = await Todo.findById(nested._id);
+    expect(survivor).not.toBeNull();
+    expect(survivor?.todolistId).toBeNull();
+    expect(survivor?.userId?.toString()).toBe(userAId);
+
+    const inbox = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todos/inbox`)
+      .set(auth());
+    expect(
+      inbox.body.some(
+        (todo: { id: string }) => todo.id === nested._id.toString()
+      )
+    ).toBe(true);
+  });
+
   it('scopes nested todo mutations to the owned list', async () => {
     const foreignTodo = await Todo.create({
       name: 'Foreign',
