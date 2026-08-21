@@ -50,8 +50,8 @@ These are not suggestions. A phase is not complete until all of them hold.
 | ---- | --------------------------- | ---------------- | --------------- |
 | 1    | User model fields           | Phase 1          | Done 2026-08-20 |
 | 2    | Session and report models   | Phase 1          | Done 2026-08-20 |
-| 3    | Preferences API             | Phase 2          | **Start here**  |
-| 4    | Preferences data layer      | Phase 2          | Not started     |
+| 3    | Preferences API             | Phase 2          | Done 2026-08-21 |
+| 4    | Preferences data layer      | Phase 2          | Done 2026-08-21 |
 | 5    | Settings page UI            | Phase 2          | Not started     |
 | 6    | Raw body and service config | Phase 3          | Not started     |
 | 7    | HMAC guard                  | Phase 3          | Not started     |
@@ -153,6 +153,8 @@ Merged or committed on `task/n8n-phase-1-data-model`:
 
 ## Phase 3 — Preferences API
 
+> **Done 2026-08-21.** Merged in PR #20 from `add-user-preferences-api`.
+
 **Goal:** `GET` and `PATCH /api/users/:userId/preferences` work, are user-isolated, and validate through the shared schema.
 
 **Files:**
@@ -185,6 +187,8 @@ Merged or committed on `task/n8n-phase-1-data-model`:
 ---
 
 ## Phase 4 — Preferences data layer
+
+> **Done 2026-08-21.** The hook tests mock the preferences fetchers instead of using MSW because MSW 2.15's ESM-only dependency chain is incompatible with this project's CommonJS Jest pipeline. Initial loading, successful updates, optimistic updates, and rollback after a rejected request are covered without changing the project-wide Jest transform configuration.
 
 **Goal:** the frontend can read and write preferences through React Query, with optimistic update and rollback.
 
