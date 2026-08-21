@@ -18,6 +18,8 @@ const mockTodoLists: TodoList[] = [
         todolistId: 'l1',
         order: 0,
         dueDate: '2026-08-19',
+        priority: 'medium',
+        source: 'web',
       },
     ],
   },
@@ -31,6 +33,8 @@ const mockInboxTodos: TodoItem[] = [
     todolistId: null,
     order: 0,
     dueDate: '2026-08-19',
+    priority: 'medium',
+    source: 'web',
   },
 ];
 

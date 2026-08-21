@@ -22,22 +22,22 @@ export class UserService {
         periodStart.setMonth(periodStart.getMonth() - 1);
       else periodStart.setFullYear(periodStart.getFullYear() - 1);
 
+      /**
+       * Matches `userId` on the todo directly rather than joining through its
+       * list. The previous `$lookup`/`$unwind` silently dropped every todo with
+       * `todolistId: null`, so inbox tasks — which is where the agent puts
+       * everything by default — were missing from every statistic.
+       *
+       * This requires `userId` to be populated; `tools/migrations/001` backfills
+       * it for documents created before the field existed.
+       */
       const results = await this.todoModel.aggregate<{
         _id: string;
         count: number;
       }>([
         {
-          $lookup: {
-            from: 'todolists',
-            localField: 'todolistId',
-            foreignField: '_id',
-            as: 'todolist',
-          },
-        },
-        { $unwind: '$todolist' },
-        {
           $match: {
-            'todolist.userId': new Types.ObjectId(userId),
+            userId: new Types.ObjectId(userId),
             createdAt: { $gte: periodStart },
           },
         },

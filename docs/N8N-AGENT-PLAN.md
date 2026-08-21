@@ -10,6 +10,7 @@
 - **Prerequisites live in [`docs/PLAN.md`](./PLAN.md), in the "Blockers — resolve before Phase 7 and the n8n agent" section.** Accounts, domains, production data decisions, and the existing unmanaged n8n container are tracked there as B1–B9, each naming the phase it gates. Check it before starting any phase below.
 - Implement phases in order. Phases 1–5 are prerequisites and unlock everything after them.
 - Run one phase per `task/<id>-<slug>` branch via the `run-task-workflow` skill, or with `implement-step` using `N8N-AGENT-PLAN.md phase <N>`.
+- **For step-by-step execution, use [`docs/N8N-IMPLEMENTATION-STEPS.md`](./N8N-IMPLEMENTATION-STEPS.md).** It breaks the phases below into single-session units with exact file paths, explicit constraints, and per-step acceptance checks. This document remains the source of truth for intent; that one is the source of truth for execution.
 - Treat every **Goal (measurable)** as the definition of done for that phase.
 - Update **Current state** below after each merge.
 - Do not commit, push, or deploy from the implementation workflow. Leave changes for review.
@@ -30,16 +31,20 @@
 
 ## Current state — 2026-08-20
 
-Nothing in this plan is implemented. The repository is at commit `c244564` with Phase 6 of `docs/PLAN.md` shipped.
+**Phase 1 is complete** on `task/n8n-phase-1-data-model`. Both new collections exist with their indexes, the shared contracts are in `libs/types`, and the statistics defect is fixed. Migration `001` has **not** been run against either database yet — do that before deploying, since the statistics change now matches `userId` directly.
+
+Phases 2–4 are unblocked and specified step by step in [`docs/N8N-IMPLEMENTATION-STEPS.md`](./N8N-IMPLEMENTATION-STEPS.md). Phase 5 onward waits on a Cloudflare domain (B4 in [`docs/PLAN.md`](./PLAN.md)).
+
+One deliberate deviation: all six preference fields live inside the `preferences` subdocument rather than splitting `timezone` and `locale` to the top level, so the stored shape matches `userPreferencesSchema` exactly.
 
 ### Blocking defects found during planning
 
-| Defect                                   | Location                                                                                                           | Impact                                                                                                                                                                  |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Statistics silently exclude Inbox tasks  | `apps/todo-be/src/user/user.service.ts` — `$lookup` + `$unwind` on `todolists` drops todos with `todolistId: null` | Bot-created tasks land in Inbox by default and would be invisible to statistics, reports, and analytics. Every number in this feature would be wrong. Fixed in Phase 1. |
-| `Todo` has no priority field             | `apps/todo-be/src/app/models/todo.model.ts`                                                                        | "urgent: call the bank" has nowhere to store urgency without inventing a todo list. Fixed in Phase 1.                                                                   |
-| No user preferences or timezone anywhere | `apps/todo-be/src/app/models/user.model.ts`, `SettingsPage.tsx` is a placeholder                                   | Greetings, report cadence, and end-of-day scheduling all depend on the user's local time. Fixed in Phases 1–2.                                                          |
-| No non-Firebase authentication path      | All routes are `users/:userId/*` behind `FirebaseAuthGuard`                                                        | n8n holds no Firebase ID token and cannot call any existing endpoint. Fixed in Phase 3.                                                                                 |
+| Defect                                                                                        | Location                                                                                                           | Impact                                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~Statistics silently exclude Inbox tasks~~ **Fixed 2026-08-20**                              | `apps/todo-be/src/user/user.service.ts` — `$lookup` + `$unwind` on `todolists` drops todos with `todolistId: null` | Bot-created tasks land in Inbox by default and would be invisible to statistics, reports, and analytics. Every number in this feature would be wrong. Fixed in Phase 1. |
+| ~~`Todo` has no priority field~~ **Fixed 2026-08-20**                                         | `apps/todo-be/src/app/models/todo.model.ts`                                                                        | "urgent: call the bank" has nowhere to store urgency without inventing a todo list. Fixed in Phase 1.                                                                   |
+| No user preferences or timezone anywhere — **model done 2026-08-20, Settings UI outstanding** | `apps/todo-be/src/app/models/user.model.ts`, `SettingsPage.tsx` is a placeholder                                   | Greetings, report cadence, and end-of-day scheduling all depend on the user's local time. Fixed in Phases 1–2.                                                          |
+| No non-Firebase authentication path — **outstanding, Phase 3**                                | All routes are `users/:userId/*` behind `FirebaseAuthGuard`                                                        | n8n holds no Firebase ID token and cannot call any existing endpoint. Fixed in Phase 3.                                                                                 |
 
 ### Architecture
 
