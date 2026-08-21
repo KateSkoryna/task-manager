@@ -413,4 +413,99 @@ describe('Nest API parity', () => {
       .set(auth());
     expect(invalidLimit.status).toBe(400);
   });
+
+  describe('user preferences', () => {
+    it('returns the full default set for a user with no stored preferences', async () => {
+      await mongoose.connection
+        .collection('users')
+        .updateOne(
+          { _id: new mongoose.Types.ObjectId(userAId) },
+          { $unset: { preferences: '' } }
+        );
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/users/${userAId}/preferences`)
+        .set(auth());
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        timezone: 'UTC',
+        locale: 'en',
+        reportCadence: 'off',
+        deliveryHour: 9,
+        tone: 'neutral',
+        aiConsent: false,
+      });
+    });
+
+    it('persists an update and reflects it on the next GET', async () => {
+      const patch = await request(app.getHttpServer())
+        .patch(`/api/users/${userAId}/preferences`)
+        .set(auth())
+        .send({ timezone: 'Europe/Berlin' });
+      expect(patch.status).toBe(200);
+      expect(patch.body.timezone).toBe('Europe/Berlin');
+
+      const get = await request(app.getHttpServer())
+        .get(`/api/users/${userAId}/preferences`)
+        .set(auth());
+      expect(get.body.timezone).toBe('Europe/Berlin');
+    });
+
+    it('rejects a timezone that is not a real IANA identifier', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/users/${userAId}/preferences`)
+        .set(auth())
+        .send({ timezone: 'Europe/Atlantis' });
+      expect(response.status).toBe(400);
+    });
+
+    it('rejects an empty update body', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/users/${userAId}/preferences`)
+        .set(auth())
+        .send({});
+      expect(response.status).toBe(400);
+    });
+
+    it('rejects a delivery hour outside 0-23', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/users/${userAId}/preferences`)
+        .set(auth())
+        .send({ deliveryHour: 25 });
+      expect(response.status).toBe(400);
+    });
+
+    it('keeps preferences user-isolated', async () => {
+      const readForeign = await request(app.getHttpServer())
+        .get(`/api/users/${userBId}/preferences`)
+        .set(auth());
+      expect(readForeign.status).toBe(403);
+
+      const writeForeign = await request(app.getHttpServer())
+        .patch(`/api/users/${userBId}/preferences`)
+        .set(auth())
+        .send({ timezone: 'Europe/Berlin' });
+      expect(writeForeign.status).toBe(403);
+    });
+
+    it('leaves other fields untouched when setting one field', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/users/${userAId}/preferences`)
+        .set(auth())
+        .send({ tone: 'direct' });
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/users/${userAId}/preferences`)
+        .set(auth());
+      expect(response.body).toEqual({
+        timezone: 'UTC',
+        locale: 'en',
+        reportCadence: 'off',
+        deliveryHour: 9,
+        tone: 'direct',
+        aiConsent: false,
+      });
+    });
+  });
 });
