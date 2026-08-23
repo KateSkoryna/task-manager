@@ -52,6 +52,7 @@ export const usePreferences = () => {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
+    refetch: query.refetch,
     updatePreferences: mutation.mutate,
     isUpdating: mutation.isPending,
   };
