@@ -22,6 +22,7 @@ type DropdownProps<T extends string> = AccessibleName & {
   menuClassName?: string;
   optionClassName?: string;
   fixedPosition?: boolean;
+  disabled?: boolean;
   'data-testid'?: string;
 };
 
@@ -38,6 +39,7 @@ function Dropdown<T extends string>({
   menuClassName,
   optionClassName,
   fixedPosition = false,
+  disabled = false,
   'data-testid': dataTestId,
 }: DropdownProps<T>) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -89,6 +91,10 @@ function Dropdown<T extends string>({
       ref={detailsRef}
       className="group relative"
       onToggle={(event) => {
+        if (disabled) {
+          event.currentTarget.open = false;
+          return;
+        }
         const isOpen = event.currentTarget.open;
         setOpen(isOpen);
         if (isOpen) updateMenuPosition();
@@ -107,10 +113,14 @@ function Dropdown<T extends string>({
         data-testid={dataTestId}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledby}
-        className={
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        className={`${
           className ??
           'flex w-full cursor-pointer list-none items-center justify-between rounded-lg border-2 border-secondary-bg bg-base-bg px-3 py-2 text-dark-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden'
-        }
+        } ${
+          disabled ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
+        }`}
       >
         <span
           className={`flex min-w-0 items-center gap-1.5 truncate ${
