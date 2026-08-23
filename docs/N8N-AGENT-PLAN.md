@@ -29,22 +29,26 @@
 | Atlas Automated Embeddings | Rejected                                                                                | Cannot run against Docker MongoDB or `mongodb-memory-server`; adds Voyage as a second provider          |
 | `$rerank`                  | Rejected for now                                                                        | Tunes a five-candidate list that Gemini already adjudicates                                             |
 
-## Current state — 2026-08-20
+## Current state — 2026-08-23
 
-**Phase 1 is complete** on `task/n8n-phase-1-data-model`. Both new collections exist with their indexes, the shared contracts are in `libs/types`, and the statistics defect is fixed. Migration `001` has **not** been run against either database yet — do that before deploying, since the statistics change now matches `userId` directly.
+**Phases 1 and 2 are complete.** Phase 1 merged via PR #19 (`task/n8n-phase-1-data-model`): both new collections exist with their indexes, the shared contracts are in `libs/types`, and the statistics defect is fixed. Migration `001` has **not** been run against either database yet — do that before deploying, since the statistics change now matches `userId` directly.
 
-Phases 2–4 are unblocked and specified step by step in [`docs/N8N-IMPLEMENTATION-STEPS.md`](./N8N-IMPLEMENTATION-STEPS.md). Phase 5 onward waits on a Cloudflare domain (B4 in [`docs/PLAN.md`](./PLAN.md)).
+Phase 2 merged across three branches, one per step in [`docs/N8N-IMPLEMENTATION-STEPS.md`](./N8N-IMPLEMENTATION-STEPS.md): PR #20 (`add-user-preferences-api`), PR #21 (`add-preferences-data-layer`), PR #22 (`add-settings-preferences-ui`). A signed-in user can now view and edit timezone, report cadence, delivery hour, tone, and AI consent from the Settings page, in English, German, and Ukrainian.
+
+Phase 3 is unblocked and specified step by step (Steps 6–8) in [`docs/N8N-IMPLEMENTATION-STEPS.md`](./N8N-IMPLEMENTATION-STEPS.md). Phase 4 depends on Phase 3. Phase 5 onward waits on a Cloudflare domain (B4 in [`docs/PLAN.md`](./PLAN.md)).
 
 One deliberate deviation: all six preference fields live inside the `preferences` subdocument rather than splitting `timezone` and `locale` to the top level, so the stored shape matches `userPreferencesSchema` exactly.
 
+Another deviation: the Phase 2 hook tests (`usePreferences.spec.ts`) mock the preferences fetchers directly rather than using the project's `msw` scaffolding — `msw` 2.15's dependency chain is pure ESM and breaks this project's CommonJS Jest pipeline. Treated as a separate infrastructure task, not fixed as part of this feature.
+
 ### Blocking defects found during planning
 
-| Defect                                                                                        | Location                                                                                                           | Impact                                                                                                                                                                  |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~Statistics silently exclude Inbox tasks~~ **Fixed 2026-08-20**                              | `apps/todo-be/src/user/user.service.ts` — `$lookup` + `$unwind` on `todolists` drops todos with `todolistId: null` | Bot-created tasks land in Inbox by default and would be invisible to statistics, reports, and analytics. Every number in this feature would be wrong. Fixed in Phase 1. |
-| ~~`Todo` has no priority field~~ **Fixed 2026-08-20**                                         | `apps/todo-be/src/app/models/todo.model.ts`                                                                        | "urgent: call the bank" has nowhere to store urgency without inventing a todo list. Fixed in Phase 1.                                                                   |
-| No user preferences or timezone anywhere — **model done 2026-08-20, Settings UI outstanding** | `apps/todo-be/src/app/models/user.model.ts`, `SettingsPage.tsx` is a placeholder                                   | Greetings, report cadence, and end-of-day scheduling all depend on the user's local time. Fixed in Phases 1–2.                                                          |
-| No non-Firebase authentication path — **outstanding, Phase 3**                                | All routes are `users/:userId/*` behind `FirebaseAuthGuard`                                                        | n8n holds no Firebase ID token and cannot call any existing endpoint. Fixed in Phase 3.                                                                                 |
+| Defect                                                            | Location                                                                                                           | Impact                                                                                                                                                                  |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~Statistics silently exclude Inbox tasks~~ **Fixed 2026-08-20**  | `apps/todo-be/src/user/user.service.ts` — `$lookup` + `$unwind` on `todolists` drops todos with `todolistId: null` | Bot-created tasks land in Inbox by default and would be invisible to statistics, reports, and analytics. Every number in this feature would be wrong. Fixed in Phase 1. |
+| ~~`Todo` has no priority field~~ **Fixed 2026-08-20**             | `apps/todo-be/src/app/models/todo.model.ts`                                                                        | "urgent: call the bank" has nowhere to store urgency without inventing a todo list. Fixed in Phase 1.                                                                   |
+| ~~No user preferences or timezone anywhere~~ **Fixed 2026-08-23** | `apps/todo-be/src/app/models/user.model.ts`, `apps/todo/src/app/component/pages/SettingsPage.tsx`                  | Greetings, report cadence, and end-of-day scheduling all depend on the user's local time. Fixed in Phases 1–2.                                                          |
+| No non-Firebase authentication path — **outstanding, Phase 3**    | All routes are `users/:userId/*` behind `FirebaseAuthGuard`                                                        | n8n holds no Firebase ID token and cannot call any existing endpoint. Fixed in Phase 3.                                                                                 |
 
 ### Architecture
 
