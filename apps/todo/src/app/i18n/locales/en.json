@@ -189,26 +189,7 @@
   },
   "settings": {
     "title": "Settings",
-    "timezone": "Timezone",
-    "timezonePlaceholder": "Search for a timezone…",
-    "timezoneInvalid": "Enter a valid timezone.",
-    "reportCadence": "Report cadence",
-    "cadence_daily": "Daily",
-    "cadence_weekly": "Weekly",
-    "cadence_monthly": "Monthly",
-    "cadence_off": "Off",
-    "deliveryHour": "Delivery hour",
-    "tone": "Tone",
-    "tone_neutral": "Neutral",
-    "tone_encouraging": "Encouraging",
-    "tone_direct": "Direct",
-    "aiConsent": "Allow AI-generated features",
-    "aiConsentDescription": "When enabled, your task text may be sent to Google Gemini to power natural-language features like reports and the Telegram assistant. Off by default.",
-    "save": "Save",
-    "saving": "Saving…",
-    "saved": "Saved",
-    "saveError": "Failed to save. Please try again.",
-    "loadError": "Failed to load your preferences."
+    "comingSoon": "Coming soon."
   },
   "help": {
     "title": "Help",

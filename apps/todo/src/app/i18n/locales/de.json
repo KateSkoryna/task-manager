@@ -189,26 +189,7 @@
   },
   "settings": {
     "title": "Einstellungen",
-    "timezone": "Zeitzone",
-    "timezonePlaceholder": "Zeitzone suchen…",
-    "timezoneInvalid": "Bitte eine gültige Zeitzone eingeben.",
-    "reportCadence": "Berichtsintervall",
-    "cadence_daily": "Täglich",
-    "cadence_weekly": "Wöchentlich",
-    "cadence_monthly": "Monatlich",
-    "cadence_off": "Aus",
-    "deliveryHour": "Zustellzeit",
-    "tone": "Tonfall",
-    "tone_neutral": "Neutral",
-    "tone_encouraging": "Ermutigend",
-    "tone_direct": "Direkt",
-    "aiConsent": "KI-Funktionen erlauben",
-    "aiConsentDescription": "Wenn aktiviert, können deine Aufgabentexte an Google Gemini gesendet werden, um Funktionen wie Berichte und den Telegram-Assistenten zu ermöglichen. Standardmäßig deaktiviert.",
-    "save": "Speichern",
-    "saving": "Speichern…",
-    "saved": "Gespeichert",
-    "saveError": "Speichern fehlgeschlagen. Bitte versuche es erneut.",
-    "loadError": "Deine Einstellungen konnten nicht geladen werden."
+    "comingSoon": "Demnächst verfügbar."
   },
   "help": {
     "title": "Hilfe",

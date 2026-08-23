@@ -189,26 +189,7 @@
   },
   "settings": {
     "title": "Налаштування",
-    "timezone": "Часовий пояс",
-    "timezonePlaceholder": "Пошук часового поясу…",
-    "timezoneInvalid": "Введіть дійсний часовий пояс.",
-    "reportCadence": "Періодичність звітів",
-    "cadence_daily": "Щодня",
-    "cadence_weekly": "Щотижня",
-    "cadence_monthly": "Щомісяця",
-    "cadence_off": "Вимкнено",
-    "deliveryHour": "Час надсилання",
-    "tone": "Тон",
-    "tone_neutral": "Нейтральний",
-    "tone_encouraging": "Підбадьорливий",
-    "tone_direct": "Прямий",
-    "aiConsent": "Дозволити функції на основі ШІ",
-    "aiConsentDescription": "Якщо увімкнено, текст ваших завдань може надсилатися до Google Gemini для роботи функцій на кшталт звітів і Telegram-асистента. За замовчуванням вимкнено.",
-    "save": "Зберегти",
-    "saving": "Збереження…",
-    "saved": "Збережено",
-    "saveError": "Не вдалося зберегти. Спробуйте ще раз.",
-    "loadError": "Не вдалося завантажити ваші налаштування."
+    "comingSoon": "Незабаром."
   },
   "help": {
     "title": "Допомога",
