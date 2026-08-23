@@ -189,6 +189,13 @@
   },
   "settings": {
     "title": "Einstellungen",
+    "appearance": {
+      "title": "Erscheinungsbild",
+      "theme": "Design",
+      "themeLight": "Hell",
+      "themeDark": "Dunkel",
+      "language": "Sprache"
+    },
     "timezone": "Zeitzone",
     "timezonePlaceholder": "Zeitzone suchen…",
     "timezoneInvalid": "Bitte eine gültige Zeitzone eingeben.",

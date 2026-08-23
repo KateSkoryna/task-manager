@@ -20,12 +20,11 @@
   }
 }
 
-/* Global body styles */
+/* Global body styles — font family and theme colors are applied via
+   Tailwind utility classes (font-sans, bg-app, text-primary) on <body> in
+   index.html, driven by theme/tokens.js. */
 @layer base {
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-      'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-      'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

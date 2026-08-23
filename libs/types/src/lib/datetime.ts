@@ -5,7 +5,19 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// The workspace TS lib target predates ES2022.Intl; `Intl.supportedValuesOf`
+// is a real, widely-supported runtime API (Node 18+, all evergreen browsers).
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Intl {
+    function supportedValuesOf(key: string): string[];
+  }
+}
+
 export const DEFAULT_TIMEZONE = 'UTC';
+
+/** Every IANA timezone identifier the current runtime knows about. */
+export const ALL_TIMEZONES = Intl.supportedValuesOf('timeZone');
 
 export type DateInput = Date | string | number | Dayjs;
 

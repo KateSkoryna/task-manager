@@ -189,6 +189,13 @@
   },
   "settings": {
     "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "language": "Language"
+    },
     "timezone": "Timezone",
     "timezonePlaceholder": "Search for a timezone…",
     "timezoneInvalid": "Enter a valid timezone.",

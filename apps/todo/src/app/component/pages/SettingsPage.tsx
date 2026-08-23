@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { usePreferences } from '../../hooks/usePreferences';
 import ContentSkeleton from '../elements/ContentSkeleton';
 import ErrorFallback from '../elements/ErrorFallback';
+import AppearanceSection from '../settings/AppearanceSection';
 import PreferencesForm from '../settings/PreferencesForm';
 
 function SettingsPage() {
@@ -17,8 +18,9 @@ function SettingsPage() {
   } = usePreferences();
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-dark-bg">{t('settings.title')}</h1>
+    <div className="space-y-10">
+      <h1 className="text-2xl font-bold text-primary">{t('settings.title')}</h1>
+      <AppearanceSection />
       {isLoading && <ContentSkeleton />}
       {!isLoading && isError && (
         <ErrorFallback

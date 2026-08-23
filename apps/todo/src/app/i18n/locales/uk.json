@@ -189,6 +189,13 @@
   },
   "settings": {
     "title": "Налаштування",
+    "appearance": {
+      "title": "Вигляд",
+      "theme": "Тема",
+      "themeLight": "Світла",
+      "themeDark": "Темна",
+      "language": "Мова"
+    },
     "timezone": "Часовий пояс",
     "timezonePlaceholder": "Пошук часового поясу…",
     "timezoneInvalid": "Введіть дійсний часовий пояс.",

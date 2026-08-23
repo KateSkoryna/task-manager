@@ -117,20 +117,20 @@ function Dropdown<T extends string>({
         tabIndex={disabled ? -1 : undefined}
         className={`${
           className ??
-          'flex w-full cursor-pointer list-none items-center justify-between rounded-lg border-2 border-secondary-bg bg-base-bg px-3 py-2 text-dark-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden'
+          'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border-2 border-default bg-surface px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
         }`}
       >
         <span
           className={`flex min-w-0 items-center gap-1.5 truncate ${
-            selected ? 'text-dark-bg' : 'text-secondary-dark-bg'
+            selected ? 'text-primary' : 'text-muted'
           }`}
         >
           {selected?.icon}
           {selected?.label ?? placeholder}
         </span>
-        <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-secondary-dark-bg transition-transform group-open:rotate-180" />
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
       </summary>
 
       {open && (
@@ -151,7 +151,7 @@ function Dropdown<T extends string>({
               fixedPosition
                 ? 'z-50 w-max max-w-[220px]'
                 : 'absolute z-10 mt-1 w-full'
-            } list-none overflow-hidden rounded-lg border-2 border-secondary-bg bg-base-bg p-0 shadow-lg`
+            } list-none overflow-hidden rounded-inner border-2 border-default bg-surface p-0 shadow-menu`
           }
         >
           {entries.map((entry) => {
@@ -169,8 +169,8 @@ function Dropdown<T extends string>({
                     optionClassName ?? 'px-3 py-2 text-sm'
                   } ${
                     isSelected
-                      ? 'bg-secondary-bg font-medium text-dark-bg'
-                      : 'text-dark-bg hover:bg-secondary-bg focus:bg-secondary-bg focus:outline-none'
+                      ? 'bg-accent font-medium text-on-accent'
+                      : 'text-primary hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none'
                   }`}
                 >
                   {entry.icon}

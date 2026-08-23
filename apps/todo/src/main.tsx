@@ -78,7 +78,7 @@ function AuthRoute({
   if (isLoading) {
     if (requireAuth) {
       return (
-        <div className="flex flex-col h-screen overflow-hidden bg-base-bg">
+        <div className="flex flex-col h-screen overflow-hidden bg-app">
           <TopHeader />
           <div className="flex flex-1 min-h-0 overflow-hidden pt-8">
             <SidebarSkeleton />
