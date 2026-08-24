@@ -153,10 +153,7 @@ export default function StatisticsPage() {
 
   return (
     <Container className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-2xl font-bold text-dark-bg">
-          {t('statistics.title')}
-        </h2>
+      <div className="flex items-center justify-end flex-wrap gap-3">
         <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 
