@@ -9,7 +9,12 @@
     "logout": "Вийти"
   },
   "header": {
-    "searchPlaceholder": "Шукайте завдання тут..."
+    "searchPlaceholder": "Шукайте завдання тут...",
+    "openMenu": "Відкрити меню",
+    "closeMenu": "Закрити меню",
+    "menuTitle": "Меню навігації",
+    "search": "Пошук",
+    "notifications": "Сповіщення"
   },
   "auth": {
     "login": {

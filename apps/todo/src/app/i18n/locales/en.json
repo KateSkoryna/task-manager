@@ -9,7 +9,12 @@
     "logout": "Logout"
   },
   "header": {
-    "searchPlaceholder": "Search your task here..."
+    "searchPlaceholder": "Search your task here...",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menuTitle": "Navigation menu",
+    "search": "Search",
+    "notifications": "Notifications"
   },
   "auth": {
     "login": {

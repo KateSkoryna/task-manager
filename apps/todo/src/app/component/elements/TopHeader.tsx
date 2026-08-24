@@ -1,6 +1,10 @@
+import { RefObject } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import IconButton from './IconButton';
+import Input from './Input';
+import { MOBILE_DRAWER_ID } from './MobileDrawer';
 
 const ROUTE_TITLE_KEYS: Record<string, string> = {
   '/': 'nav.dashboard',
@@ -17,7 +21,13 @@ const LOCALE_MAP: Record<string, string> = {
   uk: 'uk-UA',
 };
 
-function TopHeader() {
+type TopHeaderProps = {
+  onOpenMenu?: () => void;
+  menuButtonRef?: RefObject<HTMLButtonElement>;
+  isMenuOpen?: boolean;
+};
+
+function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
   const title = t(ROUTE_TITLE_KEYS[pathname] ?? 'nav.dashboard');
@@ -34,41 +44,48 @@ function TopHeader() {
   const dateStr = `${day}/${month}/${year}`;
 
   return (
-    <header className="h-24 flex items-center gap-4 bg-base-bg shadow-[0px_4px_12px_rgba(0,0,0,0.1)] shrink-0">
-      <div className="w-64 shrink-0 flex items-center justify-center px-6">
-        <h2 className="text-xl font-bold text-dark-bg">{title}</h2>
+    <header className="flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5">
+      {onOpenMenu && (
+        <IconButton
+          ref={menuButtonRef}
+          size="menu"
+          ariaLabel={t('header.openMenu')}
+          ariaExpanded={isMenuOpen}
+          ariaControls={MOBILE_DRAWER_ID}
+          onClick={onOpenMenu}
+          className="md:hidden"
+        >
+          <Menu className="size-4" />
+        </IconButton>
+      )}
+
+      <div className="min-w-0">
+        <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">
+          {title}
+        </h2>
+        <p className="truncate font-mono text-small text-muted">
+          {dayName}, {dateStr}
+        </p>
       </div>
 
-      <div className="flex-1 flex justify-center pr-6">
-        <div className="flex items-center gap-2 w-full max-w-xl">
-          <input
+      <div className="ml-auto flex items-center gap-2">
+        <IconButton ariaLabel={t('header.search')} className="lg:hidden">
+          <Search className="size-4" />
+        </IconButton>
+        <div className="hidden lg:block lg:w-search-desktop">
+          <Input
             type="text"
             placeholder={t('header.searchPlaceholder')}
-            className="flex-1 px-4 py-2 rounded-lg bg-gray-100 text-sm text-dark-bg placeholder:text-secondary-dark-bg focus:outline-none shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+            ariaLabel={t('header.search')}
+            inputTestId="header-search"
           />
-          <button
-            aria-label="Search"
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-triadic-orange text-white shadow-[0_2px_8px_rgba(235,138,74,0.4)] hover:opacity-90 transition-opacity shrink-0"
-          >
-            <Search className="w-4 h-4" />
-          </button>
         </div>
-      </div>
-
-      <div className="flex items-center gap-3 pr-6">
-        <button
-          aria-label="Notifications"
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
+        <IconButton
+          ariaLabel={t('header.notifications')}
+          className="md:hidden lg:inline-flex"
         >
-          <Bell className="w-4 h-4" />
-        </button>
-
-        <div className="flex flex-col items-center leading-tight">
-          <span className="text-sm font-bold text-dark-bg">{dayName}</span>
-          <span className="text-sm font-semibold text-triadic-blue">
-            {dateStr}
-          </span>
-        </div>
+          <Bell className="size-4" />
+        </IconButton>
       </div>
     </header>
   );
