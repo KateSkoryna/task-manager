@@ -1,6 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Bell, Globe, SunMoon } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const ROUTE_TITLE_KEYS: Record<string, string> = {
@@ -12,69 +11,11 @@ const ROUTE_TITLE_KEYS: Record<string, string> = {
   '/help': 'nav.help',
 };
 
-const LANGUAGES = [
-  { code: 'en', label: 'EN' },
-  { code: 'de', label: 'DE' },
-  { code: 'uk', label: 'UK' },
-];
-
 const LOCALE_MAP: Record<string, string> = {
   en: 'en-US',
   de: 'de-DE',
   uk: 'uk-UA',
 };
-
-function LanguageSwitcher() {
-  const { i18n } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  const currentLang =
-    LANGUAGES.find((l) => i18n.language.startsWith(l.code))?.code ?? 'en';
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setIsOpen((v) => !v)}
-        aria-label="Language"
-        className="w-9 h-9 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
-      >
-        <Globe className="w-4 h-4" />
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-11 z-50 bg-white rounded-xl shadow-lg border border-secondary-bg overflow-hidden min-w-[64px]">
-          {LANGUAGES.map(({ code, label }) => (
-            <button
-              key={code}
-              onClick={() => {
-                i18n.changeLanguage(code);
-                setIsOpen(false);
-              }}
-              className={`w-full px-4 py-2 text-sm font-medium text-left transition-colors ${
-                currentLang === code
-                  ? 'bg-accent text-dark-bg'
-                  : 'text-dark-bg hover:bg-gray-50'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function TopHeader() {
   const { t, i18n } = useTranslation();
@@ -115,20 +56,11 @@ function TopHeader() {
       </div>
 
       <div className="flex items-center gap-3 pr-6">
-        <LanguageSwitcher />
-
         <button
           aria-label="Notifications"
           className="w-9 h-9 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
         >
           <Bell className="w-4 h-4" />
-        </button>
-
-        <button
-          aria-label="Mode"
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
-        >
-          <SunMoon className="w-4 h-4" />
         </button>
 
         <div className="flex flex-col items-center leading-tight">

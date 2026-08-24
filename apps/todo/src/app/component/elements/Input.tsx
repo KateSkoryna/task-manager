@@ -1,4 +1,5 @@
 import React from 'react';
+import { mergeClassNames } from '../../lib/classNames';
 
 type InputProps = {
   type?: string;
@@ -14,7 +15,15 @@ type InputProps = {
   checked?: boolean;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  invalid?: boolean;
 };
+
+// Used only when a caller omits className; callers supplying their own
+// className keep full control, unchanged from before.
+const DEFAULT_INPUT_CLASSES =
+  'w-full rounded-inner border border-default bg-surface-subtle px-3 py-2 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60';
+const INVALID_INPUT_CLASSES =
+  'border-danger focus:border-danger focus:ring-danger';
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
@@ -23,7 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       name,
       value,
       onChange,
-      className = '',
+      className,
       placeholder = '',
       label,
       id,
@@ -32,14 +41,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       checked,
       onBlur,
       onKeyDown,
+      invalid = false,
     },
     ref
   ) => {
+    const resolvedClassName = mergeClassNames(
+      className || DEFAULT_INPUT_CLASSES,
+      invalid && INVALID_INPUT_CLASSES
+    );
     return (
       <>
         {label && (
           <label
-            className="block text-sm font-medium text-dark-bg mb-1"
+            className="block text-sm font-medium text-primary mb-1"
             data-testid={labelTestId}
             htmlFor={id}
           >
@@ -54,11 +68,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           value={value}
           onChange={onChange}
           onBlur={onBlur}
-          className={className}
+          className={resolvedClassName}
           placeholder={placeholder}
           data-testid={inputTestId}
           checked={checked}
           onKeyDown={onKeyDown}
+          aria-invalid={invalid || undefined}
         />
       </>
     );
