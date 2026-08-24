@@ -9,7 +9,12 @@
     "logout": "Abmelden"
   },
   "header": {
-    "searchPlaceholder": "Suchen Sie hier Ihre Aufgabe..."
+    "searchPlaceholder": "Suchen Sie hier Ihre Aufgabe...",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "menuTitle": "Navigationsmenü",
+    "search": "Suchen",
+    "notifications": "Benachrichtigungen"
   },
   "auth": {
     "login": {

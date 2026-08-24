@@ -211,13 +211,7 @@ function TasksPage() {
       {/* Left panel */}
       <div className="flex flex-col w-1/2 border-r border-secondary-bg">
         <div className="p-6 pb-4">
-          <div className="flex items-center justify-between mb-1">
-            <div>
-              <h2 className="text-2xl font-bold text-dark-bg">
-                {t('tasks.myTasks')}
-              </h2>
-              <div className="h-0.5 w-14 bg-triadic-orange mt-1.5" />
-            </div>
+          <div className="flex items-center justify-end mb-1">
             <div className="flex items-center gap-2">
               <div
                 role="group"

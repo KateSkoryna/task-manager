@@ -16,6 +16,7 @@ type InputProps = {
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   invalid?: boolean;
+  ariaLabel?: string;
 };
 
 // Used only when a caller omits className; callers supplying their own
@@ -42,6 +43,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onBlur,
       onKeyDown,
       invalid = false,
+      ariaLabel,
     },
     ref
   ) => {
@@ -74,6 +76,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           checked={checked}
           onKeyDown={onKeyDown}
           aria-invalid={invalid || undefined}
+          aria-label={ariaLabel}
         />
       </>
     );

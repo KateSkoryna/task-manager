@@ -117,7 +117,7 @@ const tokens = Object.freeze({
     progressRingLarge: '8.25rem',
   }),
   type: Object.freeze({
-    title: Object.freeze({ mobile: '1.125rem', tablet: '1.375rem', desktop: '1.5rem' }),
+    title: Object.freeze({ mobile: '0.875rem', tablet: '1.375rem', desktop: '1.5rem' }),
     section: Object.freeze({ mobile: '1.0625rem', tablet: '1.1875rem', desktop: '1.3125rem' }),
     card: Object.freeze({ mobile: '0.875rem', tablet: '0.9375rem', desktop: '1rem' }),
     body: '0.84375rem',

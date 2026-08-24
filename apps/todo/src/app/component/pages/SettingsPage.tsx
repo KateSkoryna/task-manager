@@ -19,7 +19,6 @@ function SettingsPage() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-2xl font-bold text-primary">{t('settings.title')}</h1>
       <AppearanceSection />
       {isLoading && <ContentSkeleton />}
       {!isLoading && isError && (
