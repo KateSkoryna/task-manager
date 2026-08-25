@@ -121,6 +121,7 @@
     "emptyFlatView": "No tasks yet.",
     "moveUp": "Move up",
     "moveDown": "Move down",
+    "backToList": "Back to list",
     "moveToList": "Move to list",
     "viewMode": "View mode",
     "groupedView": "Grouped",

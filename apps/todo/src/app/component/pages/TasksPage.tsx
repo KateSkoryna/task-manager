@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Rows3, LayoutList } from 'lucide-react';
+import { Plus, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoItem,
@@ -12,6 +12,7 @@ import {
 } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { computeReorder } from '../../lib/reorder';
+import { mergeClassNames } from '../../lib/classNames';
 import TodoListForm from '../todo/TodoListForm';
 import TodoLists from '../todo/TodoLists';
 import InboxSection from '../todo/InboxSection';
@@ -19,6 +20,8 @@ import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import { TaskDetailPanel, TodoEditPanel } from '../todo/TaskSidePanel';
 import TasksPageSkeleton from './TasksPageSkeleton';
+import Button from '../elements/Button';
+import IconButton from '../elements/IconButton';
 
 type CreateListOpts = {
   priority?: TodoListPriority;
@@ -207,24 +210,30 @@ function TasksPage() {
   }
 
   return (
-    <div className="flex min-h-full -m-6">
-      {/* Left panel */}
-      <div className="flex flex-col w-1/2 border-r border-secondary-bg">
+    <div className="-m-6 grid min-h-full grid-cols-1 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+      {/* Left panel: list — hidden on mobile once a task is selected, since
+          the detail/edit view replaces it as its own screen there. */}
+      <div
+        className={mergeClassNames(
+          'flex-col border-default md:flex md:border-r',
+          selectedTask ? 'hidden' : 'flex'
+        )}
+      >
         <div className="p-6 pb-4">
           <div className="flex items-center justify-end mb-1">
             <div className="flex items-center gap-2">
               <div
                 role="group"
                 aria-label={t('tasks.viewMode')}
-                className="flex items-center border border-secondary-bg rounded-lg overflow-hidden"
+                className="flex items-center border border-default rounded-inner overflow-hidden"
               >
                 <button
                   onClick={() => setViewMode('grouped')}
                   aria-pressed={viewMode === 'grouped'}
                   className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors ${
                     viewMode === 'grouped'
-                      ? 'bg-accent text-dark-bg'
-                      : 'bg-white text-secondary-dark-bg hover:text-dark-bg'
+                      ? 'bg-accent text-on-accent'
+                      : 'bg-surface text-muted hover:text-primary'
                   }`}
                 >
                   <Rows3 className="w-3.5 h-3.5" />
@@ -233,23 +242,23 @@ function TasksPage() {
                 <button
                   onClick={() => setViewMode('flat')}
                   aria-pressed={viewMode === 'flat'}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border-l border-secondary-bg transition-colors ${
+                  className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border-l border-default transition-colors ${
                     viewMode === 'flat'
-                      ? 'bg-accent text-dark-bg'
-                      : 'bg-white text-secondary-dark-bg hover:text-dark-bg'
+                      ? 'bg-accent text-on-accent'
+                      : 'bg-surface text-muted hover:text-primary'
                   }`}
                 >
                   <LayoutList className="w-3.5 h-3.5" />
                   {t('tasks.flatView')}
                 </button>
               </div>
-              <button
+              <Button
+                variant="primary"
                 onClick={() => setShowCreateForm((v) => !v)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-triadic-orange text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
               >
                 <Plus className="w-4 h-4" />
                 {t('tasks.newList')}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -310,8 +319,27 @@ function TasksPage() {
         </div>
       </div>
 
-      {/* Right panel */}
-      <div className="flex flex-col w-1/2">
+      {/* Right panel: detail/edit — its own full-width screen on mobile,
+          a side-by-side column from tablet up. */}
+      <div
+        className={mergeClassNames(
+          'flex-col md:flex',
+          selectedTask ? 'flex' : 'hidden'
+        )}
+      >
+        {selectedTask && (
+          <div className="border-b border-default p-3 md:hidden">
+            <IconButton
+              ariaLabel={t('tasks.backToList')}
+              onClick={() => {
+                setSelectedTask(null);
+                setIsEditing(false);
+              }}
+            >
+              <ArrowLeft className="size-4" />
+            </IconButton>
+          </div>
+        )}
         {selectedTask ? (
           isEditing ? (
             <TodoEditPanel

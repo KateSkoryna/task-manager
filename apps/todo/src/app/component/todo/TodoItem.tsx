@@ -7,6 +7,8 @@ import {
   TodoStatus,
   TodoListPriority,
 } from '@shared/types';
+import Card from '../elements/Card';
+import Badge from '../elements/Badge';
 import MoveToListSelect, { AvailableList } from './MoveToListSelect';
 import { isDueWithinHours } from '../../lib/urgency';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
@@ -26,10 +28,13 @@ interface TodoItemProps {
   onMoveToList?: (todolistId: string | null) => void;
 }
 
-const STATUS_DOT: Record<TodoStatus, string> = {
-  pending: 'border-2 border-triadic-orange bg-transparent',
-  successful: 'border-2 border-green-500 bg-transparent',
-  failed: 'border-2 border-triadic-purple bg-transparent',
+// `todo.status` values map onto the redesign's status roles: 'pending' is
+// shown to users as "in progress", 'successful' as "completed", and
+// 'failed' as "not started" — see tasks.status_* translation strings.
+const STATUS_MARKER: Record<TodoStatus, string> = {
+  pending: 'border-2 border-status-progress bg-transparent',
+  successful: 'bg-status-complete ring-2 ring-inset ring-surface',
+  failed: 'border border-dashed border-status-open bg-transparent',
 };
 
 const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
@@ -39,15 +44,9 @@ const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
 };
 
 const STATUS_TEXT: Record<TodoStatus, string> = {
-  pending: 'text-triadic-orange',
-  successful: 'text-green-600',
-  failed: 'text-triadic-purple',
-};
-
-const STATUS_BORDER: Record<TodoStatus, string> = {
-  pending: 'border-triadic-orange',
-  successful: 'border-green-500',
-  failed: 'border-triadic-purple',
+  pending: 'text-status-progress',
+  successful: 'text-status-complete',
+  failed: 'text-status-open',
 };
 
 function TodoItem({
@@ -75,11 +74,10 @@ function TodoItem({
   }, [todo.id]);
 
   return (
-    <div
-      className={`rounded-xl border overflow-hidden transition-colors bg-white ${
-        isSelected ? 'shadow-md' : ''
-      } ${STATUS_BORDER[todo.status]}`}
-      data-testid={'todo-item-' + todo.id}
+    <Card
+      selected={isSelected}
+      className="cursor-pointer overflow-hidden transition-colors"
+      dataTestId={'todo-item-' + todo.id}
       onClick={() => onSelect?.()}
       role="button"
       tabIndex={0}
@@ -87,25 +85,23 @@ function TodoItem({
         if (e.key === 'Enter') onSelect?.();
       }}
     >
-      <div className="flex flex-col p-4 cursor-pointer gap-2">
-        {/* Row 1: status dot + name + edit btn */}
+      <div className="flex flex-col gap-2">
+        {/* Row 1: status marker + name + edit btn */}
         <div className="flex items-center gap-3">
           <div
             role="img"
             aria-label={statusLabel}
-            className={`flex w-5 h-5 items-center justify-center rounded-full shrink-0 ${
-              STATUS_DOT[todo.status]
+            className={`flex size-status-marker items-center justify-center rounded-full shrink-0 ${
+              STATUS_MARKER[todo.status]
             }`}
           >
             {todo.status === 'successful' && (
-              <Check className="h-3.5 w-3.5 text-green-500" strokeWidth={3} />
+              <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
             )}
           </div>
           <p
-            className={`flex-1 min-w-0 font-semibold text-dark-bg leading-snug ${
-              todo.status === 'successful'
-                ? 'line-through text-secondary-dark-bg'
-                : ''
+            className={`flex-1 min-w-0 font-semibold text-primary leading-snug ${
+              todo.status === 'successful' ? 'line-through text-muted' : ''
             }`}
           >
             {todo.name}
@@ -116,7 +112,7 @@ function TodoItem({
                 e.stopPropagation();
                 onEdit();
               }}
-              className="shrink-0 p-1 text-secondary-dark-bg hover:text-triadic-orange transition-colors rounded"
+              className="shrink-0 p-1 text-muted hover:text-primary transition-colors rounded"
               aria-label="Edit task"
             >
               <Pencil size={14} />
@@ -138,22 +134,11 @@ function TodoItem({
         {/* Row 3: priority, status, due date */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
           {listPriority && (
-            <span className="text-xs text-secondary-dark-bg">
-              Priority:{' '}
-              <span
-                className={`font-medium ${
-                  listPriority === 'high'
-                    ? 'text-triadic-orange'
-                    : listPriority === 'medium'
-                    ? 'text-triadic-blue'
-                    : 'text-triadic-purple'
-                }`}
-              >
-                {listPriority.charAt(0).toUpperCase() + listPriority.slice(1)}
-              </span>
-            </span>
+            <Badge tone={`priority-${listPriority}`}>
+              {listPriority.charAt(0).toUpperCase() + listPriority.slice(1)}
+            </Badge>
           )}
-          <span className="text-xs text-secondary-dark-bg">
+          <span className="text-xs text-muted">
             {t('tasks.status')}:{' '}
             <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
               {statusLabel}
@@ -162,22 +147,20 @@ function TodoItem({
           {todo.dueDate && (
             <span
               className={`flex items-center gap-1 text-xs ml-auto ${
-                isUrgent
-                  ? 'text-red-600 font-semibold'
-                  : 'text-secondary-dark-bg'
+                isUrgent ? 'text-danger font-semibold' : 'text-muted'
               }`}
             >
               {isUrgent && (
                 <span
                   aria-hidden="true"
-                  className={`h-1.5 w-1.5 rounded-full bg-red-500 ${
+                  className={`h-1.5 w-1.5 rounded-full bg-danger ${
                     prefersReducedMotion ? '' : 'animate-pulse'
                   }`}
                 />
               )}
               Due: {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               {isUrgent && (
-                <span className="rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold text-danger">
                   {t('tasks.dueSoon')}
                 </span>
               )}
@@ -192,13 +175,13 @@ function TodoItem({
             onClick={(e) => e.stopPropagation()}
           >
             {(onMoveUp || onMoveDown) && (
-              <div className="flex items-center border border-secondary-bg rounded-lg overflow-hidden shrink-0">
+              <div className="flex items-center border border-default rounded-inner overflow-hidden shrink-0">
                 <button
                   type="button"
                   onClick={onMoveUp}
                   disabled={!canMoveUp}
                   aria-label={t('tasks.moveUp')}
-                  className="p-1 text-secondary-dark-bg hover:text-triadic-orange disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                  className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 >
                   <ChevronUp size={14} />
                 </button>
@@ -207,7 +190,7 @@ function TodoItem({
                   onClick={onMoveDown}
                   disabled={!canMoveDown}
                   aria-label={t('tasks.moveDown')}
-                  className="p-1 text-secondary-dark-bg hover:text-triadic-orange disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-secondary-bg"
+                  className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-default"
                 >
                   <ChevronDown size={14} />
                 </button>
@@ -223,7 +206,7 @@ function TodoItem({
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 

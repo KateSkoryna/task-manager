@@ -5,8 +5,8 @@ import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 
 function TasksPageSkeleton() {
   return (
-    <div className="flex min-h-full -m-6">
-      <div className="flex flex-col w-1/2 border-r border-secondary-bg">
+    <div className="-m-6 grid min-h-full grid-cols-1 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="flex flex-col border-default md:border-r">
         <div className="p-6 pb-4">
           <Skeleton className="h-6 w-32 mb-1.5" />
           <Skeleton className="h-0.5 w-14" />
@@ -18,7 +18,7 @@ function TasksPageSkeleton() {
         </div>
       </div>
 
-      <div className="flex flex-col w-1/2">
+      <div className="hidden flex-col md:flex">
         <SelectTaskPlaceholder />
       </div>
     </div>

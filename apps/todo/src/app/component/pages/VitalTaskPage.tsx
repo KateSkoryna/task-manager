@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, TodoList } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
+import { mergeClassNames } from '../../lib/classNames';
 import TodoLists from '../todo/TodoLists';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import PomodoroTimer from '../todo/PomodoroTimer';
+import IconButton from '../elements/IconButton';
 import VitalTaskPageSkeleton from './VitalTaskPageSkeleton';
 
 type SelectedTask = {
@@ -59,12 +62,16 @@ function VitalTaskPage() {
   }
 
   return (
-    <div className="flex min-h-full -m-6">
-      {/* Left panel */}
-      <div className="flex flex-col w-1/2 border-r border-secondary-bg p-6 overflow-y-auto">
-        <p className="text-secondary-dark-bg text-sm mb-4">
-          {t('vitalTask.description')}
-        </p>
+    <div className="-m-6 grid min-h-full grid-cols-1 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+      {/* Left panel: list — hidden on mobile once a task is selected, since
+          the detail view replaces it as its own screen there. */}
+      <div
+        className={mergeClassNames(
+          'flex-col overflow-y-auto border-default p-6 md:flex md:border-r',
+          selectedTask ? 'hidden' : 'flex'
+        )}
+      >
+        <p className="text-muted text-sm mb-4">{t('vitalTask.description')}</p>
         <TodoLists
           todoLists={vitalLists}
           isLoading={isLoading}
@@ -82,10 +89,24 @@ function VitalTaskPage() {
         />
       </div>
 
-      {/* Right panel */}
-      <div className="flex flex-col w-1/2">
+      {/* Right panel: detail — its own full-width screen on mobile, a
+          side-by-side column from tablet up. */}
+      <div
+        className={mergeClassNames(
+          'flex-col md:flex',
+          selectedTask ? 'flex' : 'hidden'
+        )}
+      >
         {selectedTask ? (
           <>
+            <div className="border-b border-default p-3 md:hidden">
+              <IconButton
+                ariaLabel={t('tasks.backToList')}
+                onClick={() => setSelectedTask(null)}
+              >
+                <ArrowLeft className="size-4" />
+              </IconButton>
+            </div>
             {selectedTask.todo.status === 'pending' && (
               <div className="px-6 pt-6">
                 <PomodoroTimer

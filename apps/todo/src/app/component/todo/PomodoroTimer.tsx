@@ -144,23 +144,20 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
 
   return (
     <div
-      className="rounded-xl border border-secondary-bg bg-white p-4 mb-4"
+      className="rounded-card border border-default bg-surface p-4 mb-4"
       data-testid="pomodoro-timer"
     >
       <div className="flex items-center justify-between mb-2 gap-2">
         <span
           className={`text-xs font-bold uppercase tracking-wide ${
-            phase === 'work' ? 'text-triadic-orange' : 'text-triadic-blue'
+            phase === 'work' ? 'text-primary' : 'text-muted'
           }`}
         >
           {phase === 'work'
             ? t('pomodoro.workPhase')
             : t('pomodoro.breakPhase')}
         </span>
-        <span
-          className="text-xs text-secondary-dark-bg truncate"
-          title={taskName}
-        >
+        <span className="text-xs text-muted truncate" title={taskName}>
           {taskName}
         </span>
       </div>
@@ -197,18 +194,18 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             }
             onKeyDown={handleEditorKeyDown}
             autoFocus
-            className="w-14 px-0 text-4xl font-bold text-dark-bg text-center tabular-nums focus:outline-none"
+            className="w-14 px-0 text-4xl font-bold text-primary text-center tabular-nums focus:outline-none"
             data-testid="pomodoro-minutes-input"
             aria-label={t('pomodoro.minutesLabel')}
           />
         ) : (
-          <span className="w-14 text-4xl font-bold text-dark-bg text-center tabular-nums">
+          <span className="w-14 text-4xl font-bold text-primary text-center tabular-nums">
             {Math.floor(secondsLeft / 60)
               .toString()
               .padStart(2, '0')}
           </span>
         )}
-        <span className="text-4xl font-bold text-dark-bg -translate-y-0.5">
+        <span className="text-4xl font-bold text-primary -translate-y-0.5">
           :
         </span>
         {isEditingDuration ? (
@@ -227,12 +224,12 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
               )
             }
             onKeyDown={handleEditorKeyDown}
-            className="w-14 px-0 text-4xl font-bold text-dark-bg text-center tabular-nums focus:outline-none"
+            className="w-14 px-0 text-4xl font-bold text-primary text-center tabular-nums focus:outline-none"
             data-testid="pomodoro-seconds-input"
             aria-label={t('pomodoro.secondsLabel')}
           />
         ) : (
-          <span className="w-14 text-4xl font-bold text-dark-bg text-center tabular-nums">
+          <span className="w-14 text-4xl font-bold text-primary text-center tabular-nums">
             {(secondsLeft % 60).toString().padStart(2, '0')}
           </span>
         )}
@@ -242,7 +239,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
         {status === 'running' ? (
           <Button
             onClick={pause}
-            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-accent text-dark-bg hover:opacity-90 transition-opacity"
+            className="px-4 py-1.5 text-sm font-semibold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity"
           >
             {t('pomodoro.pause')}
           </Button>
@@ -251,21 +248,21 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             onClick={handleStart}
             disabled={isBelowMinDuration}
             dataTestId="pomodoro-start"
-            className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-accent text-dark-bg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
+            className="px-4 py-1.5 text-sm font-semibold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             {t('pomodoro.start')}
           </Button>
         )}
         <Button
           onClick={handleReset}
-          className="px-4 py-1.5 text-sm font-semibold rounded-lg border border-secondary-bg text-dark-bg hover:border-triadic-orange hover:text-triadic-orange transition-colors"
+          className="px-4 py-1.5 text-sm font-semibold rounded-control border border-default text-primary hover:bg-surface-subtle transition-colors"
         >
           {t('pomodoro.reset')}
         </Button>
       </div>
 
       {isBelowMinDuration && status === 'idle' && (
-        <p className="mt-2 text-center text-xs text-triadic-orange">
+        <p className="mt-2 text-center text-xs text-danger">
           {t('pomodoro.minDurationHint', { seconds: MIN_TOTAL_SECONDS })}
         </p>
       )}
@@ -274,7 +271,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
         <div
           role="status"
           data-testid="pomodoro-banner"
-          className="mt-3 flex items-start justify-between gap-2 rounded-lg bg-accent px-3 py-2 text-sm text-dark-bg"
+          className="mt-3 flex items-start justify-between gap-2 rounded-control bg-accent px-3 py-2 text-sm text-on-accent"
         >
           <div>
             <p className="font-semibold">{banner.title}</p>

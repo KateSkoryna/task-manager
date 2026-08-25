@@ -5,6 +5,11 @@ type CardProps = {
   variant?: 'primary' | 'nested';
   selected?: boolean;
   className?: string;
+  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+  role?: string;
+  tabIndex?: number;
+  dataTestId?: string;
 };
 
 const VARIANT_CLASSES: Record<NonNullable<CardProps['variant']>, string> = {
@@ -17,6 +22,11 @@ function Card({
   variant = 'primary',
   selected = false,
   className = '',
+  onClick,
+  onKeyDown,
+  role,
+  tabIndex,
+  dataTestId,
 }: CardProps) {
   // Selected and default states each own a single shadow utility so they
   // never compete for the same --tw-shadow variable at once.
@@ -33,6 +43,11 @@ function Card({
         selected && 'border-l-4 border-l-accent',
         className
       )}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      role={role}
+      tabIndex={tabIndex}
+      data-testid={dataTestId}
     >
       {children}
     </div>

@@ -91,22 +91,22 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
   return (
     <form onSubmit={handleSubmit(onFormSubmit)}>
       <div className="flex flex-col sm:flex-row gap-3 items-baseline">
-        <label htmlFor="new-todo-name" className="text-dark-bg font-medium">
+        <label htmlFor="new-todo-name" className="text-primary font-medium">
           {t('todoForm.todoName')}
         </label>
-        <Input
-          {...register('name', { required: t('todoForm.titleEmpty') })}
-          id="new-todo-name"
-          type="text"
-          placeholder={t('todoForm.addPlaceholder')}
-          className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-            errors.name ? 'border-red-500' : 'border-secondary-bg'
-          } focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-white text-dark-bg placeholder-secondary-dark-bg`}
-          inputTestId="todo-form-input"
-        />
+        <div className="flex-1">
+          <Input
+            {...register('name', { required: t('todoForm.titleEmpty') })}
+            id="new-todo-name"
+            type="text"
+            placeholder={t('todoForm.addPlaceholder')}
+            invalid={!!errors.name}
+            inputTestId="todo-form-input"
+          />
+        </div>
         <Button
           type="submit"
-          className="px-6 py-2 bg-accent text-black font-semibold rounded-lg hover:bg-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+          variant="primary"
           dataTestId="todo-form-submit-button"
         >
           {t('todoForm.add')}
@@ -115,7 +115,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
 
       {errors.name && (
         <p
-          className="text-red-500 text-sm mt-1"
+          className="text-danger text-sm mt-1"
           data-testid="todo-error-message"
         >
           {errors.name.message}
@@ -125,7 +125,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
       <button
         type="button"
         onClick={() => setShowExtra((v) => !v)}
-        className="mt-2 text-sm text-secondary-dark-bg hover:text-dark-bg underline focus:outline-none"
+        className="mt-2 text-sm text-muted hover:text-primary underline focus:outline-none"
         data-testid="todo-form-toggle-extra"
       >
         {showExtra ? t('todoForm.hideOptions') : t('todoForm.moreOptions')}
@@ -136,7 +136,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
           <div className="flex flex-col sm:flex-row gap-3 items-baseline">
             <label
               htmlFor="new-todo-due-date"
-              className="text-dark-bg font-medium w-24"
+              className="text-primary font-medium w-24"
             >
               {t('todoForm.dueDate')}
             </label>
@@ -155,7 +155,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
           <div className="flex flex-col sm:flex-row gap-3 items-baseline">
             <label
               htmlFor="new-todo-location"
-              className="text-dark-bg font-medium w-24"
+              className="text-primary font-medium w-24"
             >
               {t('todoForm.location')}
             </label>
@@ -164,14 +164,14 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
               type="text"
               {...register('location')}
               placeholder={t('todoForm.locationPlaceholder')}
-              className="flex-1 px-3 py-2 rounded-lg border-2 border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg placeholder-secondary-dark-bg"
+              className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               data-testid="todo-form-location"
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-3 items-baseline">
             <label
               htmlFor="new-todo-notes"
-              className="text-dark-bg font-medium w-24"
+              className="text-primary font-medium w-24"
             >
               {t('todoForm.notes')}
             </label>
@@ -180,14 +180,14 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
               {...register('notes')}
               placeholder={t('todoForm.notesPlaceholder')}
               rows={2}
-              className="flex-1 px-3 py-2 rounded-lg border-2 border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg placeholder-secondary-dark-bg resize-none"
+              className="flex-1 resize-none rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               data-testid="todo-form-notes"
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-3 items-baseline">
             <label
               htmlFor="new-todo-image"
-              className="text-dark-bg font-medium w-24"
+              className="text-primary font-medium w-24"
             >
               {t('todoForm.image')}
             </label>
@@ -206,7 +206,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={imageUploading}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed border-secondary-bg hover:border-accent hover:bg-accent/10 text-secondary-dark-bg hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent hover:bg-accent/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {imageUploading ? (
                     <>
@@ -224,7 +224,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                 </button>
               )}
               {imageError && (
-                <p className="text-red-500 text-sm">{imageError}</p>
+                <p className="text-danger text-sm">{imageError}</p>
               )}
               {image && (
                 <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="w-6 h-6 flex items-center justify-center shrink-0 rounded-lg text-secondary-dark-bg hover:text-red-500 transition-colors outline-none cursor-pointer"
+                    className="w-6 h-6 flex items-center justify-center shrink-0 rounded-inner text-muted hover:text-danger transition-colors outline-none cursor-pointer"
                     aria-label="Remove image"
                   >
                     <Trash2 size={20} />

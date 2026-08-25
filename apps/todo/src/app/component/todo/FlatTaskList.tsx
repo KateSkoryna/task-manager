@@ -32,7 +32,7 @@ function FlatTaskList({
     return (
       <Text
         as="p"
-        className="text-center text-secondary-dark-bg py-6 text-sm"
+        className="text-center text-muted py-6 text-sm"
         dataTestId="empty-flat-tasks-message"
       >
         {t('tasks.emptyFlatView')}
@@ -48,7 +48,7 @@ function FlatTaskList({
           t('tasks.inbox');
         return (
           <div key={todo.id}>
-            <span className="text-xs font-medium text-triadic-blue ml-1">
+            <span className="text-xs font-medium text-muted ml-1">
               {listName}
             </span>
             <TodoItem

@@ -6,6 +6,7 @@ import TodoItem from './TodoItem';
 import { AvailableList } from './MoveToListSelect';
 import TodoForm from './TodoForm';
 import Text from '../elements/Text';
+import Card from '../elements/Card';
 import { sortByOrder } from '../../lib/reorder';
 
 type NewTodoOpts = {
@@ -46,35 +47,35 @@ function InboxSection({
 
   return (
     <div
-      className="bg-white rounded-xl border border-secondary-bg overflow-hidden"
+      className="bg-surface rounded-card border border-default overflow-hidden"
       data-testid="inbox-section"
     >
-      <div className="px-4 py-3 bg-dark-bg flex items-center justify-between">
+      <div className="px-4 py-3 bg-sidebar flex items-center justify-between">
         <div className="flex items-center gap-3">
           <InboxIcon className="w-4 h-4 text-accent" />
-          <h3 className="text-white font-bold">{t('tasks.inbox')}</h3>
-          <span className="text-white text-xs">{todos.length}</span>
+          <h3 className="text-sidebar-text font-bold">{t('tasks.inbox')}</h3>
+          <span className="text-sidebar-text text-xs">{todos.length}</span>
         </div>
         <button
           onClick={() => setShowAddForm((v) => !v)}
-          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-dark-bg bg-accent rounded hover:opacity-90 transition-opacity"
+          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-on-accent bg-accent rounded hover:opacity-90 transition-opacity"
         >
           <Plus className="w-3 h-3" />
           {t('todoList.addTask')}
         </button>
       </div>
 
-      <div className="p-4 space-y-3 bg-base-bg">
+      <div className="p-4 space-y-3 bg-surface">
         {showAddForm && (
-          <div className="bg-white rounded-lg p-4 border border-secondary-bg">
+          <Card variant="nested">
             <TodoForm onAddTodo={handleAddTodo} />
-          </div>
+          </Card>
         )}
 
         {todos.length === 0 && !showAddForm ? (
           <Text
             as="p"
-            className="text-center text-secondary-dark-bg py-6 text-sm"
+            className="text-center text-muted py-6 text-sm"
             dataTestId="empty-inbox-message"
           >
             {t('tasks.emptyInbox')}

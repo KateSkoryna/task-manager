@@ -93,29 +93,29 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onFormSubmit)}
-      className="bg-white rounded-lg shadow-lg p-6 border-2 border-secondary-bg"
+      className="bg-surface rounded-card shadow-card p-6 border border-default"
     >
-      <Text as="h2" className="text-xl font-bold text-dark-bg mb-4">
+      <Text as="h2" className="text-xl font-bold text-primary mb-4">
         {t('todoListForm.createNewList')}
       </Text>
       <div className="flex flex-col sm:flex-row gap-3 items-baseline">
-        <Text as="p" className="text-dark-bg font-medium">
+        <Text as="p" className="text-primary font-medium">
           {t('todoListForm.listName')}
         </Text>
-        <Input
-          {...register('name', { required: t('todoListForm.nameEmpty') })}
-          type="text"
-          placeholder={t('todoListForm.listNamePlaceholder')}
-          className={`flex-1 px-4 py-2 rounded-lg border-2 ${
-            errors.name ? 'border-red-500' : 'border-secondary-bg'
-          } focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-base-bg text-dark-bg placeholder-secondary-dark-bg`}
-          inputTestId="todolist-form-input"
-          id="todolist-form-input"
-        />
+        <div className="flex-1">
+          <Input
+            {...register('name', { required: t('todoListForm.nameEmpty') })}
+            type="text"
+            placeholder={t('todoListForm.listNamePlaceholder')}
+            invalid={!!errors.name}
+            inputTestId="todolist-form-input"
+            id="todolist-form-input"
+          />
+        </div>
         <Button
           type="button"
+          variant="secondary"
           onClick={() => setShowMore((v) => !v)}
-          className="inline-flex items-center gap-1 px-4 py-2 border-2 border-secondary-bg bg-secondary-bg text-dark-bg font-medium rounded-lg hover:bg-accent hover:border-accent hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {showMore ? t('todoListForm.less') : t('todoListForm.more')}
           <ChevronDown
@@ -126,7 +126,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
         </Button>
         <Button
           type="submit"
-          className="px-6 py-2 border-2 border-accent bg-accent text-black font-semibold rounded-lg hover:bg-dark-bg hover:border-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+          variant="primary"
           disabled={isSubmitting}
           dataTestId="todolist-form-submit-button"
         >
@@ -137,7 +137,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
       {errors.name && (
         <Text
           as="p"
-          className="text-red-500 mt-2"
+          className="text-danger mt-2"
           dataTestId="todolist-form-error"
         >
           {errors.name.message}
@@ -149,7 +149,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           <div className="flex flex-col gap-1">
             <label
               id="list-priority-label"
-              className="text-sm font-medium text-dark-bg"
+              className="text-sm font-medium text-primary"
             >
               {t('todoListForm.priority')}
             </label>
@@ -175,7 +175,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           <div className="flex flex-col gap-1">
             <label
               id="list-category-label"
-              className="text-sm font-medium text-dark-bg"
+              className="text-sm font-medium text-primary"
             >
               {t('todoListForm.category')}
             </label>
@@ -200,7 +200,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
 
           <div className="flex flex-col gap-1">
             <label
-              className="text-sm font-medium text-dark-bg"
+              className="text-sm font-medium text-primary"
               htmlFor="list-due-date"
             >
               {t('todoListForm.dueDate')}
@@ -220,7 +220,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
 
           <div className="flex flex-col gap-1">
             <label
-              className="text-sm font-medium text-dark-bg"
+              className="text-sm font-medium text-primary"
               htmlFor="list-notes"
             >
               {t('todoListForm.notes')}
@@ -230,7 +230,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
               {...register('notes')}
               placeholder={t('todoListForm.notesPlaceholder')}
               rows={2}
-              className="px-3 py-2 rounded-lg border-2 border-secondary-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-base-bg text-dark-bg placeholder-secondary-dark-bg resize-none"
+              className="px-3 py-2 rounded-inner border border-default focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-surface-subtle text-primary placeholder:text-muted resize-none"
             />
           </div>
         </div>

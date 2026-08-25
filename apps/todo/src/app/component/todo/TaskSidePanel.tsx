@@ -30,6 +30,8 @@ import { useAuthStore } from '../../store/authStore';
 import { uploadImage } from '../../lib/imageUtils';
 import DatePickerInput from '../elements/DatePickerInput';
 import Dropdown, { DropdownOption } from '../elements/Dropdown';
+import Badge from '../elements/Badge';
+import IconButton from '../elements/IconButton';
 
 // ─── Edit Panel ───────────────────────────────────────────────────────────────
 
@@ -158,22 +160,22 @@ export function TodoEditPanel({
     onSave(todoResult.data, listResult ? listResult.data : null);
   };
 
-  const labelClass = 'text-xs text-secondary-dark-bg font-medium w-20 shrink-0';
+  const labelClass = 'text-xs text-muted font-medium w-20 shrink-0';
   const inputClass =
-    'flex-1 px-2 py-2 rounded-lg border border-secondary-bg focus:border-accent focus:outline-none bg-white text-dark-bg text-sm';
+    'flex-1 px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-sm';
   const dropdownClass =
-    'flex min-w-[160px] cursor-pointer list-none items-center justify-between rounded-lg border border-secondary-bg bg-white px-2 py-2 text-sm text-dark-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
+    'flex min-w-[160px] cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
-    'z-50 w-max min-w-[160px] max-w-[220px] list-none overflow-hidden rounded-lg border border-secondary-bg bg-white p-0 shadow-lg';
+    'z-50 w-max min-w-[160px] max-w-[220px] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =
-    'w-6 h-6 flex items-center justify-center shrink-0 rounded-lg text-secondary-dark-bg transition-colors outline-none cursor-pointer';
+    'w-6 h-6 flex items-center justify-center shrink-0 rounded-inner text-muted transition-colors outline-none cursor-pointer';
 
   return (
     <form
       onSubmit={handleSubmit(onFormSubmit)}
       className="flex flex-col h-full p-6"
     >
-      <h2 className="text-xl font-bold text-dark-bg mb-5">
+      <h2 className="text-xl font-bold text-primary mb-5">
         {t('tasks.editTask')}
       </h2>
 
@@ -255,7 +257,7 @@ export function TodoEditPanel({
         </div>
 
         {list && (
-          <div className="border-t border-secondary-bg pt-3 mt-1 space-y-3">
+          <div className="border-t border-default pt-3 mt-1 space-y-3">
             <div className="flex items-center gap-2">
               <label className={labelClass}>{t('tasks.listName')}</label>
               <input
@@ -341,7 +343,7 @@ export function TodoEditPanel({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={imageUploading}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed border-secondary-bg hover:border-accent hover:bg-accent/10 text-secondary-dark-bg hover:text-dark-bg transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent hover:bg-accent/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {imageUploading ? (
                   <>
@@ -356,7 +358,7 @@ export function TodoEditPanel({
                 )}
               </button>
             )}
-            {imageError && <p className="text-red-500 text-xs">{imageError}</p>}
+            {imageError && <p className="text-danger text-xs">{imageError}</p>}
             {editImage && (
               <div className="flex items-center gap-2">
                 <img
@@ -367,7 +369,7 @@ export function TodoEditPanel({
                 <button
                   type="button"
                   onClick={handleRemoveImage}
-                  className={`${actionBtnClass} hover:text-red-500`}
+                  className={`${actionBtnClass} hover:text-danger`}
                   aria-label="Remove image"
                 >
                   <Trash2 size={20} />
@@ -378,16 +380,16 @@ export function TodoEditPanel({
         </div>
       </div>
 
-      <div className="flex gap-2 justify-end pt-5 border-t border-secondary-bg mt-5">
+      <div className="flex gap-2 justify-end pt-5 border-t border-default mt-5">
         {validationError && (
-          <p className="text-sm text-red-500 mr-auto" role="alert">
+          <p className="text-sm text-danger mr-auto" role="alert">
             {validationError}
           </p>
         )}
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-secondary-dark-bg hover:text-dark-bg transition-colors"
+          className="px-4 py-2 text-sm text-muted hover:text-primary transition-colors"
           aria-label="Cancel todo edit"
           data-testid={'cancel-todo-edit-button-' + todo.id}
         >
@@ -395,7 +397,7 @@ export function TodoEditPanel({
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium bg-accent text-dark-bg rounded-lg hover:opacity-90 transition-opacity"
+          className="px-4 py-2 text-sm font-medium bg-accent text-on-accent rounded-inner hover:opacity-90 transition-opacity"
           aria-label="Save todo edit"
           data-testid={'save-todo-edit-button-' + todo.id}
         >
@@ -408,16 +410,13 @@ export function TodoEditPanel({
 
 // ─── Detail Panel ─────────────────────────────────────────────────────────────
 
+// `todo.status` values map onto the redesign's status roles the same way
+// TodoItem's marker does: 'pending' -> in progress, 'successful' ->
+// completed, 'failed' -> not started.
 const STATUS_TEXT_COLORS: Record<string, string> = {
-  pending: 'text-triadic-orange',
-  successful: 'text-green-500',
-  failed: 'text-triadic-purple',
-};
-
-const PRIORITY_TEXT_COLORS: Record<string, string> = {
-  high: 'text-triadic-orange',
-  medium: 'text-triadic-blue',
-  low: 'text-triadic-purple',
+  pending: 'text-status-progress',
+  successful: 'text-status-complete',
+  failed: 'text-status-open',
 };
 
 export function TaskDetailPanel({
@@ -438,23 +437,23 @@ export function TaskDetailPanel({
       <div className="flex-1 overflow-y-auto">
         <div className="flex gap-4 mb-6">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold text-dark-bg leading-snug">
+            <h2 className="text-2xl font-bold text-primary leading-snug">
               {todo.name}
             </h2>
 
-            <div className="space-y-2 text-sm text-secondary-dark-bg mt-3">
+            <div className="space-y-2 text-sm text-muted mt-3">
               <div className="flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                <ClipboardList className="w-4 h-4 shrink-0 text-muted" />
                 <span>
                   {t('tasks.list')}{' '}
-                  <span className="font-medium text-dark-bg">
+                  <span className="font-medium text-primary">
                     {list ? list.name : t('tasks.inbox')}
                   </span>
                 </span>
               </div>
               {list?.createdAt && (
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <Calendar className="w-4 h-4 shrink-0 text-muted" />
                   <span>
                     {t('tasks.created')}{' '}
                     {dayjs(list.createdAt).format('DD/MM/YYYY')}
@@ -463,7 +462,7 @@ export function TaskDetailPanel({
               )}
               {todo.dueDate && (
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <Calendar className="w-4 h-4 shrink-0 text-muted" />
                   <span>
                     {t('tasks.due')} {dayjs(todo.dueDate).format('DD/MM/YYYY')}
                   </span>
@@ -471,12 +470,12 @@ export function TaskDetailPanel({
               )}
               {todo.location && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <MapPin className="w-4 h-4 shrink-0 text-muted" />
                   <span>{todo.location}</span>
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <CircleDot className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                <CircleDot className="w-4 h-4 shrink-0 text-muted" />
                 <span>
                   {t('tasks.status')}{' '}
                   <span
@@ -488,25 +487,21 @@ export function TaskDetailPanel({
               </div>
               {list?.priority && (
                 <div className="flex items-center gap-2">
-                  <Flag className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
-                  <span>
-                    {t('tasks.priority')}{' '}
-                    <span
-                      className={`font-medium ${
-                        PRIORITY_TEXT_COLORS[list.priority]
-                      }`}
-                    >
+                  <Flag className="w-4 h-4 shrink-0 text-muted" />
+                  <span className="flex items-center gap-1.5">
+                    {t('tasks.priority')}
+                    <Badge tone={`priority-${list.priority}`}>
                       {t(`tasks.priority_${list.priority}`)}
-                    </span>
+                    </Badge>
                   </span>
                 </div>
               )}
               {list?.category && (
                 <div className="flex items-center gap-2">
-                  <Tag className="w-4 h-4 shrink-0 text-secondary-dark-bg" />
+                  <Tag className="w-4 h-4 shrink-0 text-muted" />
                   <span>
                     {t('tasks.category')}{' '}
-                    <span className="font-medium text-triadic-blue">
+                    <span className="font-medium text-primary">
                       {t(`tasks.category_${list.category}`)}
                     </span>
                   </span>
@@ -519,20 +514,20 @@ export function TaskDetailPanel({
             <img
               src={todo.image}
               alt="Attached"
-              className="w-32 h-32 object-cover rounded-lg border border-secondary-bg shrink-0"
+              className="w-32 h-32 object-cover rounded-card border border-default shrink-0"
             />
           )}
         </div>
 
         {todo.notes && (
-          <div className="border-t border-secondary-bg pt-4 mt-4">
+          <div className="border-t border-default pt-4 mt-4">
             <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-secondary-dark-bg" />
-              <span className="text-sm font-semibold text-dark-bg">
+              <FileText className="w-4 h-4 text-muted" />
+              <span className="text-sm font-semibold text-primary">
                 {t('tasks.notes')}
               </span>
             </div>
-            <p className="text-sm text-secondary-dark-bg leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-muted leading-relaxed whitespace-pre-wrap">
               {todo.notes}
             </p>
           </div>
@@ -540,20 +535,17 @@ export function TaskDetailPanel({
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-4">
-        <button
+        <IconButton
+          size="menu"
           onClick={() => onDelete(todo.id)}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
-          aria-label="Delete task"
+          ariaLabel="Delete task"
+          className="hover:text-danger"
         >
           <Trash2 size={18} />
-        </button>
-        <button
-          onClick={onStartEdit}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-triadic-orange text-white hover:opacity-90 transition-opacity"
-          aria-label="Edit task"
-        >
+        </IconButton>
+        <IconButton size="menu" onClick={onStartEdit} ariaLabel="Edit task">
           <Pencil size={18} />
-        </button>
+        </IconButton>
       </div>
     </div>
   );
