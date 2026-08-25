@@ -9,6 +9,8 @@ import TodoItem from './TodoItem';
 import { AvailableList } from './MoveToListSelect';
 import TodoForm from './TodoForm';
 import Text from '../elements/Text';
+import Badge from '../elements/Badge';
+import Card from '../elements/Card';
 import { sortByOrder } from '../../lib/reorder';
 import dayjs from 'dayjs';
 
@@ -66,16 +68,16 @@ function TodoList({
 
   return (
     <div
-      className="bg-white rounded-xl border border-secondary-bg overflow-hidden"
+      className="bg-surface rounded-card border border-default overflow-hidden"
       data-testid={dataTestId}
     >
       {/* List header */}
-      <div className="px-4 py-3 bg-dark-bg">
+      <div className="px-4 py-3 bg-sidebar">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setIsExpanded((v) => !v)}
-              className="text-accent hover:text-white transition-colors shrink-0"
+              className="text-accent hover:text-sidebar-text transition-colors shrink-0"
               aria-label={isExpanded ? 'Collapse' : 'Expand'}
             >
               {isExpanded ? (
@@ -88,38 +90,30 @@ function TodoList({
             <div className="flex flex-col min-w-0 flex-1 gap-4">
               <div className="flex items-center gap-4">
                 <h3
-                  className="text-white font-bold truncate"
+                  className="text-sidebar-text font-bold truncate"
                   data-testid="todolist-title"
                 >
                   {todoList.name}
                 </h3>
-                <span className="text-white text-xs shrink-0">
+                <span className="text-sidebar-text text-xs shrink-0">
                   {completedCount}/{todoList.todos.length}
                 </span>
               </div>
 
               {(todoList.priority || todoList.category) && (
-                <div className="flex items-center gap-4 text-xs text-white/80">
+                <div className="flex items-center gap-4 text-xs text-sidebar-text/80">
                   {todoList.priority && (
-                    <span>
-                      {t('todoList.priority')}{' '}
-                      <span
-                        className={`font-medium ${
-                          todoList.priority === 'high'
-                            ? 'text-triadic-orange'
-                            : todoList.priority === 'medium'
-                            ? 'text-triadic-blue'
-                            : 'text-triadic-purple'
-                        }`}
-                      >
+                    <span className="flex items-center gap-1.5">
+                      {t('todoList.priority')}
+                      <Badge tone={`priority-${todoList.priority}`}>
                         {t(`tasks.priority_${todoList.priority}`)}
-                      </span>
+                      </Badge>
                     </span>
                   )}
                   {todoList.category && (
                     <span>
                       {t('todoList.category')}{' '}
-                      <span className="text-triadic-blue font-medium">
+                      <span className="text-sidebar-text font-medium">
                         {t(`tasks.category_${todoList.category}`)}
                       </span>
                     </span>
@@ -136,14 +130,14 @@ function TodoList({
                   if (!isExpanded) setIsExpanded(true);
                   setShowAddForm((v) => !v);
                 }}
-                className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-dark-bg bg-accent rounded hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-on-accent bg-accent rounded hover:opacity-90 transition-opacity"
               >
                 <Plus className="w-3 h-3" />
                 {t('todoList.addTask')}
               </button>
               <button
                 onClick={() => onDeleteList(todoList.id)}
-                className="p-1.5 text-white/60 hover:text-red-400 transition-colors rounded-lg"
+                className="p-1.5 text-sidebar-muted hover:text-danger transition-colors rounded-lg"
                 aria-label="Delete list"
                 data-testid="todolist-item-delete-button"
               >
@@ -151,7 +145,7 @@ function TodoList({
               </button>
             </div>
             {formattedDate && (
-              <span className="text-xs text-white pr-1.5">
+              <span className="text-xs text-sidebar-text pr-1.5">
                 {t('todoList.due')} {formattedDate}
               </span>
             )}
@@ -159,7 +153,7 @@ function TodoList({
         </div>
 
         {todoList.notes && (
-          <p className="mt-1.5 ml-7 text-xs text-white/50 truncate">
+          <p className="mt-1.5 ml-7 text-xs text-sidebar-muted truncate">
             {todoList.notes}
           </p>
         )}
@@ -167,23 +161,23 @@ function TodoList({
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="p-4 space-y-3 bg-base-bg">
+        <div className="p-4 space-y-3 bg-surface">
           {showAddForm && (
-            <div className="bg-white rounded-lg p-4 border border-secondary-bg">
+            <Card variant="nested">
               <TodoForm onAddTodo={handleAddTodo} />
-            </div>
+            </Card>
           )}
 
           {todoList.todos.length === 0 && !showAddForm ? (
             <Text
               as="p"
-              className="text-center text-secondary-dark-bg py-6 text-sm"
+              className="text-center text-muted py-6 text-sm"
               dataTestId="empty-todos-message"
             >
               {t('todoList.noTasksBefore')}{' '}
               <button
                 onClick={() => setShowAddForm(true)}
-                className="font-semibold text-triadic-orange hover:underline focus:outline-none"
+                className="font-semibold text-primary hover:underline focus:outline-none"
               >
                 {t('todoList.addTask')}
               </button>{' '}

@@ -64,9 +64,9 @@ function TodoLists({
 
   if (lists.length === 0) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-secondary-bg p-12 text-center mt-4">
+      <div className="rounded-card border-2 border-dashed border-default p-12 text-center mt-4">
         <p
-          className="text-dark-bg text-base"
+          className="text-primary text-base"
           data-testid="empty-todolists-message"
         >
           {t('todoLists.emptyBefore')}{' '}
@@ -75,12 +75,12 @@ function TodoLists({
               type="button"
               onClick={onCreateList}
               data-testid="todolists-empty-create-list"
-              className="font-semibold text-triadic-orange hover:underline focus:outline-none"
+              className="font-semibold text-primary hover:underline focus:outline-none"
             >
               {t('todoLists.emptyNewList')}
             </button>
           ) : (
-            <span className="font-semibold text-triadic-orange">
+            <span className="font-semibold text-primary">
               {t('todoLists.emptyNewList')}
             </span>
           )}{' '}
