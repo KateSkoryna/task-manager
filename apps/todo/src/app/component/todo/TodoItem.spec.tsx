@@ -74,8 +74,12 @@ describe('TodoItem', () => {
     const indicator = screen.getByRole('img', {
       name: 'tasks.status_successful',
     });
-    expect(indicator).toHaveClass('border-green-500', 'bg-transparent');
-    expect(indicator).not.toHaveClass('bg-green-500');
+    expect(indicator).toHaveClass(
+      'bg-status-complete',
+      'ring-2',
+      'ring-inset',
+      'ring-surface'
+    );
     expect(indicator.querySelector('svg')).toBeInTheDocument();
   });
 
@@ -85,7 +89,7 @@ describe('TodoItem', () => {
       <TodoItem todo={makeTodo('pending', { dueDate: '2026-08-18' })} />
     );
     expect(screen.getByText('tasks.dueSoon')).toBeInTheDocument();
-    expect(container.querySelector('.bg-red-500.rounded-full')).toHaveClass(
+    expect(container.querySelector('.bg-danger.rounded-full')).toHaveClass(
       'animate-pulse'
     );
   });

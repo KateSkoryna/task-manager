@@ -30,7 +30,7 @@ describe('TodoItem with prefers-reduced-motion', () => {
   test('still shows the due-soon badge but skips the pulse animation', () => {
     const { container } = render(<TodoItem todo={makeTodo()} />);
     expect(screen.getByText('tasks.dueSoon')).toBeInTheDocument();
-    expect(container.querySelector('.bg-red-500.rounded-full')).not.toHaveClass(
+    expect(container.querySelector('.bg-danger.rounded-full')).not.toHaveClass(
       'animate-pulse'
     );
   });
