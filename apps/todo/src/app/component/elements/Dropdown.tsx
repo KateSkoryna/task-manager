@@ -149,7 +149,7 @@ function Dropdown<T extends string>({
             menuClassName ??
             `${
               fixedPosition
-                ? 'z-50 w-max max-w-[220px]'
+                ? 'z-50 w-max max-w-[13.75rem]'
                 : 'absolute z-10 mt-1 w-full'
             } list-none overflow-hidden rounded-inner border-2 border-default bg-surface p-0 shadow-menu`
           }

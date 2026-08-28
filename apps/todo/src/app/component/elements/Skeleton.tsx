@@ -11,7 +11,7 @@ const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
     <div
       role="presentation"
       aria-hidden="true"
-      className={`rounded-md bg-secondary-bg ${
+      className={`rounded-md bg-surface-subtle ${
         prefersReducedMotion ? '' : 'animate-pulse'
       } ${className}`}
     />

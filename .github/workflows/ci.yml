@@ -37,6 +37,21 @@ jobs:
 
       - run: npm run typecheck
 
+  deprecated-tokens:
+    name: Deprecated theme tokens
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run check:deprecated-tokens
+
   tests:
     name: Tests
     runs-on: ubuntu-latest

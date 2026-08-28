@@ -1,7 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 const plugin = require('tailwindcss/plugin');
 const tokens = require('./theme/tokens');
-const legacyColors = require('./theme/colors');
 
 /** '#RRGGBB' -> 'R G B' decimal channels, for rgb(var(--x) / <alpha-value>) */
 function hexToRgbChannels(hex) {
@@ -108,7 +107,7 @@ module.exports = {
   theme: {
     screens: tokens.screen,
     extend: {
-      colors: { ...legacyColors, ...semanticColors },
+      colors: semanticColors,
       fontFamily: {
         sans: tokens.font.sans,
         mono: tokens.font.mono,

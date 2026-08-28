@@ -100,8 +100,10 @@ const chartCardClass =
   'bg-surface rounded-2xl border border-default pt-5 px-5 pb-5 shadow-card';
 
 // Recharts contentStyle/tick props need resolved CSS strings — see §4.6.
+// fontSize here stays a literal px number (Recharts' own SVG text-sizing
+// convention, same integration-boundary exception as react-day-picker).
 const TOOLTIP_STYLE = {
-  borderRadius: '8px',
+  borderRadius: '0.5rem',
   border: '1px solid rgb(var(--color-default))',
   backgroundColor: 'rgb(var(--color-surface))',
   color: 'rgb(var(--color-primary))',
@@ -290,7 +292,9 @@ export default function StatisticsPage() {
                     ))}
                   </Pie>
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
-                  <Legend wrapperStyle={{ fontSize: 12, paddingTop: '20px' }} />
+                  <Legend
+                    wrapperStyle={{ fontSize: 12, paddingTop: '1.25rem' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (

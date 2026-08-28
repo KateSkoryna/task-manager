@@ -22,6 +22,8 @@ import {
   AUTH_PASSWORD_INPUT_CLASS as PASSWORD_INPUT_CLASS,
 } from './authInputClasses';
 
+// Fixed Google brand colors — exempt from the semantic token system per
+// guideline §4.6/§5.2; do not replace with theme tokens.
 function GoogleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

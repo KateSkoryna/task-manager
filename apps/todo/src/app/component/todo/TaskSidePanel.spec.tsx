@@ -41,7 +41,8 @@ describe('TodoEditPanel dropdowns', () => {
 
     const summaries = [
       screen.getByLabelText('tasks.status'),
-      screen.getByLabelText('tasks.priority'),
+      screen.getByLabelText('tasks.taskPriority'),
+      screen.getByLabelText('tasks.listPriority'),
       screen.getByLabelText('tasks.category'),
     ];
     summaries.forEach((summary) => {
@@ -83,7 +84,7 @@ describe('TodoEditPanel dropdowns', () => {
       .focus();
     await user.keyboard('{Enter}');
 
-    const priority = screen.getByLabelText('tasks.priority');
+    const priority = screen.getByLabelText('tasks.listPriority');
     await user.click(priority);
     await user.click(
       within(priority.closest('details') as HTMLElement).getByRole('button', {
