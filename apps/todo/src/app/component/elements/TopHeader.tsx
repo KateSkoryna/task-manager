@@ -80,12 +80,15 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
             inputTestId="header-search"
           />
         </div>
-        <IconButton
-          ariaLabel={t('header.notifications')}
-          className="md:hidden lg:inline-flex"
-        >
-          <Bell className="size-4" />
-        </IconButton>
+        <div className="relative md:hidden lg:inline-flex">
+          <IconButton ariaLabel={t('header.notifications')}>
+            <Bell className="size-4" />
+          </IconButton>
+          <span
+            aria-hidden="true"
+            className="absolute right-0.5 top-0.5 size-2 rounded-full bg-notification-dot ring-2 ring-surface"
+          />
+        </div>
       </div>
     </header>
   );

@@ -42,6 +42,7 @@ const CHANNEL_COLOR_TOKENS = {
   'status-open': 'statusOpen',
   danger: 'danger',
   'danger-text': 'dangerText',
+  'notification-dot': 'notificationDot',
 };
 
 // sidebarBorder ships pre-composed with alpha (rgba(...)) and is passed

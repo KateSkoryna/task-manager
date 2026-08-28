@@ -32,6 +32,7 @@ const tokens = Object.freeze({
       statusOpen: '#9A6BC0',
       danger: '#DC2626',
       dangerText: '#FFFFFF',
+      notificationDot: '#B4522B',
     }),
     dark: Object.freeze({
       background: '#191E1F',
@@ -56,6 +57,7 @@ const tokens = Object.freeze({
       statusOpen: '#BC9BDF',
       danger: '#F87171',
       dangerText: '#14181A',
+      notificationDot: '#DCF763',
     }),
   }),
   font: Object.freeze({
@@ -117,9 +119,21 @@ const tokens = Object.freeze({
     progressRingLarge: '8.25rem',
   }),
   type: Object.freeze({
-    title: Object.freeze({ mobile: '0.875rem', tablet: '1.375rem', desktop: '1.5rem' }),
-    section: Object.freeze({ mobile: '1.0625rem', tablet: '1.1875rem', desktop: '1.3125rem' }),
-    card: Object.freeze({ mobile: '0.875rem', tablet: '0.9375rem', desktop: '1rem' }),
+    title: Object.freeze({
+      mobile: '0.875rem',
+      tablet: '1.375rem',
+      desktop: '1.5rem',
+    }),
+    section: Object.freeze({
+      mobile: '1.0625rem',
+      tablet: '1.1875rem',
+      desktop: '1.3125rem',
+    }),
+    card: Object.freeze({
+      mobile: '0.875rem',
+      tablet: '0.9375rem',
+      desktop: '1rem',
+    }),
     body: '0.84375rem',
     small: '0.78125rem',
     metadata: '0.65625rem',
