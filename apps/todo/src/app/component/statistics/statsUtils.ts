@@ -29,12 +29,15 @@ export interface CategoryPoint {
   successful: number;
 }
 
+// Recharts requires resolved color strings, not Tailwind classes, so these
+// read our theme tokens via the rgb(var(--color-x)) form rather than
+// hardcoding hex — see guideline §4.6 on raw-value consumers.
 export const CHART_COLORS = {
-  successful: '#DCF763',
-  pending: '#4aabeb',
-  failed: '#eb8a4a',
-  total: '#435058',
-  grid: '#c6c6c6',
+  successful: 'rgb(var(--color-status-complete))',
+  pending: 'rgb(var(--color-status-progress))',
+  failed: 'rgb(var(--color-status-open))',
+  total: 'rgb(var(--color-primary) / 0.55)',
+  grid: 'rgb(var(--color-default))',
 };
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

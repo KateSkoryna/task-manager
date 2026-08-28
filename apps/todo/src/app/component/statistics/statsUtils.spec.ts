@@ -81,7 +81,9 @@ describe('statistics utilities', () => {
   test('returns only non-zero status series', () =>
     expect(
       computeStatusData([todo('a', 'successful'), todo('b', 'successful')])
-    ).toEqual([{ name: 'Done', value: 2, color: '#DCF763' }]));
+    ).toEqual([
+      { name: 'Done', value: 2, color: 'rgb(var(--color-status-complete))' },
+    ]));
   test('returns empty status series for no todos', () =>
     expect(computeStatusData([])).toEqual([]));
   test('groups categories and successful counts', () =>
