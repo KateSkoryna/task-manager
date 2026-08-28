@@ -5,8 +5,8 @@ function HelpPage() {
 
   return (
     <div className="space-y-2">
-      <h1 className="text-2xl font-bold text-dark-bg">{t('help.title')}</h1>
-      <p className="text-secondary-dark-bg">{t('help.comingSoon')}</p>
+      <h1 className="text-2xl font-bold text-primary">{t('help.title')}</h1>
+      <p className="text-muted">{t('help.comingSoon')}</p>
     </div>
   );
 }

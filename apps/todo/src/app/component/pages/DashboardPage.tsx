@@ -30,14 +30,16 @@ import Button from '../elements/Button';
 import ErrorFallback from '../elements/ErrorFallback';
 import DashboardSkeleton from './DashboardSkeleton';
 
+// react-day-picker only accepts resolved CSS values for these custom
+// properties, so its sizes stay literal px at this integration boundary;
+// its colors read our theme tokens via the rgb(var(--color-x)) form.
 const DAY_PICKER_STYLE: React.CSSProperties = {
-  '--rdp-today-color': '#eb8a4a',
   '--rdp-selected-border': 'none',
   '--rdp-day-width': '50px',
   '--rdp-day-height': '50px',
   '--rdp-day_button-width': '50px',
   '--rdp-day_button-height': '50px',
-  '--rdp-accent-color': '#4aabeb',
+  '--rdp-accent-color': 'rgb(var(--color-accent))',
   '--rdp-nav_button-width': '36px',
   '--rdp-nav_button-height': '36px',
   fontSize: '14px',
@@ -133,10 +135,10 @@ function DonutChart({
             strokeWidth={0}
           >
             <Cell fill={color} />
-            <Cell fill="#e5e7eb" />
+            <Cell fill="rgb(var(--color-default))" />
           </Pie>
         </PieChart>
-        <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-dark-bg">
+        <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-primary">
           {pct}%
         </span>
       </div>
@@ -145,7 +147,7 @@ function DonutChart({
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ background: dotColor }}
         />
-        <span className="text-xs text-secondary-dark-bg">{label}</span>
+        <span className="text-xs text-muted">{label}</span>
       </div>
     </div>
   );
@@ -157,30 +159,28 @@ function CompletedCard({ item }: { item: FlatItem }) {
   const { t } = useTranslation();
 
   return (
-    <div className="rounded-xl border border-secondary-bg bg-white p-4">
+    <div className="rounded-xl border border-default bg-surface p-4">
       <div className="flex items-start gap-3">
         <div
           role="img"
           aria-label={t('dashboard.completed')}
-          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-green-500 bg-transparent"
+          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-status-complete ring-2 ring-inset ring-surface"
         >
-          <Check className="h-3.5 w-3.5 text-green-500" strokeWidth={3} />
+          <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
         </div>
         <div className="min-w-0">
-          <p className="font-semibold text-dark-bg leading-snug">{item.name}</p>
+          <p className="font-semibold text-primary leading-snug">{item.name}</p>
           {item.notes && (
-            <p className="text-sm text-secondary-dark-bg line-clamp-2 mt-1">
-              {item.notes}
-            </p>
+            <p className="text-sm text-muted line-clamp-2 mt-1">{item.notes}</p>
           )}
-          <p className="text-xs mt-2 text-secondary-dark-bg">
+          <p className="text-xs mt-2 text-muted">
             {t('dashboard.status')}{' '}
-            <span className="font-medium text-green-500">
+            <span className="font-medium text-status-complete">
               {t('dashboard.completed')}
             </span>
           </p>
           {item.completedAt && (
-            <p className="text-xs text-secondary-dark-bg">
+            <p className="text-xs text-muted">
               {relativeDate(item.completedAt, t)}
             </p>
           )}
@@ -228,9 +228,9 @@ function TodoPanel({
   }, [calendarOpen]);
 
   return (
-    <div className="bg-white rounded-xl border border-secondary-bg p-5 flex flex-col h-full">
+    <div className="bg-surface rounded-xl border border-default p-5 flex flex-col h-full">
       <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2 text-triadic-orange">
+        <div className="flex items-center gap-2 text-primary">
           <ClipboardList className="w-5 h-5" />
           <h3 className="font-bold text-lg">{t('dashboard.todo')}</h3>
         </div>
@@ -239,7 +239,7 @@ function TodoPanel({
           <button
             aria-label="Calendar"
             onClick={() => setCalendarOpen((o) => !o)}
-            className="flex items-center gap-1.5 text-sm text-secondary-dark-bg hover:text-triadic-orange transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-primary transition-colors"
           >
             <CalendarDays className="w-4 h-4" />
             {dayLabel}
@@ -247,16 +247,16 @@ function TodoPanel({
 
           {calendarOpen && (
             <div
-              className="absolute right-0 top-8 z-50 bg-base-bg rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+              className="absolute right-0 top-8 z-50 bg-surface rounded-2xl border border-default shadow-menu"
               style={{ width: 378 }}
             >
               <div className="flex items-center justify-between px-[14px] pt-4 pb-2">
-                <span className="font-bold text-dark-bg">
+                <span className="font-bold text-primary">
                   {t('dashboard.calendar')}
                 </span>
                 <button
                   onClick={() => setCalendarOpen(false)}
-                  className="text-secondary-dark-bg hover:text-dark-bg transition-colors"
+                  className="text-muted hover:text-primary transition-colors"
                   aria-label="Close calendar"
                 >
                   ✕
@@ -264,7 +264,7 @@ function TodoPanel({
               </div>
 
               {pickerDate && (
-                <div className="mx-[14px] mb-2 px-3 py-2 rounded-lg border border-secondary-bg text-sm text-dark-bg">
+                <div className="mx-[14px] mb-2 px-3 py-2 rounded-lg border border-default text-sm text-primary">
                   {pickerDate.toLocaleDateString(locale, {
                     month: 'long',
                     day: 'numeric',
@@ -286,9 +286,8 @@ function TodoPanel({
                 style={DAY_PICKER_STYLE}
                 modifiersClassNames={{
                   selected:
-                    '[&>button]:!bg-accent [&>button]:!text-dark-bg [&>button]:!border-0 [&>button]:!rounded-[8px]',
-                  today:
-                    '[&>button]:!text-triadic-orange [&>button]:!font-bold',
+                    '[&>button]:!bg-accent [&>button]:!text-on-accent [&>button]:!border-0 [&>button]:!rounded-[8px]',
+                  today: '[&>button]:!font-bold',
                 }}
               />
             </div>
@@ -296,17 +295,17 @@ function TodoPanel({
         </div>
       </div>
 
-      <p className="text-sm text-secondary-dark-bg mb-4 flex items-center gap-1.5">
+      <p className="text-sm text-muted mb-4 flex items-center gap-1.5">
         {isToday(selectedDate) && (
           <>
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-triadic-orange" />
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />
             {t('dashboard.today')}
           </>
         )}
       </p>
 
       {items.length === 0 ? (
-        <p className="text-secondary-dark-bg text-sm flex-1">
+        <p className="text-muted text-sm flex-1">
           {t('dashboard.noTasksForDay')}
         </p>
       ) : (
@@ -339,8 +338,8 @@ function TaskStatusPanel({
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white rounded-xl border border-secondary-bg p-5">
-      <div className="flex items-center gap-2 text-triadic-orange mb-5">
+    <div className="bg-surface rounded-xl border border-default p-5">
+      <div className="flex items-center gap-2 text-primary mb-5">
         <ClipboardList className="w-5 h-5" />
         <h3 className="font-bold text-lg">{t('dashboard.taskStatus')}</h3>
       </div>
@@ -348,22 +347,22 @@ function TaskStatusPanel({
         <DonutChart
           value={successful}
           total={total}
-          color="#22c55e"
-          dotColor="#22c55e"
+          color="rgb(var(--color-status-complete))"
+          dotColor="rgb(var(--color-status-complete))"
           label={t('dashboard.completed')}
         />
         <DonutChart
           value={pending}
           total={total}
-          color="#4aabeb"
-          dotColor="#4aabeb"
+          color="rgb(var(--color-status-progress))"
+          dotColor="rgb(var(--color-status-progress))"
           label={t('dashboard.inProgress')}
         />
         <DonutChart
           value={failed}
           total={total}
-          color="#eb4a4a"
-          dotColor="#eb4a4a"
+          color="rgb(var(--color-status-open))"
+          dotColor="rgb(var(--color-status-open))"
           label={t('dashboard.notStarted')}
         />
       </div>
@@ -375,15 +374,13 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white rounded-xl border border-secondary-bg p-5">
-      <div className="flex items-center gap-2 text-triadic-orange mb-4">
+    <div className="bg-surface rounded-xl border border-default p-5">
+      <div className="flex items-center gap-2 text-primary mb-4">
         <CheckSquare className="w-5 h-5" />
         <h3 className="font-bold text-lg">{t('dashboard.completedTask')}</h3>
       </div>
       {items.length === 0 ? (
-        <p className="text-secondary-dark-bg text-sm">
-          {t('dashboard.noCompletedTasks')}
-        </p>
+        <p className="text-muted text-sm">{t('dashboard.noCompletedTasks')}</p>
       ) : (
         <div className="space-y-3 max-h-72 overflow-y-auto">
           {items.map((item) => (
@@ -429,20 +426,20 @@ function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
             onClick={() => setSelectedDate(day)}
             className={`flex flex-col items-center justify-center w-12 h-14 shrink-0 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
               selected
-                ? 'bg-accent border-accent text-dark-bg'
-                : 'bg-white border-secondary-bg text-dark-bg hover:border-accent'
+                ? 'bg-accent border-accent text-on-accent'
+                : 'bg-surface border-default text-primary hover:border-accent'
             }`}
           >
             <span className="text-[10px] uppercase tracking-wide opacity-70">
               {day.toDate().toLocaleDateString(locale, { weekday: 'short' })}
             </span>
-            <span
-              className={`text-sm font-bold ${
-                today && !selected ? 'text-triadic-orange' : ''
-              }`}
-            >
-              {day.format('D')}
-            </span>
+            <span className="text-sm font-bold">{day.format('D')}</span>
+            {today && !selected && (
+              <span
+                aria-hidden="true"
+                className="mt-0.5 h-1 w-1 rounded-full bg-accent"
+              />
+            )}
           </button>
         );
       })}
@@ -462,8 +459,8 @@ function TodayCompletionRing({
     <DonutChart
       value={successful}
       total={total}
-      color="#22c55e"
-      dotColor="#22c55e"
+      color="rgb(var(--color-status-complete))"
+      dotColor="rgb(var(--color-status-complete))"
       label={t('dashboard.todayCompletion')}
     />
   );
@@ -487,22 +484,24 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
       onSubmit={handleSubmit}
       className="flex items-center gap-2 flex-1 min-w-[240px]"
     >
-      <div className="flex items-center gap-1.5 text-secondary-dark-bg shrink-0">
+      <div className="flex items-center gap-1.5 text-muted shrink-0">
         <InboxIcon className="w-4 h-4" />
         <span className="text-sm font-medium">
           {t('dashboard.inboxCount', { count: inboxCount })}
         </span>
       </div>
-      <Input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder={t('dashboard.quickAddPlaceholder')}
-        className="flex-1 px-4 py-2 rounded-lg border-2 border-secondary-bg focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-white text-dark-bg placeholder-secondary-dark-bg text-sm"
-        inputTestId="dashboard-quick-add-input"
-      />
+      <div className="flex-1">
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t('dashboard.quickAddPlaceholder')}
+          inputTestId="dashboard-quick-add-input"
+        />
+      </div>
       <Button
         type="submit"
-        className="flex items-center gap-1 px-4 py-2 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 shrink-0"
+        variant="primary"
+        className="text-sm shrink-0"
         dataTestId="dashboard-quick-add-submit"
       >
         <Plus className="w-4 h-4" />
@@ -524,11 +523,11 @@ function DailyFocusStrip({
   inboxCount: number;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-secondary-bg p-5 flex flex-col lg:flex-row lg:items-center gap-5">
+    <div className="bg-surface rounded-xl border border-default p-5 flex flex-col lg:flex-row lg:items-center gap-5">
       <WeekStrip selectedDate={selectedDate} />
-      <div className="hidden lg:block w-px h-14 bg-secondary-bg" />
+      <div className="hidden lg:block w-px h-14 bg-default" />
       <TodayCompletionRing successful={todaySuccessful} total={todayTotal} />
-      <div className="hidden lg:block w-px h-14 bg-secondary-bg" />
+      <div className="hidden lg:block w-px h-14 bg-default" />
       <QuickAddInbox inboxCount={inboxCount} />
     </div>
   );
@@ -544,15 +543,13 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
     .slice(0, 3);
 
   return (
-    <div className="bg-white rounded-xl border border-secondary-bg p-5">
-      <div className="flex items-center gap-2 text-triadic-orange mb-4">
+    <div className="bg-surface rounded-xl border border-default p-5">
+      <div className="flex items-center gap-2 text-primary mb-4">
         <Flame className="w-5 h-5" />
         <h3 className="font-bold text-lg">{t('dashboard.topPriority')}</h3>
       </div>
       {topThree.length === 0 ? (
-        <p className="text-secondary-dark-bg text-sm">
-          {t('dashboard.noTopPriority')}
-        </p>
+        <p className="text-muted text-sm">{t('dashboard.noTopPriority')}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {topThree.map((item) => {
@@ -561,30 +558,28 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
             return (
               <div
                 key={item.id}
-                className="rounded-xl border border-triadic-orange/40 bg-triadic-orange/5 p-3"
+                className="rounded-xl border border-priority-high-bg/40 bg-priority-high-bg/5 p-3"
               >
-                <p className="font-semibold text-dark-bg text-sm leading-snug line-clamp-2">
+                <p className="font-semibold text-primary text-sm leading-snug line-clamp-2">
                   {item.name}
                 </p>
                 {item.dueDate && (
                   <p
                     className={`flex items-center gap-1 text-xs mt-1.5 ${
-                      isUrgent
-                        ? 'text-red-600 font-semibold'
-                        : 'text-secondary-dark-bg'
+                      isUrgent ? 'text-danger font-semibold' : 'text-muted'
                     }`}
                   >
                     {isUrgent && (
                       <span
                         aria-hidden="true"
-                        className={`h-1.5 w-1.5 rounded-full bg-red-500 ${
+                        className={`h-1.5 w-1.5 rounded-full bg-danger ${
                           prefersReducedMotion ? '' : 'animate-pulse'
                         }`}
                       />
                     )}
                     {dayjs(item.dueDate).format('DD/MM/YYYY')}
                     {isUrgent && (
-                      <span className="rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                      <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold text-danger">
                         {t('tasks.dueSoon')}
                       </span>
                     )}

@@ -21,7 +21,9 @@ function AuthLayout({
       }}
     >
       <div className="absolute inset-0 bg-accent/30" />
-      <div className="relative z-10 bg-white rounded-2xl shadow-2xl flex w-full max-w-[84rem] overflow-hidden min-h-[720px]">
+      {/* Each side supplies its own background: the illustration half stays
+          fixed white in both themes, the form half follows the app theme. */}
+      <div className="relative z-10 rounded-2xl shadow-2xl flex w-full max-w-[84rem] overflow-hidden min-h-[720px]">
         {illustrationSide === 'left' ? (
           <>
             {illustration}

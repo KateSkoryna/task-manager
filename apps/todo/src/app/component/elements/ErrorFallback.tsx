@@ -16,7 +16,9 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className={`bg-dark-bg text-white p-6 rounded-lg ${className}`}>
+    <div
+      className={`bg-danger/10 border border-danger text-danger p-6 rounded-lg ${className}`}
+    >
       <Text as="h2" className="text-xl font-bold mb-2" dataTestId="error-title">
         {t('error.title')}
       </Text>
@@ -26,7 +28,8 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
       {resetErrorBoundary && (
         <Button
           onClick={resetErrorBoundary}
-          className="mt-4 px-4 py-2 bg-accent text-black rounded hover:bg-secondary-bg transition-colors"
+          variant="secondary"
+          className="mt-4"
         >
           {t('error.tryAgain')}
         </Button>

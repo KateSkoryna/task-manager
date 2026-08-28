@@ -46,10 +46,10 @@ function PeriodSelector({
   const activeIndex = periods.findIndex((p) => p.value === value);
 
   return (
-    <div className="relative flex bg-white border border-secondary-bg rounded-lg p-1">
+    <div className="relative flex bg-surface border border-default rounded-lg p-1">
       {/* sliding pill */}
       <span
-        className="absolute top-1 bottom-1 rounded-md bg-triadic-blue transition-transform duration-300 ease-in-out"
+        className="absolute top-1 bottom-1 rounded-md bg-accent transition-transform duration-300 ease-in-out"
         style={{
           width: `calc((100% - 8px) / ${periods.length})`,
           transform: `translateX(calc(${activeIndex} * 100%))`,
@@ -60,7 +60,7 @@ function PeriodSelector({
           key={p.value}
           onClick={() => onChange(p.value)}
           className={`relative z-10 w-16 py-1.5 rounded-md text-sm font-medium text-center transition-colors duration-300 ${
-            value === p.value ? 'text-white' : 'text-dark-bg'
+            value === p.value ? 'text-on-accent' : 'text-primary'
           }`}
         >
           {p.label}
@@ -83,11 +83,11 @@ function StatCard({
     <div className="flex flex-col items-center justify-center p-4">
       <span
         className="text-4xl font-bold leading-none"
-        style={{ color: color || '#435058' }}
+        style={{ color: color || 'rgb(var(--color-primary))' }}
       >
         {value}
       </span>
-      <span className="text-xs text-secondary-dark-bg mt-1 uppercase tracking-wider">
+      <span className="text-xs text-muted mt-1 uppercase tracking-wider">
         {label}
       </span>
     </div>
@@ -95,9 +95,20 @@ function StatCard({
 }
 
 const cardClass =
-  'bg-white rounded-2xl border border-secondary-bg p-5 shadow-sm';
+  'bg-surface rounded-2xl border border-default p-5 shadow-card';
 const chartCardClass =
-  'bg-white rounded-2xl border border-secondary-bg pt-5 px-5 pb-5 shadow-sm';
+  'bg-surface rounded-2xl border border-default pt-5 px-5 pb-5 shadow-card';
+
+// Recharts contentStyle/tick props need resolved CSS strings — see §4.6.
+const TOOLTIP_STYLE = {
+  borderRadius: '8px',
+  border: '1px solid rgb(var(--color-default))',
+  backgroundColor: 'rgb(var(--color-surface))',
+  color: 'rgb(var(--color-primary))',
+  boxShadow: 'var(--shadow-menu)',
+  fontSize: 12,
+};
+const AXIS_TICK_STYLE = { fontSize: 11, fill: 'rgb(var(--color-muted))' };
 
 export default function StatisticsPage() {
   const { t } = useTranslation();
@@ -146,7 +157,7 @@ export default function StatisticsPage() {
   if (isLoading) {
     return (
       <Container>
-        <p className="text-dark-bg">{t('statistics.loading')}</p>
+        <p className="text-primary">{t('statistics.loading')}</p>
       </Container>
     );
   }
@@ -161,10 +172,10 @@ export default function StatisticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Area chart – 2/3 width */}
         <div className={`${chartCardClass} lg:col-span-2`}>
-          <p className="text-sm font-semibold text-dark-bg mb-1">
+          <p className="text-sm font-semibold text-primary mb-1">
             {t('statistics.numberOfTodos')}
           </p>
-          <p className="text-xs text-secondary-dark-bg mb-4">
+          <p className="text-xs text-muted mb-4">
             {t('statistics.totalDoneFailed')}
           </p>
           <ResponsiveContainer width="100%" height={260}>
@@ -213,23 +224,17 @@ export default function StatisticsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 11, fill: '#848C8E' }}
+                tick={AXIS_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: '#848C8E' }}
+                tick={AXIS_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
               />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: '8px',
-                  border: '1px solid #c6c6c6',
-                  fontSize: 12,
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Area
                 type="monotone"
@@ -261,10 +266,10 @@ export default function StatisticsPage() {
 
         {/* Pie + summary numbers */}
         <div className={`${cardClass} flex flex-col`}>
-          <p className="text-sm font-semibold text-dark-bg mb-1">
+          <p className="text-sm font-semibold text-primary mb-1">
             {t('statistics.statusBreakdown')}
           </p>
-          <p className="text-xs text-secondary-dark-bg mb-2">
+          <p className="text-xs text-muted mb-2">
             {t('statistics.completionRate', { rate: completionRate })}
           </p>
           <div className="flex-1 flex items-center justify-center">
@@ -284,23 +289,15 @@ export default function StatisticsPage() {
                       <Cell key={index} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '8px',
-                      border: '1px solid #c6c6c6',
-                      fontSize: 12,
-                    }}
-                  />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
                   <Legend wrapperStyle={{ fontSize: 12, paddingTop: '20px' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-secondary-dark-bg text-sm">
-                {t('statistics.noData')}
-              </p>
+              <p className="text-muted text-sm">{t('statistics.noData')}</p>
             )}
           </div>
-          <div className="grid grid-cols-3 divide-x divide-secondary-bg border-t border-secondary-bg mt-2">
+          <div className="grid grid-cols-3 divide-x divide-default border-t border-default mt-2">
             <StatCard
               label={t('statistics.done')}
               value={successfulCount}
@@ -324,12 +321,10 @@ export default function StatisticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Bar chart per weekday */}
         <div className={chartCardClass}>
-          <p className="text-sm font-semibold text-dark-bg mb-1">
+          <p className="text-sm font-semibold text-primary mb-1">
             {t('statistics.todosPerWeekday')}
           </p>
-          <p className="text-xs text-secondary-dark-bg mb-4">
-            {t('statistics.totalDone')}
-          </p>
+          <p className="text-xs text-muted mb-4">{t('statistics.totalDone')}</p>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
               data={weekdayData}
@@ -344,23 +339,17 @@ export default function StatisticsPage() {
               />
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: 11, fill: '#848C8E' }}
+                tick={AXIS_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: '#848C8E' }}
+                tick={AXIS_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
               />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: '8px',
-                  border: '1px solid #c6c6c6',
-                  fontSize: 12,
-                }}
-              />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
               <Bar
                 dataKey="total"
                 fill={CHART_COLORS.total}
@@ -379,50 +368,39 @@ export default function StatisticsPage() {
 
         {/* Summary text card */}
         <div
-          className={`${cardClass} flex flex-col items-center justify-center bg-dark-bg text-accent`}
+          className={`${cardClass} flex flex-col items-center justify-center bg-sidebar text-accent`}
         >
-          <p className="text-xs uppercase tracking-widest text-secondary-dark-bg mb-3">
+          <p className="text-xs uppercase tracking-widest text-sidebar-muted mb-3">
             {t('statistics.todoListStats')}
           </p>
-          <p
-            className="text-6xl font-black leading-none"
-            style={{ color: CHART_COLORS.pending }}
-          >
+          <p className="text-6xl font-black leading-none text-accent">
             {totalCount}
           </p>
-          <p className="text-sm font-semibold text-secondary-bg mt-1 uppercase tracking-wider">
+          <p className="text-sm font-semibold text-sidebar-muted mt-1 uppercase tracking-wider">
             {t('statistics.totalTodos')}
           </p>
-          <div className="border-t border-secondary-dark-bg w-16 my-4" />
-          <p
-            className="text-5xl font-black leading-none"
-            style={{ color: CHART_COLORS.successful }}
-          >
+          <div className="border-t border-sidebar-border w-16 my-4" />
+          <p className="text-5xl font-black leading-none text-accent/75">
             {daysTracked}
           </p>
-          <p className="text-sm font-semibold text-secondary-bg mt-1 uppercase tracking-wider">
+          <p className="text-sm font-semibold text-sidebar-muted mt-1 uppercase tracking-wider">
             {t('statistics.daysTracked')}
           </p>
-          <div className="border-t border-secondary-dark-bg w-16 my-4" />
-          <p
-            className="text-4xl font-black leading-none"
-            style={{ color: CHART_COLORS.failed }}
-          >
+          <div className="border-t border-sidebar-border w-16 my-4" />
+          <p className="text-4xl font-black leading-none text-accent/55">
             {completionRate}%
           </p>
-          <p className="text-sm font-semibold text-secondary-bg mt-1 uppercase tracking-wider">
+          <p className="text-sm font-semibold text-sidebar-muted mt-1 uppercase tracking-wider">
             {t('statistics.completion')}
           </p>
         </div>
 
         {/* Horizontal bar – by category */}
         <div className={chartCardClass}>
-          <p className="text-sm font-semibold text-dark-bg mb-1">
+          <p className="text-sm font-semibold text-primary mb-1">
             {t('statistics.byCategory')}
           </p>
-          <p className="text-xs text-secondary-dark-bg mb-4">
-            {t('statistics.totalDone')}
-          </p>
+          <p className="text-xs text-muted mb-4">{t('statistics.totalDone')}</p>
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
@@ -439,7 +417,7 @@ export default function StatisticsPage() {
                 />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 11, fill: '#848C8E' }}
+                  tick={AXIS_TICK_STYLE}
                   axisLine={false}
                   tickLine={false}
                   allowDecimals={false}
@@ -447,18 +425,12 @@ export default function StatisticsPage() {
                 <YAxis
                   type="category"
                   dataKey="name"
-                  tick={{ fontSize: 11, fill: '#848C8E' }}
+                  tick={AXIS_TICK_STYLE}
                   axisLine={false}
                   tickLine={false}
                   width={65}
                 />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: '1px solid #c6c6c6',
-                    fontSize: 12,
-                  }}
-                />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Bar
                   dataKey="total"
                   fill={CHART_COLORS.total}
@@ -474,7 +446,7 @@ export default function StatisticsPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-secondary-dark-bg text-sm mt-6">
+            <p className="text-muted text-sm mt-6">
               {t('statistics.noCategoryData')}
             </p>
           )}
