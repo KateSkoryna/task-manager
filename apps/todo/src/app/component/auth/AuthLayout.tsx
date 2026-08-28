@@ -22,7 +22,11 @@ function AuthLayout({
     >
       <div className="absolute inset-0 bg-accent/30" />
       {/* Each side supplies its own background: the illustration half stays
-          fixed white in both themes, the form half follows the app theme. */}
+          fixed white in both themes, the form half follows the app theme.
+          The card's own shadow/min-height/background-image styling here is
+          intentionally left exactly as the pre-redesign original (explicit,
+          repeated product decision) rather than migrated to shadow-menu/rem
+          tokens — do not "clean up" the px min-height or shadow-2xl. */}
       <div className="relative z-10 rounded-2xl shadow-2xl flex w-full max-w-[84rem] overflow-hidden min-h-[720px]">
         {illustrationSide === 'left' ? (
           <>
