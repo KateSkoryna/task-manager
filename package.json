@@ -17,6 +17,7 @@
     "test:e2e": "nx e2e todo-e2e --spec=apps/todo-e2e/src/e2e/authenticated-smoke.cy.ts",
     "test:e2e:watch": "nx e2e todo-e2e --watch",
     "lint": "nx run-many --target=lint",
+    "check:deprecated-tokens": "node scripts/check-deprecated-tokens.js",
     "typecheck": "tsc --build apps/todo apps/todo-be libs/types",
     "emulator": "firebase emulators:start",
     "all": "npm run docker:mongodb & npm run emulator & npm run serve:be & npm run serve:fe"
