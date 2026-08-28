@@ -36,7 +36,7 @@ function MoveToListSelect({
       ariaLabel={t('tasks.moveToList')}
       fixedPosition
       className="flex flex-1 min-w-0 justify-between items-center gap-1 px-2 py-1 rounded-inner border border-default bg-surface text-xs text-primary cursor-pointer focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent select-none"
-      menuClassName="z-50 w-max max-w-[220px] bg-surface border border-default rounded-inner shadow-menu overflow-hidden list-none p-0"
+      menuClassName="z-50 w-max max-w-[13.75rem] bg-surface border border-default rounded-inner shadow-menu overflow-hidden list-none p-0"
       optionClassName="px-3 py-1.5 text-xs"
     />
   );
