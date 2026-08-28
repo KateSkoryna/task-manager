@@ -188,7 +188,6 @@ function TodoList({
               <TodoItem
                 key={todo.id}
                 todo={todo}
-                listPriority={todoList.priority}
                 isSelected={selectedTodoId === todo.id}
                 onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
                 onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}

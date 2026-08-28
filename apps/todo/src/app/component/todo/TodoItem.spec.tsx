@@ -35,11 +35,13 @@ describe('TodoItem', () => {
   test('shows priority and formatted due date', () => {
     render(
       <TodoItem
-        todo={makeTodo('pending', { dueDate: '2026-08-05T00:00:00Z' })}
-        listPriority="high"
+        todo={makeTodo('pending', {
+          dueDate: '2026-08-05T00:00:00Z',
+          priority: 'high',
+        })}
       />
     );
-    expect(screen.getByText('High')).toBeInTheDocument();
+    expect(screen.getByText('tasks.priority_high')).toBeInTheDocument();
     expect(screen.getByText(/Due:/)).toBeInTheDocument();
   });
   test('renders attached image', () => {

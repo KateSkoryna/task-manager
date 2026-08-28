@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import {
   TodoItem,
   TodoList,
+  TodoPriority,
   TodoListPriority,
   TodoListCategory,
   UpdateTodoItem,
@@ -38,11 +39,12 @@ import IconButton from '../elements/IconButton';
 type EditFormValues = {
   name: string;
   status: TodoStatus;
+  taskPriority: TodoPriority;
   dueDate: string;
   location: string;
   notes: string;
   listName: string;
-  priority: TodoListPriority | '';
+  listPriority: TodoListPriority | '';
   category: TodoListCategory | '';
   image: string | null;
 };
@@ -79,11 +81,12 @@ export function TodoEditPanel({
     defaultValues: {
       name: todo.name,
       status: todo.status,
+      taskPriority: todo.priority,
       dueDate: todo.dueDate ?? '',
       location: todo.location ?? '',
       notes: todo.notes ?? '',
       listName: list?.name ?? '',
-      priority: list?.priority ?? '',
+      listPriority: list?.priority ?? '',
       category: list?.category ?? '',
       image: todo.image ?? null,
     },
@@ -96,7 +99,7 @@ export function TodoEditPanel({
     { value: 'successful', label: t('tasks.status_successful') },
     { value: 'failed', label: t('tasks.status_failed') },
   ];
-  const priorityOptions: DropdownOption<TodoListPriority>[] = [
+  const priorityOptions: DropdownOption<TodoPriority>[] = [
     { value: 'low', label: t('tasks.priority_low') },
     { value: 'medium', label: t('tasks.priority_medium') },
     { value: 'high', label: t('tasks.priority_high') },
@@ -134,6 +137,7 @@ export function TodoEditPanel({
     const todoResult = todoUpdateSchema.safeParse({
       name: data.name.trim() || todo.name,
       status: data.status,
+      priority: data.taskPriority,
       dueDate: data.dueDate || null,
       location: data.location.trim() || null,
       notes: data.notes.trim() || null,
@@ -142,7 +146,7 @@ export function TodoEditPanel({
     const listResult = list
       ? todolistUpdateSchema.safeParse({
           name: data.listName.trim() || list.name,
-          priority: data.priority,
+          priority: data.listPriority,
           category: data.category,
         })
       : null;
@@ -164,9 +168,9 @@ export function TodoEditPanel({
   const inputClass =
     'flex-1 px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-sm';
   const dropdownClass =
-    'flex min-w-[160px] cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
+    'flex min-w-[10rem] cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
-    'z-50 w-max min-w-[160px] max-w-[220px] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
+    'z-50 w-max min-w-[10rem] max-w-[13.75rem] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =
     'w-6 h-6 flex items-center justify-center shrink-0 rounded-inner text-muted transition-colors outline-none cursor-pointer';
 
@@ -211,6 +215,35 @@ export function TodoEditPanel({
                 }
                 options={statusOptions}
                 placeholder={t('tasks.status')}
+                className={dropdownClass}
+                menuClassName={dropdownMenuClass}
+                fixedPosition
+              />
+            )}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label
+            id={`edit-todo-task-priority-label-${todo.id}`}
+            className={labelClass}
+          >
+            {t('tasks.taskPriority')}
+          </label>
+          <Controller
+            name="taskPriority"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                id={`edit-todo-task-priority-summary-${todo.id}`}
+                data-testid={`edit-todo-task-priority-${todo.id}`}
+                ariaLabelledby={`edit-todo-task-priority-label-${todo.id}`}
+                value={field.value}
+                onChange={(value: TodoPriority | null) =>
+                  value && field.onChange(value)
+                }
+                options={priorityOptions}
+                placeholder={t('tasks.taskPriority')}
                 className={dropdownClass}
                 menuClassName={dropdownMenuClass}
                 fixedPosition
@@ -269,18 +302,18 @@ export function TodoEditPanel({
 
             <div className="flex items-center gap-2">
               <label
-                id={`edit-todo-priority-label-${todo.id}`}
+                id={`edit-todo-list-priority-label-${todo.id}`}
                 className={labelClass}
               >
-                {t('tasks.priority')}
+                {t('tasks.listPriority')}
               </label>
               <Controller
-                name="priority"
+                name="listPriority"
                 control={control}
                 render={({ field }) => (
                   <Dropdown
-                    id={`edit-todo-priority-summary-${todo.id}`}
-                    ariaLabelledby={`edit-todo-priority-label-${todo.id}`}
+                    id={`edit-todo-list-priority-summary-${todo.id}`}
+                    ariaLabelledby={`edit-todo-list-priority-label-${todo.id}`}
                     value={field.value || null}
                     onChange={(value: TodoListPriority | null) =>
                       field.onChange(value ?? '')
@@ -485,11 +518,20 @@ export function TaskDetailPanel({
                   </span>
                 </span>
               </div>
+              <div className="flex items-center gap-2">
+                <Flag className="w-4 h-4 shrink-0 text-muted" />
+                <span className="flex items-center gap-1.5">
+                  {t('tasks.taskPriority')}
+                  <Badge tone={`priority-${todo.priority}`}>
+                    {t(`tasks.priority_${todo.priority}`)}
+                  </Badge>
+                </span>
+              </div>
               {list?.priority && (
                 <div className="flex items-center gap-2">
                   <Flag className="w-4 h-4 shrink-0 text-muted" />
                   <span className="flex items-center gap-1.5">
-                    {t('tasks.priority')}
+                    {t('tasks.listPriority')}
                     <Badge tone={`priority-${list.priority}`}>
                       {t(`tasks.priority_${list.priority}`)}
                     </Badge>

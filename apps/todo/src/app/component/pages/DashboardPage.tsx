@@ -79,7 +79,6 @@ function startOfWeek(d: Dayjs): Dayjs {
 // ─── flat item type ──────────────────────────────────────────────────────────
 
 export interface FlatItem extends TodoItem {
-  listPriority: TodoList['priority'];
   listCreatedAt: TodoList['createdAt'];
 }
 
@@ -87,7 +86,6 @@ function flattenLists(lists: TodoList[]): FlatItem[] {
   return lists.flatMap((list) =>
     list.todos.map((todo) => ({
       ...todo,
-      listPriority: list.priority,
       listCreatedAt: list.createdAt,
     }))
   );
@@ -96,7 +94,6 @@ function flattenLists(lists: TodoList[]): FlatItem[] {
 function flattenInbox(todos: TodoItem[]): FlatItem[] {
   return todos.map((todo) => ({
     ...todo,
-    listPriority: undefined,
     listCreatedAt: undefined,
   }));
 }
@@ -246,11 +243,8 @@ function TodoPanel({
           </button>
 
           {calendarOpen && (
-            <div
-              className="absolute right-0 top-8 z-50 bg-surface rounded-2xl border border-default shadow-menu"
-              style={{ width: 378 }}
-            >
-              <div className="flex items-center justify-between px-[14px] pt-4 pb-2">
+            <div className="absolute right-0 top-8 z-50 w-[23.625rem] bg-surface rounded-2xl border border-default shadow-menu">
+              <div className="flex items-center justify-between px-[0.875rem] pt-4 pb-2">
                 <span className="font-bold text-primary">
                   {t('dashboard.calendar')}
                 </span>
@@ -264,7 +258,7 @@ function TodoPanel({
               </div>
 
               {pickerDate && (
-                <div className="mx-[14px] mb-2 px-3 py-2 rounded-lg border border-default text-sm text-primary">
+                <div className="mx-[0.875rem] mb-2 px-3 py-2 rounded-lg border border-default text-sm text-primary">
                   {pickerDate.toLocaleDateString(locale, {
                     month: 'long',
                     day: 'numeric',
@@ -286,7 +280,7 @@ function TodoPanel({
                 style={DAY_PICKER_STYLE}
                 modifiersClassNames={{
                   selected:
-                    '[&>button]:!bg-accent [&>button]:!text-on-accent [&>button]:!border-0 [&>button]:!rounded-[8px]',
+                    '[&>button]:!bg-accent [&>button]:!text-on-accent [&>button]:!border-0 [&>button]:!rounded-[0.5rem]',
                   today: '[&>button]:!font-bold',
                 }}
               />
@@ -314,7 +308,6 @@ function TodoPanel({
             <TodoItemComponent
               key={item.id}
               todo={item}
-              listPriority={item.listPriority}
               onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
             />
           ))}
@@ -430,7 +423,7 @@ function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
                 : 'bg-surface border-default text-primary hover:border-accent'
             }`}
           >
-            <span className="text-[10px] uppercase tracking-wide opacity-70">
+            <span className="text-[0.625rem] uppercase tracking-wide opacity-70">
               {day.toDate().toLocaleDateString(locale, { weekday: 'short' })}
             </span>
             <span className="text-sm font-bold">{day.format('D')}</span>
@@ -482,7 +475,7 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 flex-1 min-w-[240px]"
+      className="flex items-center gap-2 flex-1 min-w-[15rem]"
     >
       <div className="flex items-center gap-1.5 text-muted shrink-0">
         <InboxIcon className="w-4 h-4" />
@@ -538,9 +531,7 @@ function DailyFocusStrip({
 function TopPriorityPanel({ items }: { items: FlatItem[] }) {
   const { t } = useTranslation();
   const prefersReducedMotion = usePrefersReducedMotion();
-  const topThree = items
-    .filter((item) => item.listPriority === 'high')
-    .slice(0, 3);
+  const topThree = items.filter((item) => item.priority === 'high').slice(0, 3);
 
   return (
     <div className="bg-surface rounded-xl border border-default p-5">
@@ -579,7 +570,7 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
                     )}
                     {dayjs(item.dueDate).format('DD/MM/YYYY')}
                     {isUrgent && (
-                      <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold text-danger">
+                      <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
                         {t('tasks.dueSoon')}
                       </span>
                     )}

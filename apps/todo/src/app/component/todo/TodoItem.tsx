@@ -2,11 +2,7 @@ import { useEffect } from 'react';
 import { Check, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import {
-  TodoItem as TodoItemType,
-  TodoStatus,
-  TodoListPriority,
-} from '@shared/types';
+import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
 import Card from '../elements/Card';
 import Badge from '../elements/Badge';
 import MoveToListSelect, { AvailableList } from './MoveToListSelect';
@@ -15,7 +11,6 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 interface TodoItemProps {
   todo: TodoItemType;
-  listPriority?: TodoListPriority;
   isSelected?: boolean;
   onSelect?: () => void;
   onEdit?: () => void;
@@ -51,7 +46,6 @@ const STATUS_TEXT: Record<TodoStatus, string> = {
 
 function TodoItem({
   todo,
-  listPriority,
   isSelected,
   onSelect,
   onEdit,
@@ -133,11 +127,9 @@ function TodoItem({
 
         {/* Row 3: priority, status, due date */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-          {listPriority && (
-            <Badge tone={`priority-${listPriority}`}>
-              {listPriority.charAt(0).toUpperCase() + listPriority.slice(1)}
-            </Badge>
-          )}
+          <Badge tone={`priority-${todo.priority}`}>
+            {t(`tasks.priority_${todo.priority}`)}
+          </Badge>
           <span className="text-xs text-muted">
             {t('tasks.status')}:{' '}
             <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
@@ -160,7 +152,7 @@ function TodoItem({
               )}
               Due: {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               {isUrgent && (
-                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[10px] font-semibold text-danger">
+                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
                   {t('tasks.dueSoon')}
                 </span>
               )}
