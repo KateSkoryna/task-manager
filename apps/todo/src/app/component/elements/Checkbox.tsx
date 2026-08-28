@@ -13,11 +13,11 @@ function Checkbox({ id, checked, onChange, label }: Props) {
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-5 h-5 rounded border-2 border-secondary-bg accent-dark-bg cursor-pointer"
+        className="w-5 h-5 rounded border-2 border-default accent-accent cursor-pointer"
       />
       <label
         htmlFor={id}
-        className="text-sm text-secondary-dark-bg cursor-pointer select-none"
+        className="text-sm text-muted cursor-pointer select-none"
       >
         {label}
       </label>

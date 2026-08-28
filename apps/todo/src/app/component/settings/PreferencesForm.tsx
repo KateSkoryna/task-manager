@@ -92,7 +92,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       noValidate
     >
       <div className="flex flex-col gap-1">
-        <label htmlFor="settings-timezone" className="text-dark-bg font-medium">
+        <label htmlFor="settings-timezone" className="text-primary font-medium">
           {t('settings.timezone')}
         </label>
         <Controller
@@ -112,7 +112,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
         />
         {errors.timezone && (
           <p
-            className="text-red-500 text-sm"
+            className="text-danger text-sm"
             data-testid="settings-timezone-error"
           >
             {t('settings.timezoneInvalid')}
@@ -121,7 +121,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="settings-cadence" className="text-dark-bg font-medium">
+        <label htmlFor="settings-cadence" className="text-primary font-medium">
           {t('settings.reportCadence')}
         </label>
         <Controller
@@ -144,7 +144,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       <div className="flex flex-col gap-1">
         <label
           htmlFor="settings-delivery-hour"
-          className="text-dark-bg font-medium"
+          className="text-primary font-medium"
         >
           {t('settings.deliveryHour')}
         </label>
@@ -171,7 +171,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="settings-tone" className="text-dark-bg font-medium">
+        <label htmlFor="settings-tone" className="text-primary font-medium">
           {t('settings.tone')}
         </label>
         <Controller
@@ -204,7 +204,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
             />
           )}
         />
-        <p className="text-sm text-secondary-dark-bg">
+        <p className="text-sm text-muted">
           {t('settings.aiConsentDescription')}
         </p>
       </div>
@@ -212,15 +212,15 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       <div className="flex items-center gap-3">
         <Button
           type="submit"
+          variant="primary"
           disabled={isSaving}
-          className="px-6 py-2 bg-accent text-black font-semibold rounded-lg hover:bg-dark-bg hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           dataTestId="settings-save-button"
         >
           {isSaving ? t('settings.saving') : t('settings.save')}
         </Button>
         {saved && !isSaving && (
           <span
-            className="text-sm text-secondary-dark-bg"
+            className="text-sm text-muted"
             data-testid="settings-saved-message"
           >
             {t('settings.saved')}
@@ -228,7 +228,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
         )}
       </div>
       {saveError && (
-        <p className="text-red-500 text-sm" data-testid="settings-save-error">
+        <p className="text-danger text-sm" data-testid="settings-save-error">
           {t('settings.saveError')}
         </p>
       )}
