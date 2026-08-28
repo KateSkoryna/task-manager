@@ -120,4 +120,3 @@ export const getCancelTodoEditButtonInList = (
 // --- Global UI ---
 export const getErrorMessage = () => cy.get("[data-testid='error-message']");
 export const getLoader = () => cy.get("[data-testid='loader']");
-export const getAppTitle = () => cy.get("[data-testid='app-title']");
