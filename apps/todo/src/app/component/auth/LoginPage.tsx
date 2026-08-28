@@ -15,7 +15,12 @@ import { provisionUserFetcher } from '../../fetchers/auth';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import womanImage from '../../../assets/woman.webp';
 import Checkbox from '../elements/Checkbox';
+import Button from '../elements/Button';
 import AuthLayout from './AuthLayout';
+import {
+  AUTH_INPUT_CLASS as INPUT_CLASS,
+  AUTH_PASSWORD_INPUT_CLASS as PASSWORD_INPUT_CLASS,
+} from './authInputClasses';
 
 function GoogleIcon() {
   return (
@@ -112,21 +117,21 @@ function LoginPage() {
       <img
         src={womanImage}
         alt="Woman with phone illustration"
-        className="object-contain h-2/3 w-2/3"
+        className="object-contain h-4/5 w-4/5"
       />
     </div>
   );
 
   return (
     <AuthLayout illustration={illustration} illustrationSide="right">
-      <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-        <h1 className="text-3xl font-bold text-dark-bg mb-8">
+      <div className="w-full md:w-1/2 p-10 flex flex-col justify-center bg-surface">
+        <h1 className="text-3xl font-bold text-primary mb-8">
           {t('auth.login.title')}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               id="email"
               name="email"
@@ -134,12 +139,12 @@ function LoginPage() {
               autoComplete="email"
               placeholder={t('auth.login.emailPlaceholder')}
               required
-              className="w-full pl-9 pr-4 py-3 border border-secondary-bg rounded-lg focus:outline-none focus:border-dark-bg text-dark-bg placeholder:text-secondary-dark-bg"
+              className={INPUT_CLASS}
             />
           </div>
 
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               id="password"
               name="password"
@@ -149,13 +154,13 @@ function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-9 pr-9 py-3 border border-secondary-bg rounded-lg focus:outline-none focus:border-dark-bg text-dark-bg placeholder:text-secondary-dark-bg"
+              className={PASSWORD_INPUT_CLASS}
             />
             {password && (
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-dark-bg hover:text-dark-bg"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -174,34 +179,36 @@ function LoginPage() {
             label={t('auth.login.rememberMe')}
           />
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-danger text-sm">{error}</p>}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={isPending}
-            className="w-full py-3 bg-accent text-dark-bg font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="w-full"
           >
             {isPending ? t('auth.login.signingIn') : t('auth.login.button')}
-          </button>
+          </Button>
         </form>
 
         <div className="mt-4">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={handleGoogleSignIn}
             disabled={isPending}
-            className="w-full flex items-center justify-center gap-2 py-3 border border-secondary-bg rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 text-sm text-dark-bg font-medium"
+            className="w-full text-sm"
           >
             <GoogleIcon />
             {t('auth.login.continueWithGoogle')}
-          </button>
+          </Button>
         </div>
 
-        <p className="mt-6 text-sm text-secondary-dark-bg">
+        <p className="mt-6 text-sm text-muted">
           {t('auth.login.noAccount')}{' '}
           <Link
             to="/register"
-            className="text-triadic-blue font-semibold hover:underline"
+            className="text-primary font-semibold hover:underline"
           >
             {t('auth.login.createOne')}
           </Link>

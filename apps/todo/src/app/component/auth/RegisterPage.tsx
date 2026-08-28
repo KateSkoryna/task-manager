@@ -13,7 +13,12 @@ import { registerSchema } from '@shared/types';
 import { User, AtSign, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import manImage from '../../../assets/man.webp';
 import Checkbox from '../elements/Checkbox';
+import Button from '../elements/Button';
 import AuthLayout from './AuthLayout';
+import {
+  AUTH_INPUT_CLASS,
+  AUTH_PASSWORD_INPUT_CLASS,
+} from './authInputClasses';
 
 function GoogleIcon() {
   return (
@@ -129,10 +134,8 @@ function RegisterPage() {
     }
   };
 
-  const inputClass =
-    'w-full pl-9 pr-4 py-3 border border-secondary-bg rounded-lg focus:outline-none focus:border-dark-bg text-dark-bg placeholder:text-secondary-dark-bg';
-  const passwordInputClass =
-    'w-full pl-9 pr-9 py-3 border border-secondary-bg rounded-lg focus:outline-none focus:border-dark-bg text-dark-bg placeholder:text-secondary-dark-bg';
+  const inputClass = AUTH_INPUT_CLASS;
+  const passwordInputClass = AUTH_PASSWORD_INPUT_CLASS;
 
   const illustration = (
     <div className="hidden md:flex w-1/2 bg-white items-center justify-center overflow-hidden">
@@ -146,8 +149,8 @@ function RegisterPage() {
 
   return (
     <AuthLayout illustration={illustration}>
-      <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-        <h1 className="text-3xl font-bold text-dark-bg mb-6">
+      <div className="w-full md:w-1/2 p-10 flex flex-col justify-center bg-surface">
+        <h1 className="text-3xl font-bold text-primary mb-6">
           {t('auth.register.title')}
         </h1>
 
@@ -155,7 +158,7 @@ function RegisterPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   name="firstName"
                   type="text"
@@ -165,12 +168,12 @@ function RegisterPage() {
                 />
               </div>
               {errors.firstName && (
-                <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                <p className="text-danger text-xs mt-1">{errors.firstName}</p>
               )}
             </div>
             <div>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   name="lastName"
                   type="text"
@@ -180,13 +183,13 @@ function RegisterPage() {
                 />
               </div>
               {errors.lastName && (
-                <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                <p className="text-danger text-xs mt-1">{errors.lastName}</p>
               )}
             </div>
           </div>
 
           <div className="relative">
-            <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+            <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               name="username"
               type="text"
@@ -196,11 +199,11 @@ function RegisterPage() {
             />
           </div>
           {errors.username && (
-            <p className="text-red-500 text-xs -mt-2">{errors.username}</p>
+            <p className="text-danger text-xs -mt-2">{errors.username}</p>
           )}
 
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               name="email"
               type="email"
@@ -211,11 +214,11 @@ function RegisterPage() {
             />
           </div>
           {errors.email && (
-            <p className="text-red-500 text-xs -mt-2">{errors.email}</p>
+            <p className="text-danger text-xs -mt-2">{errors.email}</p>
           )}
 
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               name="password"
               type={showPassword ? 'text' : 'password'}
@@ -230,7 +233,7 @@ function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-dark-bg hover:text-dark-bg"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -242,11 +245,11 @@ function RegisterPage() {
             )}
           </div>
           {errors.password && (
-            <p className="text-red-500 text-xs -mt-2">{errors.password}</p>
+            <p className="text-danger text-xs -mt-2">{errors.password}</p>
           )}
 
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-dark-bg" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
             <input
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
@@ -261,7 +264,7 @@ function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-dark-bg hover:text-dark-bg"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary"
                 tabIndex={-1}
               >
                 {showConfirmPassword ? (
@@ -273,7 +276,7 @@ function RegisterPage() {
             )}
           </div>
           {errors.confirmPassword && (
-            <p className="text-red-500 text-xs -mt-2">
+            <p className="text-danger text-xs -mt-2">
               {errors.confirmPassword}
             </p>
           )}
@@ -285,39 +288,41 @@ function RegisterPage() {
             label={t('auth.register.agreeToTerms')}
           />
           {errors.agreeToTerms && (
-            <p className="text-red-500 text-xs">{errors.agreeToTerms}</p>
+            <p className="text-danger text-xs">{errors.agreeToTerms}</p>
           )}
 
-          {errors.form && <p className="text-red-500 text-sm">{errors.form}</p>}
+          {errors.form && <p className="text-danger text-sm">{errors.form}</p>}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={isPending}
-            className="w-full py-3 bg-accent text-dark-bg font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+            className="w-full"
           >
             {isPending
               ? t('auth.register.creatingAccount')
               : t('auth.register.button')}
-          </button>
+          </Button>
         </form>
 
         <div className="mt-4">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={handleGoogleSignUp}
             disabled={isPending}
-            className="w-full flex items-center justify-center gap-2 py-3 border border-secondary-bg rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 text-sm text-dark-bg font-medium"
+            className="w-full text-sm"
           >
             <GoogleIcon />
             {t('auth.register.continueWithGoogle')}
-          </button>
+          </Button>
         </div>
 
-        <p className="mt-4 text-sm text-secondary-dark-bg">
+        <p className="mt-4 text-sm text-muted">
           {t('auth.register.haveAccount')}{' '}
           <Link
             to="/login"
-            className="text-triadic-blue font-semibold hover:underline"
+            className="text-primary font-semibold hover:underline"
           >
             {t('auth.register.signIn')}
           </Link>
