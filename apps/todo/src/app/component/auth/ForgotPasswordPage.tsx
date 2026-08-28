@@ -28,27 +28,27 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-base-bg flex items-center justify-center py-8 px-4">
-      <div className="bg-white rounded-lg shadow-lg border-2 border-secondary-bg p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-dark-bg mb-2 text-center">
+    <div className="min-h-screen bg-app flex items-center justify-center py-8 px-4">
+      <div className="bg-surface rounded-lg shadow-menu border border-default p-8 w-full max-w-md">
+        <h1 className="text-3xl font-bold text-primary mb-2 text-center">
           {t('auth.forgotPassword.title')}
         </h1>
 
         {submitted ? (
           <div className="text-center space-y-4">
-            <p className="text-dark-bg">
+            <p className="text-primary">
               {t('auth.forgotPassword.successMessage')}
             </p>
             <Link
               to="/login"
-              className="text-accent font-medium hover:underline text-sm"
+              className="text-primary font-semibold hover:underline text-sm"
             >
               {t('auth.forgotPassword.backToSignIn')}
             </Link>
           </div>
         ) : (
           <>
-            <p className="text-secondary-dark-bg text-sm mb-6 text-center">
+            <p className="text-muted text-sm mb-6 text-center">
               {t('auth.forgotPassword.description')}
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,16 +59,16 @@ function ForgotPasswordPage() {
                   type="email"
                   label="Email"
                   placeholder={t('auth.forgotPassword.emailPlaceholder')}
-                  className="w-full px-4 py-2 border-2 border-secondary-bg rounded-lg focus:outline-none focus:border-accent"
                 />
               </div>
 
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {error && <p className="text-danger text-sm">{error}</p>}
 
               <Button
                 type="submit"
+                variant="primary"
                 disabled={isPending}
-                className="w-full py-2 bg-dark-bg text-white rounded-lg hover:bg-secondary-dark-bg disabled:opacity-50 font-medium"
+                className="w-full"
               >
                 {isPending
                   ? t('auth.forgotPassword.sending')
@@ -76,10 +76,10 @@ function ForgotPasswordPage() {
               </Button>
             </form>
 
-            <p className="mt-4 text-center text-dark-bg text-sm">
+            <p className="mt-4 text-center text-primary text-sm">
               <Link
                 to="/login"
-                className="text-accent font-medium hover:underline"
+                className="text-primary font-semibold hover:underline"
               >
                 {t('auth.forgotPassword.backToSignIn')}
               </Link>
