@@ -50,18 +50,18 @@ function InboxSection({
       className="bg-surface rounded-card border border-default overflow-hidden"
       data-testid="inbox-section"
     >
-      <div className="px-4 py-3 bg-sidebar flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <InboxIcon className="w-4 h-4 text-accent" />
-          <h3 className="text-sidebar-text font-bold">{t('tasks.inbox')}</h3>
-          <span className="text-sidebar-text text-xs">{todos.length}</span>
-        </div>
+      <div className="px-4 py-3 bg-surface-subtle border-b border-default flex items-center gap-3">
+        <InboxIcon className="w-4 h-4 text-accent shrink-0" />
+        <h3 className="flex-1 min-w-0 truncate text-primary font-bold">
+          {t('tasks.inbox')}
+        </h3>
+        <span className="text-muted text-xs shrink-0">{todos.length}</span>
         <button
           onClick={() => setShowAddForm((v) => !v)}
-          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-on-accent bg-accent rounded hover:opacity-90 transition-opacity"
+          aria-label={t('todoList.addTask')}
+          className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
         >
-          <Plus className="w-3 h-3" />
-          {t('todoList.addTask')}
+          <Plus className="w-3.5 h-3.5" />
         </button>
       </div>
 
