@@ -1,18 +1,6 @@
 import { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import {
-  ClipboardList,
-  MapPin,
-  FileText,
-  Calendar,
-  Trash2,
-  Pencil,
-  ImagePlus,
-  Upload,
-  Flag,
-  CircleDot,
-  Tag,
-} from 'lucide-react';
+import { Trash2, ImagePlus, Upload } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,7 +20,7 @@ import { uploadImage } from '../../lib/imageUtils';
 import DatePickerInput from '../elements/DatePickerInput';
 import Dropdown, { DropdownOption } from '../elements/Dropdown';
 import Badge from '../elements/Badge';
-import IconButton from '../elements/IconButton';
+import Button from '../elements/Button';
 
 // ─── Edit Panel ───────────────────────────────────────────────────────────────
 
@@ -468,87 +456,15 @@ export function TaskDetailPanel({
   return (
     <div className="flex flex-col flex-1 min-h-0 p-6">
       <div className="flex-1 overflow-y-auto">
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-4">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold text-primary leading-snug">
               {todo.name}
             </h2>
-
-            <div className="space-y-2 text-sm text-muted mt-3">
-              <div className="flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 shrink-0 text-muted" />
-                <span>
-                  {t('tasks.list')}{' '}
-                  <span className="font-medium text-primary">
-                    {list ? list.name : t('tasks.inbox')}
-                  </span>
-                </span>
-              </div>
-              {list?.createdAt && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 shrink-0 text-muted" />
-                  <span>
-                    {t('tasks.created')}{' '}
-                    {dayjs(list.createdAt).format('DD/MM/YYYY')}
-                  </span>
-                </div>
-              )}
-              {todo.dueDate && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 shrink-0 text-muted" />
-                  <span>
-                    {t('tasks.due')} {dayjs(todo.dueDate).format('DD/MM/YYYY')}
-                  </span>
-                </div>
-              )}
-              {todo.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 shrink-0 text-muted" />
-                  <span>{todo.location}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <CircleDot className="w-4 h-4 shrink-0 text-muted" />
-                <span>
-                  {t('tasks.status')}{' '}
-                  <span
-                    className={`font-medium ${STATUS_TEXT_COLORS[todo.status]}`}
-                  >
-                    {t(`tasks.status_${todo.status}`)}
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Flag className="w-4 h-4 shrink-0 text-muted" />
-                <span className="flex items-center gap-1.5">
-                  {t('tasks.taskPriority')}
-                  <Badge tone={`priority-${todo.priority}`}>
-                    {t(`tasks.priority_${todo.priority}`)}
-                  </Badge>
-                </span>
-              </div>
-              {list?.priority && (
-                <div className="flex items-center gap-2">
-                  <Flag className="w-4 h-4 shrink-0 text-muted" />
-                  <span className="flex items-center gap-1.5">
-                    {t('tasks.listPriority')}
-                    <Badge tone={`priority-${list.priority}`}>
-                      {t(`tasks.priority_${list.priority}`)}
-                    </Badge>
-                  </span>
-                </div>
-              )}
-              {list?.category && (
-                <div className="flex items-center gap-2">
-                  <Tag className="w-4 h-4 shrink-0 text-muted" />
-                  <span>
-                    {t('tasks.category')}{' '}
-                    <span className="font-medium text-primary">
-                      {t(`tasks.category_${list.category}`)}
-                    </span>
-                  </span>
-                </div>
-              )}
+            <div className="mt-3">
+              <Badge tone={`priority-${todo.priority}`}>
+                {t(`tasks.priority_${todo.priority}`)}
+              </Badge>
             </div>
           </div>
 
@@ -561,14 +477,73 @@ export function TaskDetailPanel({
           )}
         </div>
 
-        {todo.notes && (
-          <div className="border-t border-default pt-4 mt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-muted" />
-              <span className="text-sm font-semibold text-primary">
-                {t('tasks.notes')}
+        <div className="border-t border-default pt-4 space-y-2.5 text-sm">
+          <div className="flex gap-3">
+            <span className="w-24 shrink-0 text-muted">{t('tasks.list')}</span>
+            <span className="font-medium text-primary">
+              {list ? list.name : t('tasks.inbox')}
+            </span>
+          </div>
+          {todo.dueDate && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">{t('tasks.due')}</span>
+              <span className="font-medium text-primary">
+                {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               </span>
             </div>
+          )}
+          <div className="flex gap-3">
+            <span className="w-24 shrink-0 text-muted">
+              {t('tasks.status')}
+            </span>
+            <span
+              className={`font-semibold ${STATUS_TEXT_COLORS[todo.status]}`}
+            >
+              {t(`tasks.status_${todo.status}`)}
+            </span>
+          </div>
+          {list?.priority && (
+            <div className="flex items-center gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.listPriority')}
+              </span>
+              <Badge tone={`priority-${list.priority}`}>
+                {t(`tasks.priority_${list.priority}`)}
+              </Badge>
+            </div>
+          )}
+          {list?.category && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.category')}
+              </span>
+              <span className="font-medium text-primary">
+                {t(`tasks.category_${list.category}`)}
+              </span>
+            </div>
+          )}
+          {todo.location && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.location')}
+              </span>
+              <span className="font-medium text-primary">{todo.location}</span>
+            </div>
+          )}
+          {list?.createdAt && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.created')}
+              </span>
+              <span className="font-medium text-primary">
+                {dayjs(list.createdAt).format('DD/MM/YYYY')}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {todo.notes && (
+          <div className="mt-4 rounded-inner bg-surface-subtle p-4">
             <p className="text-sm text-muted leading-relaxed whitespace-pre-wrap">
               {todo.notes}
             </p>
@@ -576,18 +551,13 @@ export function TaskDetailPanel({
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-4">
-        <IconButton
-          size="menu"
-          onClick={() => onDelete(todo.id)}
-          ariaLabel="Delete task"
-          className="hover:text-danger"
-        >
-          <Trash2 size={18} />
-        </IconButton>
-        <IconButton size="menu" onClick={onStartEdit} ariaLabel="Edit task">
-          <Pencil size={18} />
-        </IconButton>
+      <div className="flex items-center gap-3 pt-4">
+        <Button variant="primary" onClick={onStartEdit} className="flex-1">
+          {t('tasks.edit')}
+        </Button>
+        <Button variant="outline" onClick={() => onDelete(todo.id)}>
+          {t('tasks.delete')}
+        </Button>
       </div>
     </div>
   );
