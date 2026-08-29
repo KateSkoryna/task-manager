@@ -43,7 +43,11 @@ export interface Tokens {
     menuDark: string;
   };
   layout: {
-    mobile: { contentPadding: string; headerPadding: string; sectionGap: string };
+    mobile: {
+      contentPadding: string;
+      headerPadding: string;
+      sectionGap: string;
+    };
     tablet: {
       contentPadding: string;
       headerPadding: string;
@@ -64,7 +68,6 @@ export interface Tokens {
     mobileMenuButton: string;
     avatar: string;
     drawerAvatar: string;
-    statusMarker: string;
     weekdayCellWidth: string;
     weekdayCellHeight: string;
     progressRingSmall: string;

@@ -62,27 +62,43 @@ describe('TodoItem', () => {
     fireEvent.keyDown(screen.getByRole('button'), { key: 'Enter' });
     expect(select).toHaveBeenCalledTimes(2);
   });
+  test('selecting still works when clicking empty space in the controls row', () => {
+    const select = jest.fn();
+    const { container } = render(
+      <TodoItem
+        todo={makeTodo()}
+        onSelect={select}
+        onMoveUp={jest.fn()}
+        canMoveUp
+      />
+    );
+    const controlsRow = container.querySelector(
+      '.flex.items-center.gap-2.mt-1'
+    );
+    expect(controlsRow).not.toBeNull();
+    fireEvent.click(controlsRow as Element);
+    expect(select).toHaveBeenCalledTimes(1);
+  });
   test('calls edit without selecting', () => {
     const edit = jest.fn();
     const select = jest.fn();
     render(<TodoItem todo={makeTodo()} onEdit={edit} onSelect={select} />);
-    fireEvent.click(screen.getByLabelText('Edit task'));
+    fireEvent.click(screen.getByRole('button', { name: 'tasks.edit' }));
     expect(edit).toHaveBeenCalled();
     expect(select).not.toHaveBeenCalled();
+  });
+  test('shows a selected pill only when isSelected', () => {
+    const { rerender } = render(<TodoItem todo={makeTodo()} />);
+    expect(screen.queryByText('tasks.selected')).not.toBeInTheDocument();
+    rerender(<TodoItem todo={makeTodo()} isSelected />);
+    expect(screen.getByText('tasks.selected')).toBeInTheDocument();
   });
   test('marks completed task text as struck through', () => {
     render(<TodoItem todo={makeTodo('successful')} />);
     expect(screen.getByText('Write tests')).toHaveClass('line-through');
-    const indicator = screen.getByRole('img', {
-      name: 'tasks.status_successful',
-    });
-    expect(indicator).toHaveClass(
-      'bg-status-complete',
-      'ring-2',
-      'ring-inset',
-      'ring-surface'
+    expect(screen.getByText('tasks.status_successful')).toHaveClass(
+      'text-status-complete'
     );
-    expect(indicator.querySelector('svg')).toBeInTheDocument();
   });
 
   test('shows a due-soon badge and pulse dot for pending tasks due within 4 hours of end of day', () => {
