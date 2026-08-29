@@ -85,6 +85,9 @@
     "newList": "Neue Liste",
     "selectTask": "Aufgabe wählen, um Details anzuzeigen",
     "editTask": "Aufgabe bearbeiten",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "selected": "Ausgewählt",
     "name": "Name:",
     "status": "Status:",
     "dueDate": "Fällig am:",
@@ -148,13 +151,12 @@
   "todoList": {
     "addTask": "Aufgabe hinzufügen",
     "due": "Fällig:",
-    "priority": "Priorität:",
-    "category": "Kategorie:",
     "noTasksBefore": "Noch keine Aufgaben. Klicken Sie auf",
     "noTasksAfter": "um zu beginnen!"
   },
   "todoListForm": {
     "createNewList": "Neue Liste erstellen",
+    "editList": "Liste bearbeiten",
     "listName": "Listenname:",
     "listNamePlaceholder": "Listenname eingeben...",
     "more": "Mehr",

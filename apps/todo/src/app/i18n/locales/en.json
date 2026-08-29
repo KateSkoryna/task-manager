@@ -85,6 +85,9 @@
     "newList": "New List",
     "selectTask": "Select a task to view details",
     "editTask": "Edit Task",
+    "edit": "Edit",
+    "delete": "Delete",
+    "selected": "Selected",
     "name": "Name:",
     "status": "Status:",
     "dueDate": "Due date:",
@@ -148,13 +151,12 @@
   "todoList": {
     "addTask": "Add Task",
     "due": "Due:",
-    "priority": "Priority:",
-    "category": "Category:",
     "noTasksBefore": "No tasks yet. Click",
     "noTasksAfter": "to get started!"
   },
   "todoListForm": {
     "createNewList": "Create New List",
+    "editList": "Edit List",
     "listName": "List Name:",
     "listNamePlaceholder": "Enter list name...",
     "more": "More",
