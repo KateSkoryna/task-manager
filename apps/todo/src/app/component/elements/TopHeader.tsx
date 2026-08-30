@@ -80,7 +80,7 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
             inputTestId="header-search"
           />
         </div>
-        <div className="relative md:hidden lg:inline-flex">
+        <div className="relative">
           <IconButton ariaLabel={t('header.notifications')}>
             <Bell className="size-4" />
           </IconButton>
