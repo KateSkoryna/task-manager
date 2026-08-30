@@ -53,6 +53,14 @@ function VitalTaskPage() {
     setSelectedTask(null);
   }
 
+  function handleDeleteTodoFromList(id: string) {
+    if (selectedTask?.todo.id === id) {
+      handleDeleteSelectedTodo(id);
+    } else {
+      handleDeleteTodo(id);
+    }
+  }
+
   function handleEditTodo(todo: TodoItem) {
     navigate('/tasks', { state: { todoId: todo.id, listId: todo.todolistId } });
   }
@@ -83,6 +91,7 @@ function VitalTaskPage() {
           selectedTodoId={selectedTask?.todo.id ?? null}
           onSelectTodo={handleSelectTodo}
           onEditTodo={(todo) => handleEditTodo(todo)}
+          onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
           onCreateList={() =>
             navigate('/tasks', { state: { openCreateList: true } })
           }

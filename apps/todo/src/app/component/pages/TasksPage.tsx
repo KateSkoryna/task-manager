@@ -156,6 +156,14 @@ function TasksPage() {
     setIsEditing(false);
   }
 
+  function handleDeleteTodoFromList(id: string) {
+    if (selectedTask?.todo.id === id) {
+      handleDeleteSelectedTodo(id);
+    } else {
+      handleDeleteTodo(id);
+    }
+  }
+
   function handleReorderTodo(id: string, direction: 'up' | 'down') {
     const list = todoLists?.find((l) => l.todos.some((t) => t.id === id));
     const siblings = list ? list.todos : inboxTodos;
@@ -279,6 +287,7 @@ function TasksPage() {
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={(todo) => handleSelectTodo(todo, null)}
                 onEditTodo={(todo) => handleEditTodoInline(todo, null)}
+                onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
@@ -295,6 +304,7 @@ function TasksPage() {
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={handleSelectTodo}
                 onEditTodo={handleEditTodoInline}
+                onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
@@ -311,6 +321,7 @@ function TasksPage() {
               onEditTodo={(todo, listId) =>
                 handleEditTodoInline(todo, resolveList(listId))
               }
+              onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
               availableLists={availableLists}
               onMoveTodo={handleMoveTodo}
             />

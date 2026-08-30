@@ -468,13 +468,23 @@ export function TaskDetailPanel({
             </div>
           </div>
 
-          {todo.image && (
-            <img
-              src={todo.image}
-              alt="Attached"
-              className="w-32 h-32 object-cover rounded-card border border-default shrink-0"
-            />
-          )}
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <button
+              onClick={() => onDelete(todo.id)}
+              aria-label={t('tasks.delete')}
+              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-danger hover:border-danger transition-colors shrink-0"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+
+            {todo.image && (
+              <img
+                src={todo.image}
+                alt="Attached"
+                className="w-32 h-32 object-cover rounded-card border border-default"
+              />
+            )}
+          </div>
         </div>
 
         <div className="border-t border-default pt-4 space-y-2.5 text-sm">
@@ -551,12 +561,9 @@ export function TaskDetailPanel({
         )}
       </div>
 
-      <div className="flex items-center gap-3 pt-4">
-        <Button variant="primary" onClick={onStartEdit} className="flex-1">
+      <div className="pt-4">
+        <Button variant="primary" onClick={onStartEdit} className="w-full">
           {t('tasks.edit')}
-        </Button>
-        <Button variant="outline" onClick={() => onDelete(todo.id)}>
-          {t('tasks.delete')}
         </Button>
       </div>
     </div>

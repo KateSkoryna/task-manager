@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
@@ -14,6 +14,7 @@ interface TodoItemProps {
   isSelected?: boolean;
   onSelect?: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   canMoveUp?: boolean;
@@ -21,6 +22,7 @@ interface TodoItemProps {
   currentListId?: string | null;
   availableLists?: AvailableList[];
   onMoveToList?: (todolistId: string | null) => void;
+  hideDueDate?: boolean;
 }
 
 // `todo.status` values map onto the redesign's status roles: 'pending' is
@@ -43,6 +45,7 @@ function TodoItem({
   isSelected,
   onSelect,
   onEdit,
+  onDelete,
   onMoveUp,
   onMoveDown,
   canMoveUp,
@@ -50,6 +53,7 @@ function TodoItem({
   currentListId,
   availableLists,
   onMoveToList,
+  hideDueDate,
 }: TodoItemProps) {
   const { t } = useTranslation();
   const statusLabel = t(STATUS_LABEL_KEYS[todo.status]);
@@ -78,7 +82,7 @@ function TodoItem({
         {/* Row 1: name + selected pill + edit btn */}
         <div className="flex items-center gap-3">
           <p
-            className={`flex-1 min-w-0 font-semibold text-primary leading-snug ${
+            className={`flex-1 min-w-0 truncate font-semibold text-primary leading-snug ${
               todo.status === 'successful' ? 'line-through text-muted' : ''
             }`}
           >
@@ -89,22 +93,41 @@ function TodoItem({
               {t('tasks.selected')}
             </span>
           )}
-          {onEdit && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              className="shrink-0 px-2.5 py-1 text-xs text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors"
-            >
-              {t('tasks.edit')}
-            </button>
+          {(onEdit || onDelete) && (
+            <div className="flex items-center gap-1 lg:gap-3 shrink-0">
+              {onEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit();
+                  }}
+                  aria-label={t('tasks.edit')}
+                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  aria-label={t('tasks.delete')}
+                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-danger hover:border-danger transition-colors shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
+        <p className="text-sm text-muted truncate">{todo.notes || ' '}</p>
+
         {/* Row 2: image */}
         {todo.image && (
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-end">
             <img
               src={todo.image}
               alt="Attached"
@@ -113,80 +136,74 @@ function TodoItem({
           </div>
         )}
 
-        {/* Row 3: priority, status */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+        {/* Row 3: priority, status, reorder + move-to-list controls, due date */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Badge tone={`priority-${todo.priority}`}>
             {t(`tasks.priority_${todo.priority}`)}
           </Badge>
-          <span className="text-xs text-muted">
-            {t('tasks.status')}:{' '}
+          <span className="hidden sm:inline text-xs text-muted">
+            {t('tasks.status')}{' '}
             <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
               {statusLabel}
             </span>
           </span>
-        </div>
-
-        {/* Row 4: reorder + move-to-list controls, due date bottom-right */}
-        {(onMoveUp || onMoveDown || onMoveToList || todo.dueDate) && (
-          <div className="flex items-center gap-2 mt-1">
-            {(onMoveUp || onMoveDown) && (
-              <div
-                className="flex items-center border border-default rounded-inner overflow-hidden shrink-0"
-                onClick={(e) => e.stopPropagation()}
+          {(onMoveUp || onMoveDown) && (
+            <div
+              className="flex items-center border border-default rounded-inner overflow-hidden shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={onMoveUp}
+                disabled={!canMoveUp}
+                aria-label={t('tasks.moveUp')}
+                className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
               >
-                <button
-                  type="button"
-                  onClick={onMoveUp}
-                  disabled={!canMoveUp}
-                  aria-label={t('tasks.moveUp')}
-                  className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                >
-                  <ChevronUp size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={onMoveDown}
-                  disabled={!canMoveDown}
-                  aria-label={t('tasks.moveDown')}
-                  className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-default"
-                >
-                  <ChevronDown size={14} />
-                </button>
-              </div>
-            )}
-            {onMoveToList && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <MoveToListSelect
-                  value={currentListId ?? null}
-                  availableLists={availableLists ?? []}
-                  onChange={onMoveToList}
+                <ChevronUp size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={onMoveDown}
+                disabled={!canMoveDown}
+                aria-label={t('tasks.moveDown')}
+                className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-default"
+              >
+                <ChevronDown size={14} />
+              </button>
+            </div>
+          )}
+          {onMoveToList && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <MoveToListSelect
+                value={currentListId ?? null}
+                availableLists={availableLists ?? []}
+                onChange={onMoveToList}
+              />
+            </div>
+          )}
+          {todo.dueDate && !hideDueDate && (
+            <span
+              className={`flex items-center gap-1 text-xs ml-auto ${
+                isUrgent ? 'text-danger font-semibold' : 'text-muted'
+              }`}
+            >
+              {isUrgent && (
+                <span
+                  aria-hidden="true"
+                  className={`h-1.5 w-1.5 rounded-full bg-danger ${
+                    prefersReducedMotion ? '' : 'animate-pulse'
+                  }`}
                 />
-              </div>
-            )}
-            {todo.dueDate && (
-              <span
-                className={`flex items-center gap-1 text-xs ml-auto ${
-                  isUrgent ? 'text-danger font-semibold' : 'text-muted'
-                }`}
-              >
-                {isUrgent && (
-                  <span
-                    aria-hidden="true"
-                    className={`h-1.5 w-1.5 rounded-full bg-danger ${
-                      prefersReducedMotion ? '' : 'animate-pulse'
-                    }`}
-                  />
-                )}
-                Due: {dayjs(todo.dueDate).format('DD/MM/YYYY')}
-                {isUrgent && (
-                  <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
-                    {t('tasks.dueSoon')}
-                  </span>
-                )}
-              </span>
-            )}
-          </div>
-        )}
+              )}
+              Due: {dayjs(todo.dueDate).format('DD/MM/YYYY')}
+              {isUrgent && (
+                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
+                  {t('tasks.dueSoon')}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
       </div>
     </Card>
   );

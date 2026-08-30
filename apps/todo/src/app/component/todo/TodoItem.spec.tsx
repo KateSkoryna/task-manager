@@ -73,7 +73,7 @@ describe('TodoItem', () => {
       />
     );
     const controlsRow = container.querySelector(
-      '.flex.items-center.gap-2.mt-1'
+      '.flex.flex-wrap.items-center.gap-x-3.gap-y-1'
     );
     expect(controlsRow).not.toBeNull();
     fireEvent.click(controlsRow as Element);
