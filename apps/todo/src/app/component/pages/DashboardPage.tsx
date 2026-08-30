@@ -1,49 +1,33 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { PieChart, Pie, Cell } from 'recharts';
 import {
   ClipboardList,
   Check,
   CheckSquare,
-  CalendarDays,
   Flame,
   Inbox as InboxIcon,
   Plus,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/src/style.css';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
-import { TodoItem, TodoList } from '@shared/types';
+import { TodoItem, TodoList, TodoStatus } from '@shared/types';
 import {
   useTodoListsQuery,
   useInboxTodosQuery,
   useAddInboxTodoMutation,
+  useDeleteTodoMutation,
 } from '../../fetchers/api';
 import { useDateStore } from '../../store/dateStore';
-import { isDueWithinHours } from '../../lib/urgency';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { useIsCompactScreen } from '../../hooks/useIsCompactScreen';
 import TodoItemComponent from '../todo/TodoItem';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
 import ErrorFallback from '../elements/ErrorFallback';
 import DashboardSkeleton from './DashboardSkeleton';
-
-// react-day-picker only accepts resolved CSS values for these custom
-// properties, so its sizes stay literal px at this integration boundary;
-// its colors read our theme tokens via the rgb(var(--color-x)) form.
-const DAY_PICKER_STYLE: React.CSSProperties = {
-  '--rdp-selected-border': 'none',
-  '--rdp-day-width': '50px',
-  '--rdp-day-height': '50px',
-  '--rdp-day_button-width': '50px',
-  '--rdp-day_button-height': '50px',
-  '--rdp-accent-color': 'rgb(var(--color-accent))',
-  '--rdp-nav_button-width': '36px',
-  '--rdp-nav_button-height': '36px',
-  fontSize: '14px',
-} as React.CSSProperties;
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -72,10 +56,6 @@ function localeFor(language: string): string {
   return 'en-US';
 }
 
-function startOfWeek(d: Dayjs): Dayjs {
-  return d.subtract((d.day() + 6) % 7, 'day');
-}
-
 // ─── flat item type ──────────────────────────────────────────────────────────
 
 export interface FlatItem extends TodoItem {
@@ -97,6 +77,18 @@ function flattenInbox(todos: TodoItem[]): FlatItem[] {
     listCreatedAt: undefined,
   }));
 }
+
+const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
+  pending: 'tasks.status_pending',
+  successful: 'tasks.status_successful',
+  failed: 'tasks.status_failed',
+};
+
+const STATUS_TEXT: Record<TodoStatus, string> = {
+  pending: 'text-status-progress',
+  successful: 'text-status-complete',
+  failed: 'text-status-open',
+};
 
 // ─── donut chart ─────────────────────────────────────────────────────────────
 
@@ -165,8 +157,10 @@ function CompletedCard({ item }: { item: FlatItem }) {
         >
           <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
         </div>
-        <div className="min-w-0">
-          <p className="font-semibold text-primary leading-snug">{item.name}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-primary leading-snug">
+            {item.name}
+          </p>
           {item.notes && (
             <p className="text-sm text-muted line-clamp-2 mt-1">{item.notes}</p>
           )}
@@ -193,100 +187,94 @@ function TodoPanel({
   items,
   selectedDate,
   onEditTodo,
+  onDeleteTodo,
 }: {
   items: FlatItem[];
   selectedDate: Dayjs;
   onEditTodo?: (item: FlatItem) => void;
+  onDeleteTodo?: (item: FlatItem) => void;
 }) {
-  const { t, i18n } = useTranslation();
-  const dayLabel = selectedDate.format('D MMMM');
-  const setSelectedDate = useDateStore((s) => s.setSelectedDate);
-  const [pickerDate, setPickerDate] = useState<Date | undefined>(
-    selectedDate.toDate()
-  );
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const calendarRef = useRef<HTMLDivElement>(null);
-
-  const locale = localeFor(i18n.language);
+  const { t } = useTranslation();
+  const listRef = useRef<HTMLDivElement>(null);
+  const isCompact = useIsCompactScreen();
+  // Cards are clipped to a fixed height (see the item wrapper below) so the
+  // fit can just be divided out, instead of measured per item. Mobile and
+  // tablet skip all of this — every task renders in a plain column and the
+  // page scrolls.
+  const ITEM_HEIGHT = 116; // px, tall enough for name + 1-line notes + priority/status
+  const GAP = 12; // px, matches the list's space-y-3 (0.75rem)
+  const [pageSize, setPageSize] = useState(3);
+  const [page, setPage] = useState(0);
+  const dateKey = toDateStr(selectedDate);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        calendarRef.current &&
-        !calendarRef.current.contains(e.target as Node)
-      ) {
-        setCalendarOpen(false);
-      }
+    setPage(0);
+  }, [dateKey]);
+
+  useEffect(() => {
+    if (isCompact) return;
+    const el = listRef.current;
+    if (!el) return;
+
+    function recomputePageSize() {
+      const container = listRef.current;
+      if (!container || container.clientHeight <= 0) return;
+      const size = Math.floor(
+        (container.clientHeight + GAP) / (ITEM_HEIGHT + GAP)
+      );
+      setPageSize(Math.max(1, size));
     }
-    if (calendarOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [calendarOpen]);
+
+    recomputePageSize();
+    const observer = new ResizeObserver(recomputePageSize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isCompact]);
+
+  const pageCount = Math.ceil(items.length / pageSize);
+  const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
+  const pageItems = isCompact
+    ? items
+    : items.slice(currentPage * pageSize, currentPage * pageSize + pageSize);
+  const hasPrev = !isCompact && currentPage > 0;
+  const hasNext = !isCompact && currentPage < pageCount - 1;
 
   return (
-    <div className="bg-surface rounded-xl border border-default p-5 flex flex-col h-full">
+    <div
+      className={
+        isCompact
+          ? 'bg-surface rounded-xl border border-default p-5 flex flex-col'
+          : 'bg-surface rounded-xl border border-default p-5 flex min-h-0 h-full flex-col'
+      }
+    >
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2 text-primary">
           <ClipboardList className="w-5 h-5" />
           <h3 className="font-bold text-lg">{t('dashboard.todo')}</h3>
         </div>
 
-        <div className="relative" ref={calendarRef}>
-          <button
-            aria-label="Calendar"
-            onClick={() => setCalendarOpen((o) => !o)}
-            className="flex items-center gap-1.5 text-sm text-muted hover:text-primary transition-colors"
-          >
-            <CalendarDays className="w-4 h-4" />
-            {dayLabel}
-          </button>
-
-          {calendarOpen && (
-            <div className="absolute right-0 top-8 z-50 w-[23.625rem] bg-surface rounded-2xl border border-default shadow-menu">
-              <div className="flex items-center justify-between px-[0.875rem] pt-4 pb-2">
-                <span className="font-bold text-primary">
-                  {t('dashboard.calendar')}
-                </span>
-                <button
-                  onClick={() => setCalendarOpen(false)}
-                  className="text-muted hover:text-primary transition-colors"
-                  aria-label="Close calendar"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {pickerDate && (
-                <div className="mx-[0.875rem] mb-2 px-3 py-2 rounded-lg border border-default text-sm text-primary">
-                  {pickerDate.toLocaleDateString(locale, {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </div>
-              )}
-
-              <DayPicker
-                mode="single"
-                selected={pickerDate}
-                onSelect={(date) => {
-                  setPickerDate(date);
-                  if (date) setSelectedDate(dayjs(date));
-                }}
-                weekStartsOn={1}
-                navLayout="around"
-                showOutsideDays
-                style={DAY_PICKER_STYLE}
-                modifiersClassNames={{
-                  selected:
-                    '[&>button]:!bg-accent [&>button]:!text-on-accent [&>button]:!border-0 [&>button]:!rounded-[0.5rem]',
-                  today: '[&>button]:!font-bold',
-                }}
-              />
-            </div>
-          )}
-        </div>
+        {!isCompact && (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(p - 1, 0))}
+              disabled={!hasPrev}
+              aria-label={t('dashboard.previousTasks')}
+              className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
+              disabled={!hasNext}
+              aria-label={t('dashboard.nextTasks')}
+              className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       <p className="text-sm text-muted mb-4 flex items-center gap-1.5">
@@ -303,14 +291,35 @@ function TodoPanel({
           {t('dashboard.noTasksForDay')}
         </p>
       ) : (
-        <div className="space-y-3 overflow-y-auto flex-1">
-          {items.map((item) => (
-            <TodoItemComponent
-              key={item.id}
-              todo={item}
-              onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
-            />
-          ))}
+        <div
+          ref={listRef}
+          className={
+            isCompact ? 'space-y-3' : 'space-y-3 min-h-0 flex-1 overflow-hidden'
+          }
+        >
+          {pageItems.map((item) =>
+            isCompact ? (
+              <TodoItemComponent
+                key={item.id}
+                todo={item}
+                onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
+                onDelete={onDeleteTodo ? () => onDeleteTodo(item) : undefined}
+                hideDueDate
+              />
+            ) : (
+              <div
+                key={item.id}
+                className="h-[7.25rem] shrink-0 overflow-hidden"
+              >
+                <TodoItemComponent
+                  todo={item}
+                  onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
+                  onDelete={onDeleteTodo ? () => onDeleteTodo(item) : undefined}
+                  hideDueDate
+                />
+              </div>
+            )
+          )}
         </div>
       )}
     </div>
@@ -318,23 +327,38 @@ function TodoPanel({
 }
 
 function TaskStatusPanel({
+  selectedDate,
   successful,
   pending,
   failed,
   total,
 }: {
+  selectedDate: Dayjs;
   successful: number;
   pending: number;
   failed: number;
   total: number;
 }) {
   const { t } = useTranslation();
+  const setSelectedDate = useDateStore((s) => s.setSelectedDate);
 
   return (
     <div className="bg-surface rounded-xl border border-default p-5">
       <div className="flex items-center gap-2 text-primary mb-5">
         <ClipboardList className="w-5 h-5" />
         <h3 className="font-bold text-lg">{t('dashboard.taskStatus')}</h3>
+        {!isToday(selectedDate) && (
+          <button
+            type="button"
+            onClick={() => setSelectedDate(dayjs())}
+            className="ml-auto text-xs font-medium text-primary hover:underline"
+          >
+            {t('dashboard.today')}
+          </button>
+        )}
+      </div>
+      <div className="mb-5">
+        <WeekStrip selectedDate={selectedDate} />
       </div>
       <div className="flex justify-around">
         <DonutChart
@@ -365,18 +389,42 @@ function TaskStatusPanel({
 
 function CompletedPanel({ items }: { items: FlatItem[] }) {
   const { t } = useTranslation();
+  const [page, setPage] = useState(0);
+  const pageCount = Math.ceil(items.length / 2);
+  const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
+  const pageItems = items.slice(currentPage * 2, currentPage * 2 + 2);
 
   return (
     <div className="bg-surface rounded-xl border border-default p-5">
       <div className="flex items-center gap-2 text-primary mb-4">
         <CheckSquare className="w-5 h-5" />
         <h3 className="font-bold text-lg">{t('dashboard.completedTask')}</h3>
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            disabled={currentPage <= 0}
+            aria-label={t('dashboard.previousTasks')}
+            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
+            disabled={currentPage >= pageCount - 1}
+            aria-label={t('dashboard.nextTasks')}
+            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
-      {items.length === 0 ? (
+      {pageItems.length === 0 ? (
         <p className="text-muted text-sm">{t('dashboard.noCompletedTasks')}</p>
       ) : (
-        <div className="space-y-3 max-h-72 overflow-y-auto">
-          {items.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {pageItems.map((item) => (
             <CompletedCard key={item.id} item={item} />
           ))}
         </div>
@@ -391,17 +439,13 @@ function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
   const { t, i18n } = useTranslation();
   const setSelectedDate = useDateStore((s) => s.setSelectedDate);
   const locale = localeFor(i18n.language);
-  const weekStart = startOfWeek(selectedDate);
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day')),
-    [weekStart]
-  );
+  const days = Array.from({ length: 7 }, (_, i) => dayjs().add(i, 'day'));
 
   return (
     <div
       role="tablist"
       aria-label={t('dashboard.weekStrip')}
-      className="flex items-center gap-2 overflow-x-auto"
+      className="flex w-full items-center gap-1.5 sm:gap-2"
     >
       {days.map((day) => {
         const selected = day.isSame(selectedDate, 'day');
@@ -417,7 +461,7 @@ function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
               day: 'numeric',
             })}
             onClick={() => setSelectedDate(day)}
-            className={`flex flex-col items-center justify-center w-12 h-14 shrink-0 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+            className={`flex flex-[1_1_3rem] min-w-0 max-w-[3.5rem] flex-col items-center justify-center h-14 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
               selected
                 ? 'bg-accent border-accent text-on-accent'
                 : 'bg-surface border-default text-primary hover:border-accent'
@@ -442,25 +486,34 @@ function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
 
 function TodayCompletionRing({
   successful,
+  pending,
   total,
 }: {
   successful: number;
+  pending: number;
   total: number;
 }) {
   const { t } = useTranslation();
   return (
-    <DonutChart
-      value={successful}
-      total={total}
-      color="rgb(var(--color-status-complete))"
-      dotColor="rgb(var(--color-status-complete))"
-      label={t('dashboard.todayCompletion')}
-    />
+    <div className="flex flex-col items-center gap-2">
+      <DonutChart
+        value={successful}
+        total={total}
+        color="rgb(var(--color-status-complete))"
+        dotColor="rgb(var(--color-status-complete))"
+        label={t('dashboard.todayCompletion')}
+      />
+      <div className="flex items-center gap-3 text-xs text-muted">
+        <span>{t('dashboard.todayTasksTotal', { count: total })}</span>
+        <span>{t('dashboard.todayTasksPending', { count: pending })}</span>
+      </div>
+    </div>
   );
 }
 
 function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const addInboxTodo = useAddInboxTodoMutation();
 
@@ -475,15 +528,19 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-center gap-2 flex-1 min-w-[15rem]"
+      className="flex flex-col gap-2 flex-1 min-w-0 sm:flex-row sm:items-center sm:min-w-[15rem]"
     >
-      <div className="flex items-center gap-1.5 text-muted shrink-0">
+      <button
+        type="button"
+        onClick={() => navigate('/tasks')}
+        className="flex items-center gap-1.5 text-muted shrink-0 hover:text-primary transition-colors"
+      >
         <InboxIcon className="w-4 h-4" />
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium hover:underline">
           {t('dashboard.inboxCount', { count: inboxCount })}
         </span>
-      </div>
-      <div className="flex-1">
+      </button>
+      <div className="sm:flex-1">
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -505,21 +562,23 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
 }
 
 function DailyFocusStrip({
-  selectedDate,
   todaySuccessful,
+  todayPending,
   todayTotal,
   inboxCount,
 }: {
-  selectedDate: Dayjs;
   todaySuccessful: number;
+  todayPending: number;
   todayTotal: number;
   inboxCount: number;
 }) {
   return (
     <div className="bg-surface rounded-xl border border-default p-5 flex flex-col lg:flex-row lg:items-center gap-5">
-      <WeekStrip selectedDate={selectedDate} />
-      <div className="hidden lg:block w-px h-14 bg-default" />
-      <TodayCompletionRing successful={todaySuccessful} total={todayTotal} />
+      <TodayCompletionRing
+        successful={todaySuccessful}
+        pending={todayPending}
+        total={todayTotal}
+      />
       <div className="hidden lg:block w-px h-14 bg-default" />
       <QuickAddInbox inboxCount={inboxCount} />
     </div>
@@ -530,55 +589,61 @@ function DailyFocusStrip({
 
 function TopPriorityPanel({ items }: { items: FlatItem[] }) {
   const { t } = useTranslation();
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const topThree = items.filter((item) => item.priority === 'high').slice(0, 3);
+  const [page, setPage] = useState(0);
+  const highPriorityItems = items.filter((item) => item.priority === 'high');
+  const pageCount = Math.ceil(highPriorityItems.length / 3);
+  const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
+  const pageItems = highPriorityItems.slice(
+    currentPage * 3,
+    currentPage * 3 + 3
+  );
 
   return (
     <div className="bg-surface rounded-xl border border-default p-5">
       <div className="flex items-center gap-2 text-primary mb-4">
         <Flame className="w-5 h-5" />
         <h3 className="font-bold text-lg">{t('dashboard.topPriority')}</h3>
+        <div className="ml-auto flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            disabled={currentPage <= 0}
+            aria-label={t('dashboard.previousTasks')}
+            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
+            disabled={currentPage >= pageCount - 1}
+            aria-label={t('dashboard.nextTasks')}
+            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
-      {topThree.length === 0 ? (
+      {pageItems.length === 0 ? (
         <p className="text-muted text-sm">{t('dashboard.noTopPriority')}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {topThree.map((item) => {
-            const isUrgent =
-              item.status === 'pending' && isDueWithinHours(item.dueDate);
-            return (
-              <div
-                key={item.id}
-                className="rounded-xl border border-priority-high-bg/40 bg-priority-high-bg/5 p-3"
-              >
-                <p className="font-semibold text-primary text-sm leading-snug line-clamp-2">
-                  {item.name}
-                </p>
-                {item.dueDate && (
-                  <p
-                    className={`flex items-center gap-1 text-xs mt-1.5 ${
-                      isUrgent ? 'text-danger font-semibold' : 'text-muted'
-                    }`}
-                  >
-                    {isUrgent && (
-                      <span
-                        aria-hidden="true"
-                        className={`h-1.5 w-1.5 rounded-full bg-danger ${
-                          prefersReducedMotion ? '' : 'animate-pulse'
-                        }`}
-                      />
-                    )}
-                    {dayjs(item.dueDate).format('DD/MM/YYYY')}
-                    {isUrgent && (
-                      <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
-                        {t('tasks.dueSoon')}
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
-            );
-          })}
+          {pageItems.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-xl border border-priority-high-bg/40 bg-priority-high-bg/5 p-3"
+            >
+              <p className="truncate font-semibold text-primary text-sm leading-snug">
+                {item.name}
+              </p>
+              <p className="text-xs text-muted mt-1.5">
+                {t('dashboard.status')}{' '}
+                <span className={`font-medium ${STATUS_TEXT[item.status]}`}>
+                  {t(STATUS_LABEL_KEYS[item.status])}
+                </span>
+              </p>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -603,6 +668,7 @@ function DashboardPage() {
     error: inboxError,
     refetch: refetchInbox,
   } = useInboxTodosQuery();
+  const deleteTodoMutation = useDeleteTodoMutation();
   const selectedDate = useDateStore((s) => s.selectedDate);
   const selectedDateStr = toDateStr(selectedDate);
   const todayStr = toDateStr(dayjs());
@@ -632,6 +698,10 @@ function DashboardPage() {
     () => todayItems.filter((item) => item.status === 'successful').length,
     [todayItems]
   );
+  const todayPending = useMemo(
+    () => todayItems.filter((item) => item.status === 'pending').length,
+    [todayItems]
+  );
 
   const todoItems = useMemo(
     () => dateItems.filter((item) => item.status !== 'successful'),
@@ -657,8 +727,7 @@ function DashboardPage() {
         .filter((t) => t.status === 'successful')
         .sort((a, b) =>
           (b.completedAt ?? '').localeCompare(a.completedAt ?? '')
-        )
-        .slice(0, 5),
+        ),
     [dateItems]
   );
 
@@ -682,15 +751,26 @@ function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 h-full">
       <DailyFocusStrip
-        selectedDate={selectedDate}
         todaySuccessful={todaySuccessful}
+        todayPending={todayPending}
         todayTotal={todayItems.length}
         inboxCount={inboxTodos.length}
       />
 
       <TopPriorityPanel items={todayItems} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+        <div className="space-y-6">
+          <TaskStatusPanel
+            selectedDate={selectedDate}
+            successful={successful}
+            pending={pending}
+            failed={failed}
+            total={dateItems.length}
+          />
+          <CompletedPanel items={completedItems} />
+        </div>
+
         <TodoPanel
           items={todoItems}
           selectedDate={selectedDate}
@@ -699,17 +779,10 @@ function DashboardPage() {
               state: { todoId: item.id, listId: item.todolistId },
             })
           }
+          onDeleteTodo={(item) =>
+            deleteTodoMutation.mutate({ id: item.id, image: item.image })
+          }
         />
-
-        <div className="space-y-6">
-          <TaskStatusPanel
-            successful={successful}
-            pending={pending}
-            failed={failed}
-            total={dateItems.length}
-          />
-          <CompletedPanel items={completedItems} />
-        </div>
       </div>
     </div>
   );

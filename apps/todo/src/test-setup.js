@@ -22,6 +22,12 @@ jest.mock('react-i18next', () => ({
     i18n: { language: 'en', changeLanguage: () => Promise.resolve() },
   }),
 }));
+if (!global.ResizeObserver)
+  global.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
 if (!global.matchMedia)
   global.matchMedia = () => ({
     matches: false,
