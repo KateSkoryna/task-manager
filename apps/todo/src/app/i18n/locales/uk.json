@@ -59,7 +59,6 @@
   },
   "dashboard": {
     "todo": "Список справ",
-    "calendar": "Календар",
     "today": "Сьогодні",
     "noTasksForDay": "На цей день немає завдань.",
     "taskStatus": "Статус завдань",
@@ -74,8 +73,12 @@
     "relativeDaysAgo": "{{count}} дні тому",
     "weekStrip": "Оберіть день",
     "todayCompletion": "Виконання за сьогодні",
+    "todayTasksTotal": "{{count}} завдань сьогодні",
+    "todayTasksPending": "{{count}} у процесі",
     "topPriority": "Головні пріоритети на сьогодні",
     "noTopPriority": "Немає пріоритетних завдань на сьогодні.",
+    "previousTasks": "Попередні завдання",
+    "nextTasks": "Наступні завдання",
     "inboxCount": "{{count}} у вхідних",
     "quickAddPlaceholder": "Швидко додати до вхідних…",
     "quickAdd": "Додати"
@@ -236,6 +239,9 @@
   },
   "common": {
     "loading": "Завантаження..."
+  },
+  "footer": {
+    "rights": "© {{year}} Катерина Скорина. Усі права захищено."
   },
   "statistics": {
     "title": "Статистика",
