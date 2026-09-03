@@ -61,10 +61,6 @@ function VitalTaskPage() {
     }
   }
 
-  function handleEditTodo(todo: TodoItem) {
-    navigate('/tasks', { state: { todoId: todo.id, listId: todo.todolistId } });
-  }
-
   if (isLoading) {
     return <VitalTaskPageSkeleton />;
   }
@@ -90,7 +86,6 @@ function VitalTaskPage() {
           handleAddTodo={handleAddTodo}
           selectedTodoId={selectedTask?.todo.id ?? null}
           onSelectTodo={handleSelectTodo}
-          onEditTodo={(todo) => handleEditTodo(todo)}
           onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
           onCreateList={() =>
             navigate('/tasks', { state: { openCreateList: true } })
@@ -102,7 +97,7 @@ function VitalTaskPage() {
           side-by-side column from tablet up. */}
       <div
         className={mergeClassNames(
-          'flex-col md:flex md:pt-6',
+          'flex-col md:flex md:sticky md:top-6 md:self-start md:pt-6',
           selectedTask ? 'flex' : 'hidden'
         )}
       >
