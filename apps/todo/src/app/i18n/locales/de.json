@@ -58,8 +58,7 @@
     }
   },
   "dashboard": {
-    "todo": "Aufgaben",
-    "today": "Heute",
+    "todo": "Heutige Aufgaben",
     "noTasksForDay": "Keine Aufgaben für diesen Tag.",
     "taskStatus": "Aufgabenstatus",
     "completed": "Abgeschlossen",
@@ -79,6 +78,8 @@
     "noTopPriority": "Keine hochprioritären Aufgaben für heute.",
     "previousTasks": "Vorherige Aufgaben",
     "nextTasks": "Nächste Aufgaben",
+    "previousWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
     "inboxCount": "{{count}} im Posteingang",
     "quickAddPlaceholder": "Schnell zum Posteingang hinzufügen…",
     "quickAdd": "Hinzufügen"

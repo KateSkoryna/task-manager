@@ -58,8 +58,7 @@
     }
   },
   "dashboard": {
-    "todo": "Список справ",
-    "today": "Сьогодні",
+    "todo": "Завдання на сьогодні",
     "noTasksForDay": "На цей день немає завдань.",
     "taskStatus": "Статус завдань",
     "completed": "Завершено",
@@ -79,6 +78,8 @@
     "noTopPriority": "Немає пріоритетних завдань на сьогодні.",
     "previousTasks": "Попередні завдання",
     "nextTasks": "Наступні завдання",
+    "previousWeek": "Попередній тиждень",
+    "nextWeek": "Наступний тиждень",
     "inboxCount": "{{count}} у вхідних",
     "quickAddPlaceholder": "Швидко додати до вхідних…",
     "quickAdd": "Додати"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { PieChart, Pie, Cell } from 'recharts';
 import {
@@ -12,7 +12,6 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { TodoItem, TodoList, TodoStatus } from '@shared/types';
 import {
@@ -37,17 +36,6 @@ function toDateStr(d: Dayjs): string {
 
 function isToday(d: Dayjs): boolean {
   return d.isSame(dayjs(), 'day');
-}
-
-function relativeDate(
-  dateStr: string | null | undefined,
-  t: TFunction
-): string {
-  if (!dateStr) return '';
-  const diff = dayjs().diff(dayjs(dateStr), 'day');
-  if (diff === 0) return t('dashboard.relativeToday');
-  if (diff === 1) return t('dashboard.relativeDayAgo');
-  return t('dashboard.relativeDaysAgo', { count: diff });
 }
 
 function localeFor(language: string): string {
@@ -148,7 +136,7 @@ function CompletedCard({ item }: { item: FlatItem }) {
   const { t } = useTranslation();
 
   return (
-    <div className="rounded-xl border border-default bg-surface p-4">
+    <div className="rounded-xl border border-default bg-surface p-4 h-[5rem] overflow-hidden">
       <div className="flex items-start gap-3">
         <div
           role="img"
@@ -161,20 +149,12 @@ function CompletedCard({ item }: { item: FlatItem }) {
           <p className="truncate font-semibold text-primary leading-snug">
             {item.name}
           </p>
-          {item.notes && (
-            <p className="text-sm text-muted line-clamp-2 mt-1">{item.notes}</p>
-          )}
           <p className="text-xs mt-2 text-muted">
             {t('dashboard.status')}{' '}
             <span className="font-medium text-status-complete">
               {t('dashboard.completed')}
             </span>
           </p>
-          {item.completedAt && (
-            <p className="text-xs text-muted">
-              {relativeDate(item.completedAt, t)}
-            </p>
-          )}
         </div>
       </div>
     </div>
@@ -188,48 +168,26 @@ function TodoPanel({
   selectedDate,
   onEditTodo,
   onDeleteTodo,
+  className = '',
 }: {
   items: FlatItem[];
   selectedDate: Dayjs;
   onEditTodo?: (item: FlatItem) => void;
   onDeleteTodo?: (item: FlatItem) => void;
+  className?: string;
 }) {
   const { t } = useTranslation();
-  const listRef = useRef<HTMLDivElement>(null);
   const isCompact = useIsCompactScreen();
-  // Cards are clipped to a fixed height (see the item wrapper below) so the
-  // fit can just be divided out, instead of measured per item. Mobile and
-  // tablet skip all of this — every task renders in a plain column and the
-  // page scrolls.
-  const ITEM_HEIGHT = 116; // px, tall enough for name + 1-line notes + priority/status
-  const GAP = 12; // px, matches the list's space-y-3 (0.75rem)
-  const [pageSize, setPageSize] = useState(3);
+  // Always show 3 tasks per page on desktop/tablet — each item wrapper below
+  // is flex-1 so the 3 cards share whatever height the panel actually has,
+  // shrinking together instead of one getting clipped or a 3rd never fitting.
+  const pageSize = 3;
   const [page, setPage] = useState(0);
   const dateKey = toDateStr(selectedDate);
 
   useEffect(() => {
     setPage(0);
   }, [dateKey]);
-
-  useEffect(() => {
-    if (isCompact) return;
-    const el = listRef.current;
-    if (!el) return;
-
-    function recomputePageSize() {
-      const container = listRef.current;
-      if (!container || container.clientHeight <= 0) return;
-      const size = Math.floor(
-        (container.clientHeight + GAP) / (ITEM_HEIGHT + GAP)
-      );
-      setPageSize(Math.max(1, size));
-    }
-
-    recomputePageSize();
-    const observer = new ResizeObserver(recomputePageSize);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [isCompact]);
 
   const pageCount = Math.ceil(items.length / pageSize);
   const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
@@ -241,16 +199,18 @@ function TodoPanel({
 
   return (
     <div
-      className={
+      className={`${
         isCompact
-          ? 'bg-surface rounded-xl border border-default p-5 flex flex-col'
-          : 'bg-surface rounded-xl border border-default p-5 flex min-h-0 h-full flex-col'
-      }
+          ? 'bg-surface rounded-xl border border-default p-4 flex flex-col'
+          : 'bg-surface rounded-xl border border-default p-4 flex min-h-0 h-full flex-col'
+      } ${className}`}
     >
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2 text-primary">
           <ClipboardList className="w-5 h-5" />
-          <h3 className="font-bold text-lg">{t('dashboard.todo')}</h3>
+          <h3 className="font-bold text-lg leading-none">
+            {t('dashboard.todo')}
+          </h3>
         </div>
 
         {!isCompact && (
@@ -277,24 +237,16 @@ function TodoPanel({
         )}
       </div>
 
-      <p className="text-sm text-muted mb-4 flex items-center gap-1.5">
-        {isToday(selectedDate) && (
-          <>
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />
-            {t('dashboard.today')}
-          </>
-        )}
-      </p>
-
       {items.length === 0 ? (
         <p className="text-muted text-sm flex-1">
           {t('dashboard.noTasksForDay')}
         </p>
       ) : (
         <div
-          ref={listRef}
           className={
-            isCompact ? 'space-y-3' : 'space-y-3 min-h-0 flex-1 overflow-hidden'
+            isCompact
+              ? 'space-y-3'
+              : 'flex flex-col gap-2 min-h-0 flex-1 overflow-hidden'
           }
         >
           {pageItems.map((item) =>
@@ -307,10 +259,7 @@ function TodoPanel({
                 hideDueDate
               />
             ) : (
-              <div
-                key={item.id}
-                className="h-[7.25rem] shrink-0 overflow-hidden"
-              >
+              <div key={item.id} className="flex-1 min-h-0 overflow-hidden">
                 <TodoItemComponent
                   todo={item}
                   onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
@@ -340,25 +289,36 @@ function TaskStatusPanel({
   total: number;
 }) {
   const { t } = useTranslation();
-  const setSelectedDate = useDateStore((s) => s.setSelectedDate);
+  const [weekOffset, setWeekOffset] = useState(0);
 
   return (
-    <div className="bg-surface rounded-xl border border-default p-5">
-      <div className="flex items-center gap-2 text-primary mb-5">
+    <div className="bg-surface rounded-xl border border-default p-4">
+      <div className="flex items-center gap-2 text-primary mb-3">
         <ClipboardList className="w-5 h-5" />
-        <h3 className="font-bold text-lg">{t('dashboard.taskStatus')}</h3>
-        {!isToday(selectedDate) && (
+        <h3 className="font-bold text-lg leading-none">
+          {t('dashboard.taskStatus')}
+        </h3>
+        <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setSelectedDate(dayjs())}
-            className="ml-auto text-xs font-medium text-primary hover:underline"
+            onClick={() => setWeekOffset((o) => o - 1)}
+            aria-label={t('dashboard.previousWeek')}
+            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors"
           >
-            {t('dashboard.today')}
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => setWeekOffset((o) => o + 1)}
+            aria-label={t('dashboard.nextWeek')}
+            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
-      <div className="mb-5">
-        <WeekStrip selectedDate={selectedDate} />
+      <div className="mb-3">
+        <WeekStrip selectedDate={selectedDate} weekOffset={weekOffset} />
       </div>
       <div className="flex justify-around">
         <DonutChart
@@ -395,10 +355,12 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
   const pageItems = items.slice(currentPage * 2, currentPage * 2 + 2);
 
   return (
-    <div className="bg-surface rounded-xl border border-default p-5">
-      <div className="flex items-center gap-2 text-primary mb-4">
+    <div className="bg-surface rounded-xl border border-default p-4">
+      <div className="flex items-center gap-2 text-primary mb-3">
         <CheckSquare className="w-5 h-5" />
-        <h3 className="font-bold text-lg">{t('dashboard.completedTask')}</h3>
+        <h3 className="font-bold text-lg leading-none">
+          {t('dashboard.completedTask')}
+        </h3>
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
@@ -421,7 +383,9 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
         </div>
       </div>
       {pageItems.length === 0 ? (
-        <p className="text-muted text-sm">{t('dashboard.noCompletedTasks')}</p>
+        <p className="text-muted text-sm h-[5rem] flex items-center">
+          {t('dashboard.noCompletedTasks')}
+        </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {pageItems.map((item) => (
@@ -435,17 +399,25 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
 
 // ─── daily-focus strip ─────────────────────────────────────────────────────────
 
-function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
+function WeekStrip({
+  selectedDate,
+  weekOffset,
+}: {
+  selectedDate: Dayjs;
+  weekOffset: number;
+}) {
   const { t, i18n } = useTranslation();
   const setSelectedDate = useDateStore((s) => s.setSelectedDate);
   const locale = localeFor(i18n.language);
-  const days = Array.from({ length: 7 }, (_, i) => dayjs().add(i, 'day'));
+  const days = Array.from({ length: 7 }, (_, i) =>
+    dayjs().add(weekOffset * 7 + i, 'day')
+  );
 
   return (
     <div
       role="tablist"
       aria-label={t('dashboard.weekStrip')}
-      className="flex w-full items-center gap-1.5 sm:gap-2"
+      className="flex w-full items-center justify-center gap-1.5 sm:gap-2"
     >
       {days.map((day) => {
         const selected = day.isSame(selectedDate, 'day');
@@ -461,7 +433,7 @@ function WeekStrip({ selectedDate }: { selectedDate: Dayjs }) {
               day: 'numeric',
             })}
             onClick={() => setSelectedDate(day)}
-            className={`flex flex-[1_1_3rem] min-w-0 max-w-[3.5rem] flex-col items-center justify-center h-14 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+            className={`flex w-11 shrink-0 flex-col items-center justify-center h-11 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
               selected
                 ? 'bg-accent border-accent text-on-accent'
                 : 'bg-surface border-default text-primary hover:border-accent'
@@ -528,7 +500,7 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-2 flex-1 min-w-0 sm:flex-row sm:items-center sm:min-w-[15rem]"
+      className="flex flex-col gap-2 flex-1 min-w-0"
     >
       <button
         type="button"
@@ -540,23 +512,25 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
           {t('dashboard.inboxCount', { count: inboxCount })}
         </span>
       </button>
-      <div className="sm:flex-1">
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t('dashboard.quickAddPlaceholder')}
-          inputTestId="dashboard-quick-add-input"
-        />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('dashboard.quickAddPlaceholder')}
+            inputTestId="dashboard-quick-add-input"
+          />
+        </div>
+        <Button
+          type="submit"
+          variant="primary"
+          className="text-sm shrink-0"
+          dataTestId="dashboard-quick-add-submit"
+        >
+          <Plus className="w-4 h-4" />
+          {t('dashboard.quickAdd')}
+        </Button>
       </div>
-      <Button
-        type="submit"
-        variant="primary"
-        className="text-sm shrink-0"
-        dataTestId="dashboard-quick-add-submit"
-      >
-        <Plus className="w-4 h-4" />
-        {t('dashboard.quickAdd')}
-      </Button>
     </form>
   );
 }
@@ -573,7 +547,7 @@ function DailyFocusStrip({
   inboxCount: number;
 }) {
   return (
-    <div className="bg-surface rounded-xl border border-default p-5 flex flex-col lg:flex-row lg:items-center gap-5">
+    <div className="bg-surface rounded-xl border border-default p-4 flex flex-col lg:flex-row lg:items-center gap-5">
       <TodayCompletionRing
         successful={todaySuccessful}
         pending={todayPending}
@@ -599,10 +573,12 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
   );
 
   return (
-    <div className="bg-surface rounded-xl border border-default p-5">
+    <div className="bg-surface rounded-xl border border-default p-4">
       <div className="flex items-center gap-2 text-primary mb-4">
         <Flame className="w-5 h-5" />
-        <h3 className="font-bold text-lg">{t('dashboard.topPriority')}</h3>
+        <h3 className="font-bold text-lg leading-none">
+          {t('dashboard.topPriority')}
+        </h3>
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
@@ -631,7 +607,7 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
           {pageItems.map((item) => (
             <div
               key={item.id}
-              className="rounded-xl border border-priority-high-bg/40 bg-priority-high-bg/5 p-3"
+              className="rounded-xl border-l-4 border-l-priority-high-bg bg-surface-subtle p-3"
             >
               <p className="truncate font-semibold text-primary text-sm leading-snug">
                 {item.name}
@@ -679,13 +655,8 @@ function DashboardPage() {
   );
 
   const dateItems = useMemo(
-    () =>
-      allItems.filter((item) =>
-        item.dueDate
-          ? item.dueDate.startsWith(selectedDateStr)
-          : isToday(selectedDate)
-      ),
-    [allItems, selectedDateStr, selectedDate]
+    () => allItems.filter((item) => item.dueDate?.startsWith(selectedDateStr)),
+    [allItems, selectedDateStr]
   );
 
   // Today's completion ring and top-priority panel only count tasks with a
@@ -721,14 +692,21 @@ function DashboardPage() {
     [dateItems]
   );
 
+  // Completed tasks always reflect today's completions, independent of
+  // whichever day is selected in the calendar strip — a task can't be
+  // completed ahead of its due date, so "completed" only ever means "today".
   const completedItems = useMemo(
     () =>
-      dateItems
-        .filter((t) => t.status === 'successful')
+      allItems
+        .filter(
+          (item) =>
+            item.status === 'successful' &&
+            item.completedAt?.startsWith(todayStr)
+        )
         .sort((a, b) =>
           (b.completedAt ?? '').localeCompare(a.completedAt ?? '')
         ),
-    [dateItems]
+    [allItems, todayStr]
   );
 
   if (isTodoListsLoading || isInboxLoading) {
@@ -749,7 +727,7 @@ function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col gap-4 h-full">
       <DailyFocusStrip
         todaySuccessful={todaySuccessful}
         todayPending={todayPending}
@@ -759,8 +737,8 @@ function DashboardPage() {
 
       <TopPriorityPanel items={todayItems} />
 
-      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
-        <div className="space-y-6">
+      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-5 gap-4 flex-1">
+        <div className="space-y-4 lg:col-span-2">
           <TaskStatusPanel
             selectedDate={selectedDate}
             successful={successful}
@@ -772,6 +750,7 @@ function DashboardPage() {
         </div>
 
         <TodoPanel
+          className="lg:col-span-3"
           items={todoItems}
           selectedDate={selectedDate}
           onEditTodo={(item) =>
