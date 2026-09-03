@@ -140,11 +140,6 @@ function TasksPage() {
     setIsEditing(false);
   }
 
-  function handleEditTodoInline(todo: TodoItem, list: TodoList | null) {
-    setSelectedTask({ todo, list });
-    setIsEditing(true);
-  }
-
   function resolveList(listId: string | null): TodoList | null {
     if (!listId) return null;
     return todoLists?.find((l) => l.id === listId) ?? null;
@@ -218,12 +213,12 @@ function TasksPage() {
   }
 
   return (
-    <div className="-m-6 grid min-h-full grid-cols-1 gap-6 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-m-6 grid min-h-full grid-cols-1 gap-6 pt-6 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail/edit view replaces it as its own screen there. */}
       <div
         className={mergeClassNames(
-          'flex-col px-6 pt-6 pb-6 md:pr-0 md:flex',
+          'flex-col px-6 pb-6 md:pr-0 md:flex',
           selectedTask ? 'hidden' : 'flex'
         )}
       >
@@ -260,7 +255,7 @@ function TasksPage() {
               </button>
             </div>
             <Button
-              variant="outline"
+              variant="primary"
               onClick={() => setShowCreateForm((v) => !v)}
             >
               <Plus className="w-4 h-4" />
@@ -286,7 +281,6 @@ function TasksPage() {
                 onAddTodo={handleAddInboxTodo}
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={(todo) => handleSelectTodo(todo, null)}
-                onEditTodo={(todo) => handleEditTodoInline(todo, null)}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
@@ -303,7 +297,6 @@ function TasksPage() {
                 handleAddTodo={handleAddTodo}
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={handleSelectTodo}
-                onEditTodo={handleEditTodoInline}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
@@ -318,9 +311,6 @@ function TasksPage() {
               onSelectTodo={(todo, listId) =>
                 handleSelectTodo(todo, resolveList(listId))
               }
-              onEditTodo={(todo, listId) =>
-                handleEditTodoInline(todo, resolveList(listId))
-              }
               onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
               availableLists={availableLists}
               onMoveTodo={handleMoveTodo}
@@ -331,11 +321,11 @@ function TasksPage() {
 
       <div
         className={mergeClassNames(
-          'flex-col md:flex md:self-start md:pt-6',
+          'flex-col md:flex',
           selectedTask ? 'flex' : 'hidden'
         )}
       >
-        <div className="flex flex-col flex-1 rounded-card border border-default bg-surface shadow-card overflow-hidden">
+        <div className="flex flex-col rounded-card border border-default bg-surface shadow-card overflow-hidden md:sticky md:top-0">
           {selectedTask && (
             <div className="border-b border-default p-3 md:hidden">
               <IconButton
