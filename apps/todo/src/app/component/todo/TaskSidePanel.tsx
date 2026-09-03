@@ -122,6 +122,14 @@ export function TodoEditPanel({
   };
 
   const onFormSubmit = (data: EditFormValues) => {
+    // The status dropdown can flip a task to/from 'successful' outside the
+    // dedicated toggle action, so completedAt has to be kept in sync here too
+    // — otherwise a task marked done via this form never shows up as completed.
+    const statusChangedToSuccessful =
+      data.status === 'successful' && todo.status !== 'successful';
+    const statusChangedFromSuccessful =
+      data.status !== 'successful' && todo.status === 'successful';
+
     const todoResult = todoUpdateSchema.safeParse({
       name: data.name.trim() || todo.name,
       status: data.status,
@@ -130,6 +138,11 @@ export function TodoEditPanel({
       location: data.location.trim() || null,
       notes: data.notes.trim() || null,
       ...(dirtyFields.image ? { image: data.image } : {}),
+      ...(statusChangedToSuccessful
+        ? { completedAt: new Date().toISOString() }
+        : statusChangedFromSuccessful
+        ? { completedAt: null }
+        : {}),
     });
     const listResult = list
       ? todolistUpdateSchema.safeParse({
