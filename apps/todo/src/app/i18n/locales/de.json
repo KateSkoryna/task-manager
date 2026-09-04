@@ -58,9 +58,7 @@
     }
   },
   "dashboard": {
-    "todo": "Aufgaben",
-    "calendar": "Kalender",
-    "today": "Heute",
+    "todo": "Heutige Aufgaben",
     "noTasksForDay": "Keine Aufgaben für diesen Tag.",
     "taskStatus": "Aufgabenstatus",
     "completed": "Abgeschlossen",
@@ -74,8 +72,14 @@
     "relativeDaysAgo": "vor {{count}} Tagen",
     "weekStrip": "Tag auswählen",
     "todayCompletion": "Heutiger Fortschritt",
+    "todayTasksTotal": "{{count}} Aufgaben heute",
+    "todayTasksPending": "{{count}} offen",
     "topPriority": "Top-Priorität heute",
     "noTopPriority": "Keine hochprioritären Aufgaben für heute.",
+    "previousTasks": "Vorherige Aufgaben",
+    "nextTasks": "Nächste Aufgaben",
+    "previousWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
     "inboxCount": "{{count}} im Posteingang",
     "quickAddPlaceholder": "Schnell zum Posteingang hinzufügen…",
     "quickAdd": "Hinzufügen"
@@ -85,6 +89,9 @@
     "newList": "Neue Liste",
     "selectTask": "Aufgabe wählen, um Details anzuzeigen",
     "editTask": "Aufgabe bearbeiten",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "selected": "Ausgewählt",
     "name": "Name:",
     "status": "Status:",
     "dueDate": "Fällig am:",
@@ -148,13 +155,12 @@
   "todoList": {
     "addTask": "Aufgabe hinzufügen",
     "due": "Fällig:",
-    "priority": "Priorität:",
-    "category": "Kategorie:",
     "noTasksBefore": "Noch keine Aufgaben. Klicken Sie auf",
     "noTasksAfter": "um zu beginnen!"
   },
   "todoListForm": {
     "createNewList": "Neue Liste erstellen",
+    "editList": "Liste bearbeiten",
     "listName": "Listenname:",
     "listNamePlaceholder": "Listenname eingeben...",
     "more": "Mehr",
@@ -234,6 +240,9 @@
   },
   "common": {
     "loading": "Wird geladen..."
+  },
+  "footer": {
+    "rights": "© {{year}} Kateryna Skoryna. Alle Rechte vorbehalten."
   },
   "statistics": {
     "title": "Statistiken",

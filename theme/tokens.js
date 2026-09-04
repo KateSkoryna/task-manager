@@ -112,7 +112,6 @@ const tokens = Object.freeze({
     mobileMenuButton: '2.5rem',
     avatar: '2.75rem',
     drawerAvatar: '2.875rem',
-    statusMarker: '1.125rem',
     weekdayCellWidth: '2.875rem',
     weekdayCellHeight: '3.5rem',
     progressRingSmall: '3.875rem',

@@ -58,9 +58,7 @@
     }
   },
   "dashboard": {
-    "todo": "Список справ",
-    "calendar": "Календар",
-    "today": "Сьогодні",
+    "todo": "Завдання на сьогодні",
     "noTasksForDay": "На цей день немає завдань.",
     "taskStatus": "Статус завдань",
     "completed": "Завершено",
@@ -74,8 +72,14 @@
     "relativeDaysAgo": "{{count}} дні тому",
     "weekStrip": "Оберіть день",
     "todayCompletion": "Виконання за сьогодні",
+    "todayTasksTotal": "{{count}} завдань сьогодні",
+    "todayTasksPending": "{{count}} у процесі",
     "topPriority": "Головні пріоритети на сьогодні",
     "noTopPriority": "Немає пріоритетних завдань на сьогодні.",
+    "previousTasks": "Попередні завдання",
+    "nextTasks": "Наступні завдання",
+    "previousWeek": "Попередній тиждень",
+    "nextWeek": "Наступний тиждень",
     "inboxCount": "{{count}} у вхідних",
     "quickAddPlaceholder": "Швидко додати до вхідних…",
     "quickAdd": "Додати"
@@ -85,6 +89,9 @@
     "newList": "Новий список",
     "selectTask": "Виберіть завдання, щоб переглянути деталі",
     "editTask": "Редагувати завдання",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "selected": "Вибрано",
     "name": "Назва:",
     "status": "Статус:",
     "dueDate": "Термін:",
@@ -148,13 +155,12 @@
   "todoList": {
     "addTask": "Додати завдання",
     "due": "Термін:",
-    "priority": "Пріоритет:",
-    "category": "Категорія:",
     "noTasksBefore": "Завдань ще немає. Натисніть",
     "noTasksAfter": ", щоб почати!"
   },
   "todoListForm": {
     "createNewList": "Створити новий список",
+    "editList": "Редагувати список",
     "listName": "Назва списку:",
     "listNamePlaceholder": "Введіть назву списку...",
     "more": "Більше",
@@ -234,6 +240,9 @@
   },
   "common": {
     "loading": "Завантаження..."
+  },
+  "footer": {
+    "rights": "© {{year}} Катерина Скорина. Усі права захищено."
   },
   "statistics": {
     "title": "Статистика",

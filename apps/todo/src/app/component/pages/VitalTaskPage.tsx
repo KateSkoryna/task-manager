@@ -53,8 +53,12 @@ function VitalTaskPage() {
     setSelectedTask(null);
   }
 
-  function handleEditTodo(todo: TodoItem) {
-    navigate('/tasks', { state: { todoId: todo.id, listId: todo.todolistId } });
+  function handleDeleteTodoFromList(id: string) {
+    if (selectedTask?.todo.id === id) {
+      handleDeleteSelectedTodo(id);
+    } else {
+      handleDeleteTodo(id);
+    }
   }
 
   if (isLoading) {
@@ -62,12 +66,12 @@ function VitalTaskPage() {
   }
 
   return (
-    <div className="-m-6 grid min-h-full grid-cols-1 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-m-6 grid min-h-full grid-cols-1 gap-6 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail view replaces it as its own screen there. */}
       <div
         className={mergeClassNames(
-          'flex-col overflow-y-auto border-default p-6 md:flex md:border-r',
+          'flex-col overflow-y-auto p-6 md:pr-0 md:flex',
           selectedTask ? 'hidden' : 'flex'
         )}
       >
@@ -82,7 +86,7 @@ function VitalTaskPage() {
           handleAddTodo={handleAddTodo}
           selectedTodoId={selectedTask?.todo.id ?? null}
           onSelectTodo={handleSelectTodo}
-          onEditTodo={(todo) => handleEditTodo(todo)}
+          onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
           onCreateList={() =>
             navigate('/tasks', { state: { openCreateList: true } })
           }
@@ -93,45 +97,47 @@ function VitalTaskPage() {
           side-by-side column from tablet up. */}
       <div
         className={mergeClassNames(
-          'flex-col md:flex',
+          'flex-col md:flex md:sticky md:top-6 md:self-start md:pt-6',
           selectedTask ? 'flex' : 'hidden'
         )}
       >
-        {selectedTask ? (
-          <>
-            <div className="border-b border-default p-3 md:hidden">
-              <IconButton
-                ariaLabel={t('tasks.backToList')}
-                onClick={() => setSelectedTask(null)}
-              >
-                <ArrowLeft className="size-4" />
-              </IconButton>
-            </div>
-            {selectedTask.todo.status === 'pending' && (
-              <div className="px-6 pt-6">
-                <PomodoroTimer
-                  key={selectedTask.todo.id}
-                  taskName={selectedTask.todo.name}
-                />
+        <div className="flex flex-col flex-1 rounded-card border border-default bg-surface shadow-card overflow-hidden">
+          {selectedTask ? (
+            <>
+              <div className="border-b border-default p-3 md:hidden">
+                <IconButton
+                  ariaLabel={t('tasks.backToList')}
+                  onClick={() => setSelectedTask(null)}
+                >
+                  <ArrowLeft className="size-4" />
+                </IconButton>
               </div>
-            )}
-            <TaskDetailPanel
-              todo={selectedTask.todo}
-              list={selectedTask.list}
-              onDelete={(id) => handleDeleteSelectedTodo(id)}
-              onStartEdit={() =>
-                navigate('/tasks', {
-                  state: {
-                    todoId: selectedTask.todo.id,
-                    listId: selectedTask.list.id,
-                  },
-                })
-              }
-            />
-          </>
-        ) : (
-          <SelectTaskPlaceholder />
-        )}
+              {selectedTask.todo.status === 'pending' && (
+                <div className="px-6 pt-6">
+                  <PomodoroTimer
+                    key={selectedTask.todo.id}
+                    taskName={selectedTask.todo.name}
+                  />
+                </div>
+              )}
+              <TaskDetailPanel
+                todo={selectedTask.todo}
+                list={selectedTask.list}
+                onDelete={(id) => handleDeleteSelectedTodo(id)}
+                onStartEdit={() =>
+                  navigate('/tasks', {
+                    state: {
+                      todoId: selectedTask.todo.id,
+                      listId: selectedTask.list.id,
+                    },
+                  })
+                }
+              />
+            </>
+          ) : (
+            <SelectTaskPlaceholder />
+          )}
+        </div>
       </div>
     </div>
   );

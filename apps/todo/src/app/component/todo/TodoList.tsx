@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Plus, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, Pencil, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoList as TodoListType,
   TodoItem as TodoItemType,
+  UpdateTodoList,
 } from '@shared/types';
 import TodoItem from './TodoItem';
 import { AvailableList } from './MoveToListSelect';
 import TodoForm from './TodoForm';
+import TodoListForm, { TodoListFormOpts } from './TodoListForm';
 import Text from '../elements/Text';
 import Badge from '../elements/Badge';
 import Card from '../elements/Card';
@@ -24,9 +26,11 @@ interface TodoListProps {
   todoList: TodoListType;
   onAddTodo: (todolistId: string, name: string, opts?: NewTodoOpts) => void;
   onDeleteList: (id: string) => void;
+  onEditList?: (id: string, updates: UpdateTodoList) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItemType) => void;
   onEditTodo?: (todo: TodoItemType) => void;
+  onDeleteTodo?: (todo: TodoItemType) => void;
   dataTestId?: string;
   availableLists?: AvailableList[];
   onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
@@ -43,9 +47,11 @@ function TodoList({
   todoList,
   onAddTodo,
   onDeleteList,
+  onEditList,
   selectedTodoId,
   onSelectTodo,
   onEditTodo,
+  onDeleteTodo,
   dataTestId,
   availableLists,
   onReorderTodo,
@@ -54,6 +60,7 @@ function TodoList({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   const sortedTodos = sortByOrder(todoList.todos);
   const completedCount = todoList.todos.filter(
@@ -66,98 +73,104 @@ function TodoList({
     setShowAddForm(false);
   }
 
+  function handleEditListSubmit(name: string, opts?: TodoListFormOpts) {
+    onEditList?.(todoList.id, { ...opts, name });
+    setShowEditForm(false);
+  }
+
   return (
     <div
       className="bg-surface rounded-card border border-default overflow-hidden"
       data-testid={dataTestId}
     >
       {/* List header */}
-      <div className="px-4 py-3 bg-sidebar">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <button
-              onClick={() => setIsExpanded((v) => !v)}
-              className="text-accent hover:text-sidebar-text transition-colors shrink-0"
-              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+      <div className="px-4 py-3 bg-surface-subtle border-b border-default">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsExpanded((v) => !v)}
+            className="flex items-center justify-center p-1.5 text-notification-dot hover:text-primary transition-colors shrink-0"
+            aria-label={isExpanded ? 'Collapse' : 'Expand'}
+          >
+            {isExpanded ? (
+              <ChevronDown className="w-5 h-5" />
+            ) : (
+              <ChevronRight className="w-5 h-5" />
+            )}
+          </button>
+
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <h3
+              className="min-w-0 truncate text-primary font-bold"
+              data-testid="todolist-title"
             >
-              {isExpanded ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </button>
-
-            <div className="flex flex-col min-w-0 flex-1 gap-4">
-              <div className="flex items-center gap-4">
-                <h3
-                  className="text-sidebar-text font-bold truncate"
-                  data-testid="todolist-title"
-                >
-                  {todoList.name}
-                </h3>
-                <span className="text-sidebar-text text-xs shrink-0">
-                  {completedCount}/{todoList.todos.length}
-                </span>
-              </div>
-
-              {(todoList.priority || todoList.category) && (
-                <div className="flex items-center gap-4 text-xs text-sidebar-text/80">
-                  {todoList.priority && (
-                    <span className="flex items-center gap-1.5">
-                      {t('todoList.priority')}
-                      <Badge tone={`priority-${todoList.priority}`}>
-                        {t(`tasks.priority_${todoList.priority}`)}
-                      </Badge>
-                    </span>
-                  )}
-                  {todoList.category && (
-                    <span>
-                      {t('todoList.category')}{' '}
-                      <span className="text-sidebar-text font-medium">
-                        {t(`tasks.category_${todoList.category}`)}
-                      </span>
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+              {todoList.name}
+            </h3>
+            <span className="text-muted text-xs shrink-0">
+              {completedCount}/{todoList.todos.length}
+            </span>
+            {todoList.priority && (
+              <Badge tone={`priority-${todoList.priority}`}>
+                {t(`tasks.priority_${todoList.priority}`)}
+              </Badge>
+            )}
           </div>
 
-          <div className="flex flex-col items-end gap-4 shrink-0 ml-2">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                if (!isExpanded) setIsExpanded(true);
+                setShowAddForm((v) => !v);
+              }}
+              aria-label={t('todoList.addTask')}
+              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            {onEditList && (
               <button
-                onClick={() => {
-                  if (!isExpanded) setIsExpanded(true);
-                  setShowAddForm((v) => !v);
-                }}
-                className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-on-accent bg-accent rounded hover:opacity-90 transition-opacity"
+                onClick={() => setShowEditForm((v) => !v)}
+                aria-label={t('todoListForm.editList')}
+                className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
               >
-                <Plus className="w-3 h-3" />
-                {t('todoList.addTask')}
+                <Pencil className="w-3.5 h-3.5" />
               </button>
-              <button
-                onClick={() => onDeleteList(todoList.id)}
-                className="p-1.5 text-sidebar-muted hover:text-danger transition-colors rounded-lg"
-                aria-label="Delete list"
-                data-testid="todolist-item-delete-button"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+            )}
+            <button
+              onClick={() => onDeleteList(todoList.id)}
+              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-danger hover:border-danger transition-colors shrink-0"
+              aria-label="Delete list"
+              data-testid="todolist-item-delete-button"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {(todoList.category || formattedDate) && (
+          <div className="flex items-center gap-4 text-xs text-muted mt-1.5 ml-7">
+            {todoList.category && (
+              <span>{t(`tasks.category_${todoList.category}`)}</span>
+            )}
             {formattedDate && (
-              <span className="text-xs text-sidebar-text pr-1.5">
+              <span>
                 {t('todoList.due')} {formattedDate}
               </span>
             )}
           </div>
-        </div>
+        )}
 
         {todoList.notes && (
-          <p className="mt-1.5 ml-7 text-xs text-sidebar-muted truncate">
+          <p className="mt-1.5 ml-7 text-xs text-muted truncate">
             {todoList.notes}
           </p>
         )}
       </div>
+
+      {showEditForm && (
+        <div className="p-4 bg-surface">
+          <TodoListForm todoList={todoList} onSubmit={handleEditListSubmit} />
+        </div>
+      )}
 
       {/* Expanded content */}
       {isExpanded && (
@@ -191,6 +204,7 @@ function TodoList({
                 isSelected={selectedTodoId === todo.id}
                 onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
                 onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
+                onDelete={onDeleteTodo ? () => onDeleteTodo(todo) : undefined}
                 onMoveUp={
                   onReorderTodo ? () => onReorderTodo(todo.id, 'up') : undefined
                 }

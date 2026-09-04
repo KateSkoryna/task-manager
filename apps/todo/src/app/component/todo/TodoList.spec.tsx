@@ -7,6 +7,7 @@ jest.mock('../../store/authStore', () => ({
   useAuthStore: (selector: (s: { user: { firebaseUid: string } }) => unknown) =>
     selector({ user: { firebaseUid: 'u1' } }),
 }));
+jest.mock('react-router-dom', () => ({ useParams: () => ({ userId: 'u1' }) }));
 
 const base: List = {
   id: 'list-1',
@@ -107,7 +108,7 @@ describe('TodoList', () => {
       />
     );
     fireEvent.click(screen.getByTestId('todo-item-t'));
-    fireEvent.click(screen.getByLabelText('Edit task'));
+    fireEvent.click(screen.getByRole('button', { name: 'tasks.edit' }));
     expect(select).toHaveBeenCalledWith(todo);
     expect(edit).toHaveBeenCalledWith(todo);
   });
@@ -135,5 +136,40 @@ describe('TodoList', () => {
     );
     fireEvent.click(screen.getAllByRole('button', { name: /add task/i })[1]);
     expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
+  });
+  test('does not show an edit-list button when onEditList is not provided', () => {
+    render(
+      <TodoList
+        todoList={base}
+        onAddTodo={jest.fn()}
+        onDeleteList={jest.fn()}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: 'todoListForm.editList' })
+    ).not.toBeInTheDocument();
+  });
+  test('opens the edit-list form pre-filled and submits updates', async () => {
+    const onEditList = jest.fn();
+    render(
+      <TodoList
+        todoList={base}
+        onAddTodo={jest.fn()}
+        onDeleteList={jest.fn()}
+        onEditList={onEditList}
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'todoListForm.editList' })
+    );
+    expect(screen.getByTestId('todolist-form-input')).toHaveValue('Work');
+    fireEvent.click(screen.getByTestId('todolist-form-submit-button'));
+    await waitFor(() =>
+      expect(onEditList).toHaveBeenCalledWith(
+        'list-1',
+        expect.objectContaining({ name: 'Work', priority: 'medium' })
+      )
+    );
+    expect(screen.queryByTestId('todolist-form-input')).not.toBeInTheDocument();
   });
 });

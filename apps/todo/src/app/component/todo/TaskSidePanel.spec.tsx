@@ -1,7 +1,13 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TodoItem, TodoList } from '@shared/types';
-import { TodoEditPanel } from './TaskSidePanel';
+import { TaskDetailPanel, TodoEditPanel } from './TaskSidePanel';
 
 jest.mock('../../lib/imageUtils', () => ({ uploadImage: jest.fn() }));
 jest.mock('../../store/authStore', () => ({
@@ -118,5 +124,33 @@ describe('TodoEditPanel dropdowns', () => {
         category: undefined,
       })
     );
+  });
+});
+
+describe('TaskDetailPanel', () => {
+  test('shows task priority, list metadata rows, and calls edit/delete', () => {
+    const onDelete = jest.fn();
+    const onStartEdit = jest.fn();
+    render(
+      <TaskDetailPanel
+        todo={{ ...todo, dueDate: '2026-08-05T00:00:00Z' }}
+        list={list}
+        onDelete={onDelete}
+        onStartEdit={onStartEdit}
+      />
+    );
+
+    expect(screen.getByText('Write tests')).toBeInTheDocument();
+    expect(screen.getByText('tasks.priority_medium')).toBeInTheDocument();
+    expect(screen.getByText('Engineering')).toBeInTheDocument();
+    expect(screen.getByText('tasks.priority_low')).toBeInTheDocument();
+    expect(screen.getByText('tasks.category_home')).toBeInTheDocument();
+    expect(screen.getByText('tasks.status_pending')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'tasks.edit' }));
+    expect(onStartEdit).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'tasks.delete' }));
+    expect(onDelete).toHaveBeenCalledWith('todo-1');
   });
 });

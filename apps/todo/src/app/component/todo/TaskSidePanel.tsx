@@ -1,18 +1,6 @@
 import { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import {
-  ClipboardList,
-  MapPin,
-  FileText,
-  Calendar,
-  Trash2,
-  Pencil,
-  ImagePlus,
-  Upload,
-  Flag,
-  CircleDot,
-  Tag,
-} from 'lucide-react';
+import { Trash2, ImagePlus, Upload } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,7 +20,7 @@ import { uploadImage } from '../../lib/imageUtils';
 import DatePickerInput from '../elements/DatePickerInput';
 import Dropdown, { DropdownOption } from '../elements/Dropdown';
 import Badge from '../elements/Badge';
-import IconButton from '../elements/IconButton';
+import Button from '../elements/Button';
 
 // ─── Edit Panel ───────────────────────────────────────────────────────────────
 
@@ -134,6 +122,14 @@ export function TodoEditPanel({
   };
 
   const onFormSubmit = (data: EditFormValues) => {
+    // The status dropdown can flip a task to/from 'successful' outside the
+    // dedicated toggle action, so completedAt has to be kept in sync here too
+    // — otherwise a task marked done via this form never shows up as completed.
+    const statusChangedToSuccessful =
+      data.status === 'successful' && todo.status !== 'successful';
+    const statusChangedFromSuccessful =
+      data.status !== 'successful' && todo.status === 'successful';
+
     const todoResult = todoUpdateSchema.safeParse({
       name: data.name.trim() || todo.name,
       status: data.status,
@@ -142,6 +138,11 @@ export function TodoEditPanel({
       location: data.location.trim() || null,
       notes: data.notes.trim() || null,
       ...(dirtyFields.image ? { image: data.image } : {}),
+      ...(statusChangedToSuccessful
+        ? { completedAt: new Date().toISOString() }
+        : statusChangedFromSuccessful
+        ? { completedAt: null }
+        : {}),
     });
     const listResult = list
       ? todolistUpdateSchema.safeParse({
@@ -468,107 +469,104 @@ export function TaskDetailPanel({
   return (
     <div className="flex flex-col flex-1 min-h-0 p-6">
       <div className="flex-1 overflow-y-auto">
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-4">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold text-primary leading-snug">
               {todo.name}
             </h2>
-
-            <div className="space-y-2 text-sm text-muted mt-3">
-              <div className="flex items-center gap-2">
-                <ClipboardList className="w-4 h-4 shrink-0 text-muted" />
-                <span>
-                  {t('tasks.list')}{' '}
-                  <span className="font-medium text-primary">
-                    {list ? list.name : t('tasks.inbox')}
-                  </span>
-                </span>
-              </div>
-              {list?.createdAt && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 shrink-0 text-muted" />
-                  <span>
-                    {t('tasks.created')}{' '}
-                    {dayjs(list.createdAt).format('DD/MM/YYYY')}
-                  </span>
-                </div>
-              )}
-              {todo.dueDate && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 shrink-0 text-muted" />
-                  <span>
-                    {t('tasks.due')} {dayjs(todo.dueDate).format('DD/MM/YYYY')}
-                  </span>
-                </div>
-              )}
-              {todo.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 shrink-0 text-muted" />
-                  <span>{todo.location}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <CircleDot className="w-4 h-4 shrink-0 text-muted" />
-                <span>
-                  {t('tasks.status')}{' '}
-                  <span
-                    className={`font-medium ${STATUS_TEXT_COLORS[todo.status]}`}
-                  >
-                    {t(`tasks.status_${todo.status}`)}
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Flag className="w-4 h-4 shrink-0 text-muted" />
-                <span className="flex items-center gap-1.5">
-                  {t('tasks.taskPriority')}
-                  <Badge tone={`priority-${todo.priority}`}>
-                    {t(`tasks.priority_${todo.priority}`)}
-                  </Badge>
-                </span>
-              </div>
-              {list?.priority && (
-                <div className="flex items-center gap-2">
-                  <Flag className="w-4 h-4 shrink-0 text-muted" />
-                  <span className="flex items-center gap-1.5">
-                    {t('tasks.listPriority')}
-                    <Badge tone={`priority-${list.priority}`}>
-                      {t(`tasks.priority_${list.priority}`)}
-                    </Badge>
-                  </span>
-                </div>
-              )}
-              {list?.category && (
-                <div className="flex items-center gap-2">
-                  <Tag className="w-4 h-4 shrink-0 text-muted" />
-                  <span>
-                    {t('tasks.category')}{' '}
-                    <span className="font-medium text-primary">
-                      {t(`tasks.category_${list.category}`)}
-                    </span>
-                  </span>
-                </div>
-              )}
+            <div className="mt-3">
+              <Badge tone={`priority-${todo.priority}`}>
+                {t(`tasks.priority_${todo.priority}`)}
+              </Badge>
             </div>
           </div>
 
-          {todo.image && (
-            <img
-              src={todo.image}
-              alt="Attached"
-              className="w-32 h-32 object-cover rounded-card border border-default shrink-0"
-            />
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <button
+              onClick={() => onDelete(todo.id)}
+              aria-label={t('tasks.delete')}
+              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-danger hover:border-danger transition-colors shrink-0"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+
+            {todo.image && (
+              <img
+                src={todo.image}
+                alt="Attached"
+                className="w-32 h-32 object-cover rounded-card border border-default"
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-default pt-4 space-y-2.5 text-sm">
+          <div className="flex gap-3">
+            <span className="w-24 shrink-0 text-muted">{t('tasks.list')}</span>
+            <span className="font-medium text-primary">
+              {list ? list.name : t('tasks.inbox')}
+            </span>
+          </div>
+          {todo.dueDate && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">{t('tasks.due')}</span>
+              <span className="font-medium text-primary">
+                {dayjs(todo.dueDate).format('DD/MM/YYYY')}
+              </span>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <span className="w-24 shrink-0 text-muted">
+              {t('tasks.status')}
+            </span>
+            <span
+              className={`font-semibold ${STATUS_TEXT_COLORS[todo.status]}`}
+            >
+              {t(`tasks.status_${todo.status}`)}
+            </span>
+          </div>
+          {list?.priority && (
+            <div className="flex items-center gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.listPriority')}
+              </span>
+              <Badge tone={`priority-${list.priority}`}>
+                {t(`tasks.priority_${list.priority}`)}
+              </Badge>
+            </div>
+          )}
+          {list?.category && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.category')}
+              </span>
+              <span className="font-medium text-primary">
+                {t(`tasks.category_${list.category}`)}
+              </span>
+            </div>
+          )}
+          {todo.location && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.location')}
+              </span>
+              <span className="font-medium text-primary">{todo.location}</span>
+            </div>
+          )}
+          {list?.createdAt && (
+            <div className="flex gap-3">
+              <span className="w-24 shrink-0 text-muted">
+                {t('tasks.created')}
+              </span>
+              <span className="font-medium text-primary">
+                {dayjs(list.createdAt).format('DD/MM/YYYY')}
+              </span>
+            </div>
           )}
         </div>
 
         {todo.notes && (
-          <div className="border-t border-default pt-4 mt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-muted" />
-              <span className="text-sm font-semibold text-primary">
-                {t('tasks.notes')}
-              </span>
-            </div>
+          <div className="mt-4 rounded-inner bg-surface-subtle p-4">
             <p className="text-sm text-muted leading-relaxed whitespace-pre-wrap">
               {todo.notes}
             </p>
@@ -576,18 +574,10 @@ export function TaskDetailPanel({
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-4">
-        <IconButton
-          size="menu"
-          onClick={() => onDelete(todo.id)}
-          ariaLabel="Delete task"
-          className="hover:text-danger"
-        >
-          <Trash2 size={18} />
-        </IconButton>
-        <IconButton size="menu" onClick={onStartEdit} ariaLabel="Edit task">
-          <Pencil size={18} />
-        </IconButton>
+      <div className="pt-4">
+        <Button variant="primary" onClick={onStartEdit} className="w-full">
+          {t('tasks.edit')}
+        </Button>
       </div>
     </div>
   );

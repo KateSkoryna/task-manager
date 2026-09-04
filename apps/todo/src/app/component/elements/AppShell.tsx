@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileDrawer from './MobileDrawer';
 import TopHeader from './TopHeader';
+import Footer from './Footer';
 
 function AppShell() {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -22,9 +23,12 @@ function AppShell() {
           onClose={() => setDrawerOpen(false)}
           triggerRef={menuButtonRef}
         />
-        <main className="flex-1 overflow-y-auto p-content-mobile md:p-content-tablet lg:p-content-desktop">
-          <Outlet />
-        </main>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto pt-5 px-content-mobile pb-content-mobile md:px-content-tablet md:pb-content-tablet lg:px-content-desktop lg:pb-content-desktop">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
       </div>
     </div>
   );

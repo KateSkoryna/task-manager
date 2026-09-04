@@ -3,7 +3,11 @@ import TodoList from './TodoList';
 import { AvailableList } from './MoveToListSelect';
 import TodoListsSkeleton from './TodoListsSkeleton';
 import ErrorFallback from '../elements/ErrorFallback';
-import { TodoList as TodoListType, TodoItem } from '@shared/types';
+import {
+  TodoList as TodoListType,
+  TodoItem,
+  UpdateTodoList,
+} from '@shared/types';
 
 type NewTodoOpts = {
   dueDate?: string;
@@ -18,10 +22,12 @@ interface TodoListsProps {
   error: Error | null;
   refetch: () => void;
   handleDeleteList: (id: string) => void;
+  handleEditList?: (id: string, updates: UpdateTodoList) => void;
   handleAddTodo: (todolistId: string, name: string, opts?: NewTodoOpts) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItem, list: TodoListType) => void;
   onEditTodo?: (todo: TodoItem, list: TodoListType) => void;
+  onDeleteTodo?: (todo: TodoItem, list: TodoListType) => void;
   availableLists?: AvailableList[];
   onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
@@ -35,10 +41,12 @@ function TodoLists({
   error,
   refetch,
   handleDeleteList,
+  handleEditList,
   handleAddTodo,
   selectedTodoId,
   onSelectTodo,
   onEditTodo,
+  onDeleteTodo,
   availableLists,
   onReorderTodo,
   onMoveTodo,
@@ -98,11 +106,15 @@ function TodoLists({
           todoList={list}
           onAddTodo={handleAddTodo}
           onDeleteList={handleDeleteList}
+          onEditList={handleEditList}
           selectedTodoId={selectedTodoId ?? null}
           onSelectTodo={
             onSelectTodo ? (todo) => onSelectTodo(todo, list) : undefined
           }
           onEditTodo={onEditTodo ? (todo) => onEditTodo(todo, list) : undefined}
+          onDeleteTodo={
+            onDeleteTodo ? (todo) => onDeleteTodo(todo, list) : undefined
+          }
           dataTestId={'todolist-item-' + list.id}
           availableLists={availableLists}
           onReorderTodo={onReorderTodo}

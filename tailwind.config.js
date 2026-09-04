@@ -175,7 +175,6 @@ module.exports = {
         'menu-button': tokens.size.mobileMenuButton,
         avatar: tokens.size.avatar,
         'avatar-drawer': tokens.size.drawerAvatar,
-        'status-marker': tokens.size.statusMarker,
         'ring-sm': tokens.size.progressRingSmall,
         'ring-lg': tokens.size.progressRingLarge,
       },

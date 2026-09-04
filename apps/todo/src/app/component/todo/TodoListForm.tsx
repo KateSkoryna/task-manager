@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
+  TodoList,
   TodoListPriority,
   TodoListCategory,
   todolistCreateSchema,
@@ -16,7 +17,7 @@ import Text from '../elements/Text';
 import Dropdown from '../elements/Dropdown';
 import DatePickerInput from '../elements/DatePickerInput';
 
-type TodoListFormOpts = {
+export type TodoListFormOpts = {
   priority?: TodoListPriority;
   category?: TodoListCategory;
   dueDate?: string | null;
@@ -25,7 +26,8 @@ type TodoListFormOpts = {
 
 type TodoListFormProps = {
   onSubmit: (name: string, opts?: TodoListFormOpts) => void;
-  isSubmitting: boolean;
+  isSubmitting?: boolean;
+  todoList?: TodoList;
 };
 
 type FormInput = z.input<typeof todolistCreateSchema>;
@@ -33,10 +35,12 @@ type FormOutput = z.output<typeof todolistCreateSchema>;
 
 const TodoListForm: React.FC<TodoListFormProps> = ({
   onSubmit,
-  isSubmitting,
+  isSubmitting = false,
+  todoList,
 }) => {
   const { t } = useTranslation();
-  const [showMore, setShowMore] = useState(false);
+  const isEditing = !!todoList;
+  const [showMore, setShowMore] = useState(isEditing);
   const { userId } = useParams<{ userId: string }>();
 
   const {
@@ -48,18 +52,25 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
   } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(todolistCreateSchema),
     defaultValues: {
-      name: '',
-      priority: '',
-      category: '',
-      dueDate: '',
-      notes: '',
+      name: todoList?.name ?? '',
+      priority: todoList?.priority ?? '',
+      category: todoList?.category ?? '',
+      dueDate: todoList?.dueDate ?? '',
+      notes: todoList?.notes ?? '',
     },
   });
 
   useEffect(() => {
-    reset();
-    setShowMore(false);
-  }, [userId, reset]);
+    reset({
+      name: todoList?.name ?? '',
+      priority: todoList?.priority ?? '',
+      category: todoList?.category ?? '',
+      dueDate: todoList?.dueDate ?? '',
+      notes: todoList?.notes ?? '',
+    });
+    setShowMore(isEditing);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, todoList?.id, reset]);
 
   const onFormSubmit = (data: FormOutput) => {
     const opts: TodoListFormOpts = {
@@ -96,7 +107,9 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
       className="bg-surface rounded-card shadow-card p-6 border border-default"
     >
       <Text as="h2" className="text-xl font-bold text-primary mb-4">
-        {t('todoListForm.createNewList')}
+        {isEditing
+          ? t('todoListForm.editList')
+          : t('todoListForm.createNewList')}
       </Text>
       <div className="flex flex-col sm:flex-row gap-3 items-baseline">
         <Text as="p" className="text-primary font-medium">
@@ -130,7 +143,11 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           disabled={isSubmitting}
           dataTestId="todolist-form-submit-button"
         >
-          {isSubmitting ? t('todoListForm.creating') : t('todoListForm.create')}
+          {isEditing
+            ? t('tasks.save')
+            : isSubmitting
+            ? t('todoListForm.creating')
+            : t('todoListForm.create')}
         </Button>
       </div>
 

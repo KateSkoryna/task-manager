@@ -58,9 +58,7 @@
     }
   },
   "dashboard": {
-    "todo": "To-Do",
-    "calendar": "Calendar",
-    "today": "Today",
+    "todo": "Today's Tasks",
     "noTasksForDay": "No tasks for this day.",
     "taskStatus": "Task Status",
     "completed": "Completed",
@@ -74,8 +72,14 @@
     "relativeDaysAgo": "{{count}} days ago",
     "weekStrip": "Select a day",
     "todayCompletion": "Today's Completion",
+    "todayTasksTotal": "{{count}} tasks today",
+    "todayTasksPending": "{{count}} pending",
     "topPriority": "Top Priority Today",
     "noTopPriority": "No high-priority tasks due today.",
+    "previousTasks": "Previous tasks",
+    "nextTasks": "Next tasks",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
     "inboxCount": "{{count}} in Inbox",
     "quickAddPlaceholder": "Quick add to Inbox…",
     "quickAdd": "Add"
@@ -85,6 +89,9 @@
     "newList": "New List",
     "selectTask": "Select a task to view details",
     "editTask": "Edit Task",
+    "edit": "Edit",
+    "delete": "Delete",
+    "selected": "Selected",
     "name": "Name:",
     "status": "Status:",
     "dueDate": "Due date:",
@@ -148,13 +155,12 @@
   "todoList": {
     "addTask": "Add Task",
     "due": "Due:",
-    "priority": "Priority:",
-    "category": "Category:",
     "noTasksBefore": "No tasks yet. Click",
     "noTasksAfter": "to get started!"
   },
   "todoListForm": {
     "createNewList": "Create New List",
+    "editList": "Edit List",
     "listName": "List Name:",
     "listNamePlaceholder": "Enter list name...",
     "more": "More",
@@ -234,6 +240,9 @@
   },
   "common": {
     "loading": "Loading\u2026"
+  },
+  "footer": {
+    "rights": "\u00a9 {{year}} Kateryna Skoryna. All rights reserved."
   },
   "statistics": {
     "title": "Statistics",

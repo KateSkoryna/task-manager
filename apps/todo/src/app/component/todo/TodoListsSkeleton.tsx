@@ -3,8 +3,8 @@ import Skeleton from '../elements/Skeleton';
 export function TodoListCardSkeleton() {
   return (
     <div className="bg-surface rounded-card border border-default overflow-hidden">
-      <div className="px-4 py-3 bg-sidebar">
-        <Skeleton className="h-4 w-40 bg-sidebar-text/20" />
+      <div className="px-4 py-3 bg-surface-subtle border-b border-default">
+        <Skeleton className="h-4 w-40 bg-default" />
       </div>
       <div className="p-4 space-y-3">
         <Skeleton className="h-10 w-full" />

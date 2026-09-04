@@ -1,6 +1,6 @@
 import { mergeClassNames } from '../../lib/classNames';
 
-type ButtonVariant = 'primary' | 'secondary' | 'destructive';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'destructive';
 
 type ButtonProps = {
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -23,6 +23,8 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
     'bg-accent font-bold text-on-accent hover:brightness-95 active:brightness-90 focus-visible:outline-accent',
   secondary:
     'border border-default bg-surface font-medium text-primary hover:bg-surface-subtle active:bg-surface-subtle focus-visible:outline-accent',
+  outline:
+    'border border-primary bg-transparent font-medium text-primary hover:bg-surface-subtle active:bg-surface-subtle focus-visible:outline-accent',
   destructive:
     'bg-danger font-bold text-danger-text hover:brightness-95 active:brightness-90 focus-visible:outline-danger',
 };

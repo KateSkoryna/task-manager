@@ -47,6 +47,7 @@ jest.mock('../../fetchers/api', () => ({
   useTodoListsQuery: () => useTodoListsQuery(),
   useInboxTodosQuery: () => useInboxTodosQuery(),
   useAddInboxTodoMutation: () => ({ mutate: jest.fn() }),
+  useDeleteTodoMutation: () => ({ mutate: jest.fn() }),
 }));
 
 describe('DashboardPage', () => {
