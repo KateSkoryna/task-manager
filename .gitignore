@@ -51,8 +51,6 @@ Thumbs.db
 
 .nx/cache
 
-# Project planning and documentation (private notes)
-/docs/
 .nx/polygraph
 .claude/settings.local.json
 
