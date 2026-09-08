@@ -55,7 +55,11 @@ const REQUEST_ID_PATTERN = /^[\w-]{1,100}$/;
             'MONGODB_URI is not defined in environment variables. Please check your .env file or environment setup.'
           );
         }
-        return { uri };
+        // autoIndex builds every declared index on connect. That is what you
+        // want while iterating locally, and a liability in production: it
+        // re-runs on every process start and can stall a replica set. In
+        // production, indexes are created by migration 002 instead.
+        return { uri, autoIndex: config.get('NODE_ENV') !== 'production' };
       },
     }),
     ThrottlerModule.forRoot([

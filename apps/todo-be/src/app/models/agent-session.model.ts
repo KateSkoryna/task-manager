@@ -76,6 +76,14 @@ agentSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 /** One live session per chat per user. */
 agentSessionSchema.index({ userId: 1, chatId: 1 }, { unique: true });
 
+/**
+ * `lastTaskIds` and `pendingClarifications.todoId` are deliberately not
+ * indexed. A session is only ever found by `(userId, chatId)` above; those
+ * arrays are read *out* of a session already in hand, never searched by. An
+ * index on either would be multikey, cost write throughput on every
+ * conversational turn, and serve no read.
+ */
+
 export const AgentSession =
   (models[AGENT_SESSION_MODEL_NAME] as Model<IAgentSessionDocument>) ||
   model<IAgentSessionDocument>(AGENT_SESSION_MODEL_NAME, agentSessionSchema);
