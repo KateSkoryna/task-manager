@@ -29,12 +29,25 @@ export const pendingClarificationSchema = z.object({
   askedAt: z.string().datetime(),
 });
 
+/**
+ * A short-lived, single-use token issued when a destructive tool call (e.g.
+ * `delete_task`) arrives without confirmation. The model must echo the token
+ * back in a follow-up call before the write executes.
+ */
+export const pendingConfirmationSchema = z.object({
+  token: z.string(),
+  toolName: z.string(),
+  input: z.record(z.string(), z.unknown()),
+  expiresAt: z.string().datetime(),
+});
+
 export const agentSessionSchema = z.object({
   userId: z.string(),
   chatId: z.string(),
   turns: z.array(agentTurnSchema),
   pendingClarifications: z.array(pendingClarificationSchema),
   lastTaskIds: z.array(z.string()),
+  pendingConfirmation: pendingConfirmationSchema.nullable(),
   expiresAt: z.string().datetime(),
 });
 
@@ -61,6 +74,7 @@ export const parsedTaskBatchSchema = z.object({
 
 export type AgentTurn = z.infer<typeof agentTurnSchema>;
 export type PendingClarification = z.infer<typeof pendingClarificationSchema>;
+export type PendingConfirmation = z.infer<typeof pendingConfirmationSchema>;
 export type AgentSession = z.infer<typeof agentSessionSchema>;
 export type ParsedTask = z.infer<typeof parsedTaskSchema>;
 export type ParsedTaskBatch = z.infer<typeof parsedTaskBatchSchema>;
