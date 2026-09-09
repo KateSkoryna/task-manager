@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { TodoCreateInput, TodoItem, TodoUpdateInput } from '@shared/types';
 import { ITodoDocument, TODO_MODEL_NAME } from '../app/models/todo.model';
 import {
@@ -102,6 +102,27 @@ export class TodoService {
     return executeOperation('Error fetching inbox todos', async () => {
       const docs = await this.todoModel
         .find({ userId, todolistId: null })
+        .sort({ order: 1, createdAt: 1 });
+      return docs.map((doc) => doc.toJSON() as TodoItem);
+    });
+  }
+
+  /**
+   * All of a user's todos, just the inbox (`todolistId: null`), or just one
+   * list's, for the agent's `list_tasks` tool. Every todo carries its own
+   * `userId` regardless of list membership, so filtering on it here is
+   * sufficient ownership scoping on its own.
+   */
+  findAllOwned(
+    userId: string,
+    todolistId?: string | null
+  ): Promise<TodoItem[]> {
+    return executeOperation('Error fetching todos', async () => {
+      const filter: FilterQuery<ITodoDocument> = { userId };
+      if (todolistId !== undefined) filter.todolistId = todolistId;
+
+      const docs = await this.todoModel
+        .find(filter)
         .sort({ order: 1, createdAt: 1 });
       return docs.map((doc) => doc.toJSON() as TodoItem);
     });
