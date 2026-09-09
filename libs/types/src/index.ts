@@ -8,4 +8,5 @@ export * from './lib/pagination.schemas';
 export * from './lib/datetime';
 export * from './lib/user-preferences.schemas';
 export * from './lib/agent.schemas';
+export * from './lib/agent-tools.schemas';
 export * from './lib/report.schemas';
