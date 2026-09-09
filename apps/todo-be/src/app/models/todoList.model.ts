@@ -66,6 +66,13 @@ export const todolistSchema = new Schema<ITodolistDocument>(
   }
 );
 
+/**
+ * Every authenticated request filters lists by owner — the list fetch itself
+ * and every `{ _id, userId }` ownership check in `TodoService`. Without this,
+ * all of them scan the collection.
+ */
+todolistSchema.index({ userId: 1 });
+
 todolistSchema.virtual('todos', {
   ref: 'Todo',
   localField: '_id',

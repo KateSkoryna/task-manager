@@ -123,39 +123,46 @@ describe('migration 001 — agent fields', () => {
   });
 });
 
+/**
+ * Builds a connection string from obviously-synthetic parts. Hosts use
+ * `example.invalid`, which IANA reserves so it can never resolve, and the
+ * credentials are self-describing placeholders. Earlier fixtures here used
+ * realistic-looking name/password pairs and tripped GitHub secret scanning on
+ * a public repository — a false positive, but a recurring one.
+ */
 const withCredentials = (
   scheme: 'mongodb' | 'mongodb+srv',
   credentials: string,
   address: string
 ) => `${scheme}://${credentials}@${address}`;
 
+const PLACEHOLDER_CREDENTIALS = 'placeholder-user:placeholder-value';
+
 describe('withDatabase', () => {
   it('swaps the database while preserving credentials and options', () => {
     const developmentUri = withCredentials(
       'mongodb+srv',
-      'user:pass',
-      'cluster.abc.mongodb.net/todo_dev?appName=X'
+      PLACEHOLDER_CREDENTIALS,
+      'cluster.example.invalid/todo_dev?appName=X'
     );
     const productionUri = withCredentials(
       'mongodb+srv',
-      'user:pass',
-      'cluster.abc.mongodb.net/todo?appName=X'
+      PLACEHOLDER_CREDENTIALS,
+      'cluster.example.invalid/todo?appName=X'
     );
 
-    expect(
-      withDatabase(developmentUri, 'todo')
-    ).toBe(productionUri);
+    expect(withDatabase(developmentUri, 'todo')).toBe(productionUri);
   });
 
   it('handles a URI with no query string', () => {
     const developmentUri = withCredentials(
       'mongodb',
-      'root:pw',
+      PLACEHOLDER_CREDENTIALS,
       'localhost:27017/todo_dev'
     );
     const productionUri = withCredentials(
       'mongodb',
-      'root:pw',
+      PLACEHOLDER_CREDENTIALS,
       'localhost:27017/todo'
     );
 
@@ -165,13 +172,30 @@ describe('withDatabase', () => {
   it('does not corrupt a password containing a slash-free special character', () => {
     const developmentUri = withCredentials(
       'mongodb+srv',
-      'user:p%40ss-word',
-      'cluster.abc.mongodb.net/todo_dev?w=1'
+      'placeholder-user:p%40ss-word',
+      'cluster.example.invalid/todo_dev?w=1'
     );
 
     const result = withDatabase(developmentUri, 'todo');
-    expect(result).toContain('user:p%40ss-word@');
+    expect(result).toContain('placeholder-user:p%40ss-word@');
     expect(result).toContain('/todo?w=1');
+  });
+
+  it('keeps the host when the URI has no database path', () => {
+    expect(withDatabase('mongodb://localhost:27017', 'todo')).toBe(
+      'mongodb://localhost:27017/todo'
+    );
+  });
+
+  it('keeps credentials when the URI has no database path', () => {
+    const uri = withCredentials(
+      'mongodb+srv',
+      PLACEHOLDER_CREDENTIALS,
+      'cluster.example.invalid'
+    );
+    expect(withDatabase(uri, 'todo')).toBe(
+      `mongodb+srv://${PLACEHOLDER_CREDENTIALS}@cluster.example.invalid/todo`
+    );
   });
 });
 
@@ -179,27 +203,39 @@ describe('redactCredentials', () => {
   it('removes user and password from a connection string', () => {
     const uri = withCredentials(
       'mongodb+srv',
-      'kate:S3cret',
-      'cluster.abc.mongodb.net/todo'
+      PLACEHOLDER_CREDENTIALS,
+      'cluster.example.invalid/todo'
     );
 
-    expect(
-      redactCredentials(`failed to connect to ${uri}`)
-    ).toBe(
-      'failed to connect to mongodb+srv://<redacted>@cluster.abc.mongodb.net/todo'
+    expect(redactCredentials(`failed to connect to ${uri}`)).toBe(
+      'failed to connect to mongodb+srv://<redacted>@cluster.example.invalid/todo'
     );
   });
 
   it('leaves a credential-free string untouched', () => {
-    const text = 'querySrv EBADNAME _mongodb._tcp.cluster.abc.mongodb.net';
+    const text = 'querySrv EBADNAME _mongodb._tcp.cluster.example.invalid';
     expect(redactCredentials(text)).toBe(text);
   });
 
+  it('redacts a username with no password', () => {
+    expect(
+      redactCredentials('mongodb://placeholder-user@one.example.invalid/todo')
+    ).toBe('mongodb://<redacted>@one.example.invalid/todo');
+  });
+
   it('redacts every occurrence', () => {
-    const firstUri = withCredentials('mongodb', 'a:b', 'one.net');
-    const secondUri = withCredentials('mongodb', 'c:d', 'two.net');
+    const firstUri = withCredentials(
+      'mongodb',
+      'placeholder-a:placeholder-b',
+      'one.example.invalid'
+    );
+    const secondUri = withCredentials(
+      'mongodb',
+      'placeholder-c:placeholder-d',
+      'two.example.invalid'
+    );
     const result = redactCredentials(`${firstUri} and ${secondUri}`);
-    expect(result).not.toContain('a:b@');
-    expect(result).not.toContain('c:d@');
+    expect(result).not.toContain('placeholder-a:placeholder-b@');
+    expect(result).not.toContain('placeholder-c:placeholder-d@');
   });
 });

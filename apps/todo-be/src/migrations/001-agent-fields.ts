@@ -121,13 +121,17 @@ const isEntryPoint = require.main === module;
  * to be run against production by hand.
  */
 export const redactCredentials = (text: string): string =>
-  text.replace(/\/\/[^/@\s]*:[^/@\s]*@/g, '//<redacted>@');
+  text.replace(/\/\/[^/@\s]*@/g, '//<redacted>@');
 
-/** Swaps the database name in a connection string, leaving credentials alone. */
+/**
+ * Swaps the database name in a connection string, leaving credentials alone.
+ * Only the path is replaced — a URI with no path at all (`mongodb://host:27017`)
+ * keeps its host, which a "strip from the last slash" rule would eat.
+ */
 export const withDatabase = (uri: string, database: string): string => {
   const [base, query] = uri.split('?');
-  const withoutDatabase = base.replace(/\/[^/]*$/, '');
-  return `${withoutDatabase}/${database}${query ? `?${query}` : ''}`;
+  const authority = base.replace(/^([^:]+:\/\/[^/]*)(\/.*)?$/, '$1');
+  return `${authority}/${database}${query ? `?${query}` : ''}`;
 };
 
 if (isEntryPoint) {

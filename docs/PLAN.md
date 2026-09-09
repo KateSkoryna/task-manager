@@ -169,6 +169,21 @@ Note that production is a replica set, so multi-document transactions are availa
 
 **Missing indexes, found during the same audit.** Both `todos` and `todolists` carry only the default `_id_` index in production — there is no index on `userId` or `todolistId`, so every user-scoped query and the statistics aggregation are full collection scans. This is harmless at three documents and will not stay harmless. n8n Phase 1 should add these indexes alongside its schema work.
 
+**Index audit, 2026-09-07 (Step 1.1).** Re-run with `node scripts/list-indexes.js --database <name>`. Production `todo` and `todo_dev` were identical:
+
+| Collection      | Indexes present                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `todos`         | `_id_`, `userId_1_todolistId_1`, `userId_1_dueDate_1`, `todolistId_1`                                              |
+| `todolists`     | `_id_` only                                                                                                        |
+| `users`         | `_id_`, `firebaseUid_1` (unique), `email_1` (unique), `username_1` (sparse), `telegram.chatId_1` (unique, partial) |
+| `agentsessions` | collection does not exist                                                                                          |
+
+Three things changed the plan for Steps 1.2 and 1.3:
+
+1. **Production gained the three `todos` indexes without a migration.** The August audit above found only `_id_`. `autoIndex` built them on a deploy — silently, which is precisely the liability Step 1.2 removes. Migration 002 must therefore be idempotent against indexes that already exist, and must name them exactly as MongoDB derives the name from the key spec: a different name for the same keys makes `createIndex` conflict instead of no-op.
+2. **`todolists` really does have only `_id_`**, confirmed in production, so every `{ _id, userId }` ownership check scans.
+3. **`agentsessions` does not exist in production**, so neither does its unique `(userId, chatId)` index. Today `autoIndex` would build it on first write; once Step 1.2 turns `autoIndex` off in production, nothing would. Migration 002 creates it explicitly for that reason.
+
 **B3 — Local development database decision.** **Closed 2026-08-20.** Local development previously pointed at Docker MongoDB, which cannot serve `$vectorSearch` and would have failed on first contact with n8n Phase 8. It now points at a `todo_dev` database on the same Atlas cluster as production, verified connecting with `{"status":"ok","mongo":"connected"}` against MongoDB 8.0.29. Production `todo` and development `todo_dev` share a cluster and share nothing else.
 
 Consequences for later phases:
@@ -388,6 +403,33 @@ not generalise.
 
 **Done when.** The explain output for all four shapes is captured, the results table is
 appended to this document, and prettier has run.
+
+### Phase 1 results
+
+Measured 2026-09-07 against `todo_dev` (25 todos) with
+`node scripts/explain-queries.js --database todo_dev`. Re-run it after any index change.
+
+| Query shape                     | Winning plan   | Index used              | Docs examined | Returned |
+| ------------------------------- | -------------- | ----------------------- | ------------- | -------- |
+| `{ userId }`                    | FETCH → IXSCAN | `userId_1_todolistId_1` | 25            | 25       |
+| `{ userId, todolistId: null }`  | FETCH → IXSCAN | `userId_1_todolistId_1` | 7             | 7        |
+| `{ userId, dueDate: { $lte } }` | FETCH → IXSCAN | `userId_1_dueDate_1`    | 21            | 21       |
+| `{ _id, todolistId }`           | FETCH → IXSCAN | `_id_`                  | 1             | 1        |
+
+No `COLLSCAN`. Every shape examined exactly as many documents as it returned, so no shape
+scans past documents it then discards.
+
+Two caveats before treating this as settled:
+
+- **25 documents proves selection, not performance.** The planner picked the index here, but
+  at this volume a `COLLSCAN` would also have been cheap. Re-run at realistic volume before
+  concluding anything about latency.
+- **None of these plans is covered.** Every one is `FETCH → IXSCAN`, meaning the index
+  locates the documents and MongoDB then reads each one. That is expected — the queries
+  return whole todos — but it means index-only reads are not what is being measured.
+
+The `{ userId }` shape is served by the `userId_1_todolistId_1` compound as a prefix, which
+is why no standalone `{ userId: 1 }` index on `todos` is needed or wanted.
 
 ---
 
