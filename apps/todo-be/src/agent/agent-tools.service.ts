@@ -11,18 +11,28 @@ import { TodoService } from '../todo/todo.service';
 import { AgentSessionService } from './agent-session.service';
 import { TOOL_REGISTRY } from './agent.tools';
 
+export interface ToolFailure {
+  ok: false;
+  reason: string;
+  proposal?: { toolName: string; input: unknown; token: string };
+}
+
 /**
  * Never a thrown exception for an expected outcome like "task not found" —
  * that is conversational, not exceptional, and the caller (eventually the
  * model) needs to be told, not crashed on.
  */
-export type ToolResult<T> =
-  | { ok: true; data: T }
-  | {
-      ok: false;
-      reason: string;
-      proposal?: { toolName: string; input: unknown; token: string };
-    };
+export type ToolResult<T> = { ok: true; data: T } | ToolFailure;
+
+/**
+ * This project doesn't run with `strictNullChecks`, so `!result.ok` alone
+ * doesn't narrow a discriminated union the way it would in strict mode —
+ * an explicit type guard is what actually gets `result.proposal` to
+ * typecheck at call sites.
+ */
+export const isToolFailure = <T>(
+  result: ToolResult<T>
+): result is ToolFailure => result.ok === false;
 
 const ok = <T>(data: T): ToolResult<T> => ({ ok: true, data });
 const notFound = (): ToolResult<never> => ({ ok: false, reason: 'not_found' });
