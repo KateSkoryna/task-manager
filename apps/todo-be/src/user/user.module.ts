@@ -19,5 +19,6 @@ import { UserPreferencesService } from './user-preferences.service';
   ],
   controllers: [UserController, UserPreferencesController],
   providers: [UserService, StatsPeriodPipe, UserPreferencesService],
+  exports: [UserPreferencesService],
 })
 export class UserModule {}

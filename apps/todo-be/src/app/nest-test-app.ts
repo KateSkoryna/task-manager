@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { AppModule } from '../app.module';
 import { configureApplication, installOpenApi } from '../bootstrap';
 import { FIREBASE_ADMIN } from '../integrations/firebase/firebase.constants';
@@ -10,8 +10,10 @@ const identities: Record<string, { uid: string; email: string }> = {
   'token-new': { uid: 'firebase-new', email: 'new@example.com' },
 };
 
-export async function createNestTestApplication(): Promise<INestApplication> {
-  const module = await Test.createTestingModule({ imports: [AppModule] })
+export async function createNestTestApplication(
+  configure?: (builder: TestingModuleBuilder) => TestingModuleBuilder
+): Promise<INestApplication> {
+  let builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(FIREBASE_ADMIN)
     .useValue({
       auth: () => ({
@@ -21,8 +23,10 @@ export async function createNestTestApplication(): Promise<INestApplication> {
           return identity;
         },
       }),
-    })
-    .compile();
+    });
+  if (configure) builder = configure(builder);
+
+  const module = await builder.compile();
 
   const app = module.createNestApplication();
   configureApplication(app);

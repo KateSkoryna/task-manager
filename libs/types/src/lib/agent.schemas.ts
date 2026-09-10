@@ -41,6 +41,14 @@ export const pendingConfirmationSchema = z.object({
   expiresAt: z.string().datetime(),
 });
 
+/** The body of `POST /api/agent/message`. */
+export const agentMessageInputSchema = z
+  .object({
+    chatId: z.string().trim().min(1),
+    text: z.string().trim().min(1).max(MAX_TURN_TEXT_LENGTH),
+  })
+  .strict();
+
 export const agentSessionSchema = z.object({
   userId: z.string(),
   chatId: z.string(),
@@ -72,6 +80,7 @@ export const parsedTaskBatchSchema = z.object({
   tasks: z.array(parsedTaskSchema),
 });
 
+export type AgentMessageInput = z.infer<typeof agentMessageInputSchema>;
 export type AgentTurn = z.infer<typeof agentTurnSchema>;
 export type PendingClarification = z.infer<typeof pendingClarificationSchema>;
 export type PendingConfirmation = z.infer<typeof pendingConfirmationSchema>;

@@ -150,4 +150,70 @@ describe('AgentSessionService', () => {
 
     expect(confirmed).toBe(false);
   });
+
+  describe('getOrCreateSession', () => {
+    it('creates a fresh session with empty defaults when none exists', async () => {
+      const userId = new Types.ObjectId().toString();
+
+      const session = await service.getOrCreateSession(userId, 'new-chat');
+
+      expect(session.turns).toEqual([]);
+      expect(session.pendingClarifications).toEqual([]);
+      expect(session.pendingConfirmation).toBeNull();
+      expect(session.expiresAt.getTime()).toBeGreaterThan(Date.now());
+    });
+
+    it('returns the existing session and refreshes its expiry', async () => {
+      const original = await seedSession({
+        expiresAt: new Date(Date.now() + 1000),
+      });
+
+      const session = await service.getOrCreateSession(
+        original.userId.toString(),
+        original.chatId
+      );
+
+      expect(session._id.toString()).toBe(original._id.toString());
+      expect(session.expiresAt.getTime()).toBeGreaterThan(Date.now() + 1000);
+    });
+  });
+
+  describe('appendTurns', () => {
+    it('appends turns to the rolling window', async () => {
+      const session = await seedSession();
+
+      await service.appendTurns(session.userId.toString(), session.chatId, [
+        { role: 'user', text: 'hello', at: new Date().toISOString() },
+        { role: 'assistant', text: 'hi there', at: new Date().toISOString() },
+      ]);
+
+      const reloaded = await AgentSession.findById(session._id);
+      expect(reloaded?.turns).toHaveLength(2);
+      expect(reloaded?.turns[0].text).toBe('hello');
+      expect(reloaded?.turns[1].text).toBe('hi there');
+    });
+
+    it('trims the window to the most recent turns', async () => {
+      const session = await seedSession();
+      const firstBatch = Array.from({ length: 20 }, (_, i) => ({
+        role: 'user' as const,
+        text: `turn-${i}`,
+        at: new Date().toISOString(),
+      }));
+      await service.appendTurns(
+        session.userId.toString(),
+        session.chatId,
+        firstBatch
+      );
+
+      await service.appendTurns(session.userId.toString(), session.chatId, [
+        { role: 'user', text: 'newest', at: new Date().toISOString() },
+      ]);
+
+      const reloaded = await AgentSession.findById(session._id);
+      expect(reloaded?.turns).toHaveLength(20);
+      expect(reloaded?.turns.at(-1)?.text).toBe('newest');
+      expect(reloaded?.turns[0].text).toBe('turn-1');
+    });
+  });
 });

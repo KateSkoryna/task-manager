@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { randomUUID } from 'crypto';
 import { Model } from 'mongoose';
+import { AgentTurn } from '@shared/types';
 import {
   AGENT_SESSION_MODEL_NAME,
   IAgentSessionDocument,
@@ -9,6 +10,9 @@ import {
 import { executeOperation } from '../common/utils/execute-operation';
 
 const CONFIRMATION_TTL_MS = 5 * 60 * 1000;
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+/** How many turns the rolling window sent to the model keeps. */
+const MAX_SESSION_TURNS = 20;
 
 @Injectable()
 export class AgentSessionService {
@@ -79,6 +83,54 @@ export class AgentSessionService {
       if (!doc?.pendingConfirmation) return false;
       return (
         JSON.stringify(doc.pendingConfirmation.input) === JSON.stringify(input)
+      );
+    });
+  }
+
+  /**
+   * Finds the session for `(userId, chatId)` or creates an empty one,
+   * refreshing its expiry either way. A tool call cannot arrive before its
+   * session exists, so the agent controller calls this first.
+   */
+  getOrCreateSession(
+    userId: string,
+    chatId: string
+  ): Promise<IAgentSessionDocument> {
+    return executeOperation('Error loading agent session', async () => {
+      const doc = await this.agentSessionModel.findOneAndUpdate(
+        { userId, chatId },
+        { $set: { expiresAt: new Date(Date.now() + SESSION_TTL_MS) } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      return doc;
+    });
+  }
+
+  /**
+   * Appends turns to the session's rolling window, trimming to the last
+   * `MAX_SESSION_TURNS` so the request sent to the model stays bounded.
+   */
+  appendTurns(
+    userId: string,
+    chatId: string,
+    newTurns: AgentTurn[]
+  ): Promise<void> {
+    return executeOperation('Error appending agent turns', async () => {
+      await this.agentSessionModel.updateOne(
+        { userId, chatId },
+        {
+          $push: {
+            turns: {
+              $each: newTurns.map((turn) => ({
+                ...turn,
+                at: new Date(turn.at),
+              })),
+              $slice: -MAX_SESSION_TURNS,
+            },
+          },
+          $set: { expiresAt: new Date(Date.now() + SESSION_TTL_MS) },
+          $inc: { version: 1 },
+        }
       );
     });
   }

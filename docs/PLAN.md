@@ -572,6 +572,40 @@ named differently from what this plan assumes — report what it actually is.
 **Done when.** Actual request/response shapes and the live AI Studio rate limits are pasted
 into your report and recorded in this document. No repository file is modified.
 
+### Step 4.1 results
+
+Verified 2026-09-10 against the pinned `@google/genai@2.13.0` and `gemini-3.5-flash`, live,
+with a throwaway script outside the repo. **No version bump needed** — the pinned SDK
+addresses the 3.x model without changes.
+
+- **Model resolves.** `ai.models.generateContent({ model: 'gemini-3.5-flash', contents, config })`
+  returns `result.modelVersion === 'gemini-3.5-flash'`.
+- **Function calling works**, and returns a convenience getter: `result.functionCalls` is an
+  array of `{ name, args, id }`, sourced from `result.candidates[0].content.parts[].functionCall`.
+- **Streaming works.** `await ai.models.generateContentStream({ model, contents, config })`
+  resolves to an `AsyncGenerator<GenerateContentResponse>`; each chunk exposes `.text`.
+- **`thinkingConfig.thinkingBudget` is accepted as named** — the plan's assumed shape was
+  correct, no rename. `usageMetadata.thoughtsTokenCount` appears when the budget is non-zero
+  and is absent at `thinkingBudget: 0`.
+- **New in the 3.x line, not mentioned by the plan: `thoughtSignature`.** Every `functionCall`
+  part in the response carries a `thoughtSignature` string. **It must be echoed back verbatim**
+  on that same part when the function's result is sent back in the next turn — omitting it is
+  a hard `400 INVALID_ARGUMENT`: _"Function call is missing a thought_signature in functionCall
+  parts... required for tools to work correctly."_ Confirmed both ways live: the call fails
+  without it and succeeds identically with it re-attached. Step 4.2's tool-calling loop must
+  carry `thoughtSignature` through on every appended model turn, not just the validated
+  `functionCall.args`.
+- **Live free-tier rate limit, from the API's own `429` response** (not the AI Studio
+  dashboard — see caveat below): `generativelanguage.googleapis.com/generate_content_free_tier_requests`
+  is capped at **5 requests per minute** per project per model for `gemini-3.5-flash`. This is
+  the authoritative enforced limit, not a documentation figure.
+
+**Caveat — daily quota (RPD/TPD) not yet recorded.** The RPM figure above came from an
+enforced-quota error message, which only reports the limit actually hit. Daily request/token
+caps aren't visible that way; the plan calls for reading those from
+<https://aistudio.google.com/rate-limit>, which sits behind Kate's Google login. Kate to
+paste those numbers before Step 4.4 sizes the route's `@Throttle`.
+
 ### Step 4.2 — `AgentService`: the tool-calling loop
 
 **What to do.** Create `apps/todo-be/src/agent/agent.service.ts`. Build the request from the
@@ -648,6 +682,42 @@ is useful for debugging without retaining user content.
 
 **Done when.** Tests cover consent-denied, rate-limited, and timeout paths; a test asserts no
 raw text appears in logs when `NODE_ENV=production`; prettier run.
+
+### Step 4.4 results
+
+**AI Studio numbers, confirmed 2026-09-10** (resolves the Step 4.1 caveat): the free-tier
+project behind `GEMINI_API_KEY`, for the model addressed as `gemini-3.5-flash` (listed in the
+dashboard as "Gemini 3 Flash"): **RPM 5, TPM 250K, RPD 20** — matching the RPM figure Step 4.1
+already derived live from a `429` body. The dashboard also showed "Gemini 3.5 Flash Lite" with a
+far larger budget (RPM 15, RPD 500); considered and rejected — Lite trades reasoning depth for
+throughput, and this agent's job is exactly the judgment calls (date resolution, ambiguity,
+confirmation-worthiness) Lite is more likely to get wrong. Sticking with the full model and
+protecting its tight budget via throttling/retry instead. `GEMINI_MODEL` is already an env
+override, so switching later needs no code change.
+
+- **Consent gate.** `AgentController.message` now checks `preferences.aiConsent` before ever
+  touching SSE or Gemini, returning a plain `403 { code: 'ai_consent_required' }` — not an SSE
+  `error` event, since no stream has started yet.
+- **Throttle.** `AGENT_THROTTLE_LIMIT`/`AGENT_THROTTLE_TTL_MS` (default 3/60s, env-overridable)
+  applied via `@Throttle` on `AgentController`, well under the shared 5 RPM project budget to
+  leave headroom for concurrent requests.
+- **Retry/timeout.** `AgentService.callGemini` wraps every `generateContent`/
+  `generateContentStream` call with a per-attempt timeout (default 15s) and bounded exponential
+  backoff (default 2 retries, 500ms base) on `429`/`503` only — a `400` throws immediately.
+  Client disconnect (`AbortSignal` from the controller) and the timeout's own controller are
+  merged by hand (`anySignal`) since `AbortSignal.any` isn't in this project's pinned
+  `@types/node` yet.
+- **Log hygiene.** `AgentService` logs `{ promptVersion, model, latencyMs, totalTokens, outcome }`
+  once per `reply`/`replyStream` call — message text, tool arguments, and model output are never
+  assembled into the log object in the first place, so there's nothing to redact and no
+  env-conditional needed; a test forces `NODE_ENV=production` and asserts a planted secret
+  string never appears in any logged payload.
+- **Test infra note.** NestJS's global `APP_GUARD`-registered `ThrottlerGuard` could not be
+  bypassed in Jest via `overrideProvider(APP_GUARD)` or `overrideGuard(ThrottlerGuard)` —
+  confirmed empirically, not just by inspection: both left the real guard active. Added
+  `apps/todo-be/src/app/test-env-setup.ts` (wired via Jest's `setupFiles`, which runs before any
+  module — including `throttle.config.ts` — is imported) to raise `AGENT_THROTTLE_LIMIT` for the
+  whole test run, since the constant is read once at import time and can't be changed per-test.
 
 ---
 

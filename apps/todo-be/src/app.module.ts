@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { AgentModule } from './agent/agent.module';
 import { AuthModule } from './auth/auth.module';
 import {
   DEFAULT_THROTTLE_LIMIT,
@@ -70,6 +71,7 @@ const REQUEST_ID_PATTERN = /^[\w-]{1,100}$/;
     TodoModule,
     UserModule,
     HealthModule,
+    AgentModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
