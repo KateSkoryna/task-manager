@@ -14,6 +14,18 @@ export interface IPendingClarification {
   askedAt: Date;
 }
 
+/**
+ * A short-lived, single-use token issued when a destructive tool call (e.g.
+ * `delete_task`) arrives without confirmation. Consuming it clears this
+ * field, which is what makes replay impossible.
+ */
+export interface IPendingConfirmation {
+  token: string;
+  toolName: string;
+  input: Record<string, unknown>;
+  expiresAt: Date;
+}
+
 export interface IAgentSessionDocument extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
@@ -21,6 +33,7 @@ export interface IAgentSessionDocument extends Document {
   turns: IAgentTurn[];
   pendingClarifications: IPendingClarification[];
   lastTaskIds: Types.ObjectId[];
+  pendingConfirmation: IPendingConfirmation | null;
   expiresAt: Date;
   /** Incremented on every write so interleaved messages cannot clobber state. */
   version: number;
@@ -53,6 +66,16 @@ const clarificationSchema = new Schema<IPendingClarification>(
   { _id: false }
 );
 
+const pendingConfirmationSchema = new Schema<IPendingConfirmation>(
+  {
+    token: { type: String, required: true },
+    toolName: { type: String, required: true },
+    input: { type: Schema.Types.Mixed, required: true },
+    expiresAt: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 export const AGENT_SESSION_MODEL_NAME = 'AgentSession';
 export const agentSessionSchema = new Schema<IAgentSessionDocument>(
   {
@@ -61,6 +84,7 @@ export const agentSessionSchema = new Schema<IAgentSessionDocument>(
     turns: { type: [turnSchema], default: [] },
     pendingClarifications: { type: [clarificationSchema], default: [] },
     lastTaskIds: { type: [Schema.Types.ObjectId], ref: 'Todo', default: [] },
+    pendingConfirmation: { type: pendingConfirmationSchema, default: null },
     expiresAt: { type: Date, required: true },
     version: { type: Number, default: 0 },
   },

@@ -53,6 +53,11 @@ export const completeTaskInput = z
 export const deleteTaskInput = z
   .object({
     id: z.string().trim().min(1),
+    /**
+     * Echoes back the token from a prior `confirmation_required` proposal.
+     * Absent on the first attempt at a destructive call.
+     */
+    confirmationToken: z.string().trim().min(1).optional(),
   })
   .strict();
 

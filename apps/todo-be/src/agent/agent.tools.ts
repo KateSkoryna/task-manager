@@ -125,6 +125,13 @@ interface ToolRegistryEntry {
   name: ToolName;
   description: string;
   schema: ZodType;
+  /**
+   * Whether a given call needs a confirmation round-trip before it executes.
+   * Takes the call's input because destructiveness can depend on it (e.g. a
+   * batch update affecting more than one task) even when the tool itself is
+   * usually safe.
+   */
+  requiresConfirmation: (input: unknown) => boolean;
   declaration: FunctionDeclaration;
 }
 
@@ -139,7 +146,10 @@ const buildDeclaration = (
 });
 
 const TOOL_DEFINITIONS: Array<
-  Pick<ToolRegistryEntry, 'name' | 'description' | 'schema'>
+  Pick<
+    ToolRegistryEntry,
+    'name' | 'description' | 'schema' | 'requiresConfirmation'
+  >
 > = [
   {
     name: 'create_tasks',
@@ -149,6 +159,7 @@ const TOOL_DEFINITIONS: Array<
       'guessing. When the text clearly describes more than one task, set ' +
       '`ambiguous` on the affected task instead of inventing a split.',
     schema: createTasksInput,
+    requiresConfirmation: () => false,
   },
   {
     name: 'update_task',
@@ -156,11 +167,17 @@ const TOOL_DEFINITIONS: Array<
       'Change one or more fields on an existing task identified by id. Only ' +
       'include fields the user asked to change.',
     schema: updateTaskInput,
+    // `updateTaskInput` only ever addresses one task by id, so this can
+    // never be true today. Kept as a predicate so a future batch update
+    // (affecting more than one task) has somewhere to plug in without
+    // changing the registry's shape.
+    requiresConfirmation: () => false,
   },
   {
     name: 'complete_task',
     description: 'Mark an existing task, identified by id, as complete.',
     schema: completeTaskInput,
+    requiresConfirmation: () => false,
   },
   {
     name: 'delete_task',
@@ -168,6 +185,7 @@ const TOOL_DEFINITIONS: Array<
       'Permanently delete an existing task identified by id. Destructive — ' +
       'only call this when the user clearly asked to remove the task.',
     schema: deleteTaskInput,
+    requiresConfirmation: () => true,
   },
   {
     name: 'list_tasks',
@@ -175,6 +193,7 @@ const TOOL_DEFINITIONS: Array<
       "List the user's tasks, optionally filtered to one list. Pass " +
       '`todolistId: null` for the Inbox.',
     schema: listTasksInput,
+    requiresConfirmation: () => false,
   },
 ];
 
