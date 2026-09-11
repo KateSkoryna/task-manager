@@ -14,6 +14,9 @@
     "closeMenu": "Close menu",
     "menuTitle": "Navigation menu",
     "search": "Search",
+    "searchLoading": "Searching your tasks...",
+    "searchNoResults": "No matching tasks found",
+    "searchError": "Search failed. Please try again.",
     "notifications": "Notifications"
   },
   "auth": {

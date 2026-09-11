@@ -1,7 +1,8 @@
-import { RefObject } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Search, Bell, Menu } from 'lucide-react';
+import { RefObject, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Bell, Loader2, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useHeaderTaskSearch } from '../../hooks/useHeaderTaskSearch';
 import IconButton from './IconButton';
 import Input from './Input';
 import { MOBILE_DRAWER_ID } from './MobileDrawer';
@@ -30,7 +31,24 @@ type TopHeaderProps = {
 function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const title = t(ROUTE_TITLE_KEYS[pathname] ?? 'nav.dashboard');
+
+  const { query, setQuery, status, matches, clear } = useHeaderTaskSearch();
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const isSearchOpen = query.trim().length > 0;
+
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!searchContainerRef.current?.contains(event.target as Node)) {
+        clear();
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSearchOpen]);
 
   const locale =
     LOCALE_MAP[i18n.language] ??
@@ -72,13 +90,65 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
         <IconButton ariaLabel={t('header.search')} className="lg:hidden">
           <Search className="size-4" />
         </IconButton>
-        <div className="hidden lg:block lg:w-search-desktop">
+        <div
+          ref={searchContainerRef}
+          className="relative hidden lg:block lg:w-search-desktop"
+        >
           <Input
             type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') clear();
+            }}
             placeholder={t('header.searchPlaceholder')}
             ariaLabel={t('header.search')}
             inputTestId="header-search"
           />
+
+          {isSearchOpen && (
+            <ul
+              role="listbox"
+              aria-label={t('header.search')}
+              className="absolute z-10 mt-1 w-full list-none overflow-hidden rounded-inner border-2 border-default bg-surface p-0 shadow-menu"
+            >
+              {status === 'loading' && (
+                <li className="flex items-center gap-2 px-3 py-2 text-sm text-muted">
+                  <Loader2 className="size-4 animate-spin" />
+                  {t('header.searchLoading')}
+                </li>
+              )}
+              {status === 'error' && (
+                <li className="px-3 py-2 text-sm text-danger">
+                  {t('header.searchError')}
+                </li>
+              )}
+              {status === 'success' && matches.length === 0 && (
+                <li className="px-3 py-2 text-sm text-muted">
+                  {t('header.searchNoResults')}
+                </li>
+              )}
+              {status === 'success' &&
+                matches.map((match) => (
+                  <li key={match.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      onClick={() => {
+                        navigate('/tasks', {
+                          state: { todoId: match.id, listId: match.todolistId },
+                        });
+                        clear();
+                      }}
+                      className="w-full truncate px-3 py-2 text-left text-sm text-primary hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none"
+                    >
+                      {match.name}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          )}
         </div>
         <div className="relative">
           <IconButton ariaLabel={t('header.notifications')}>
