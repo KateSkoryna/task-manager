@@ -94,10 +94,16 @@ function TasksPage() {
     });
   }, [todoLists, inboxTodos]);
 
-  // Auto-select + open edit when navigated from another page with state
-  const initialStateHandled = useRef(false);
+  // Auto-select + open edit when navigated from another page with state.
+  // Tracks the last *navigation* handled (by history key), not just the last
+  // todoId, so navigating to the same task twice in a row (e.g. clicking the
+  // same header search result again) still re-opens it rather than being
+  // silently swallowed by a one-shot guard.
+  const lastHandledKey = useRef<string | null>(null);
   useEffect(() => {
-    if (initialStateHandled.current || !locationState?.todoId) return;
+    if (!locationState?.todoId || lastHandledKey.current === location.key) {
+      return;
+    }
 
     if (locationState.listId) {
       if (!todoLists?.length) return;
@@ -106,17 +112,17 @@ function TasksPage() {
       if (todo && list) {
         setSelectedTask({ todo, list });
         setIsEditing(true);
-        initialStateHandled.current = true;
+        lastHandledKey.current = location.key;
       }
     } else {
       const todo = inboxTodos.find((t) => t.id === locationState.todoId);
       if (todo) {
         setSelectedTask({ todo, list: null });
         setIsEditing(true);
-        initialStateHandled.current = true;
+        lastHandledKey.current = location.key;
       }
     }
-  }, [locationState, todoLists, inboxTodos]);
+  }, [locationState, location.key, todoLists, inboxTodos]);
 
   // Open the create-list form when navigated from another page requesting it
   const createListStateHandled = useRef(false);
