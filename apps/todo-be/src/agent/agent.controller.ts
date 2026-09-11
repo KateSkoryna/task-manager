@@ -160,6 +160,7 @@ export class AgentController {
       this.logger.error({ err: error }, 'Agent request failed');
       if (!res.writableEnded) {
         writeEvent(res, 'error', {
+          type: 'error',
           message: 'The agent could not complete this request.',
         });
       }
