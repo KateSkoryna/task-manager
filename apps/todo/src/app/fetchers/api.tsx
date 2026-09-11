@@ -15,11 +15,13 @@ import {
 import {
   TodoList as TodoListType,
   TodoItem as TodoItemType,
+  ParsedTask,
   UpdateTodoItem,
   UpdateTodoList,
 } from '@shared/types';
 import { useAuthStore } from '../store/authStore';
 import { storage } from '../lib/firebase';
+import { parseTodoFetcher } from './agent';
 
 export const useTodoListsQuery = () => {
   const user = useAuthStore((s) => s.user);
@@ -235,6 +237,18 @@ export const useEditTodoMutation = () => {
         }
       }
     },
+  });
+};
+
+/**
+ * Fire-and-forget quick-capture parse: no cache invalidation on success, no
+ * `console.error` on failure — the caller treats every failure mode (bad
+ * JSON, timeout, consent off, rate limit) the same way, by leaving the raw
+ * task name alone.
+ */
+export const useParseTodoMutation = () => {
+  return useMutation<ParsedTask, Error, string>({
+    mutationFn: (text) => parseTodoFetcher(text),
   });
 };
 
