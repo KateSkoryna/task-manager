@@ -1,7 +1,22 @@
-import { TOOL_NAMES } from '@shared/types';
+import { TOOL_NAMES, updateTaskInput } from '@shared/types';
 import { TOOL_REGISTRY, zodToGeminiSchema } from './agent.tools';
 import { z } from 'zod';
 import { Type } from '@google/genai';
+
+/** Recursively collects every `enum` array anywhere in a converted schema. */
+const collectEnums = (node: unknown, found: unknown[][] = []): unknown[][] => {
+  if (!node || typeof node !== 'object') return found;
+  const record = node as Record<string, unknown>;
+  if (Array.isArray(record['enum'])) found.push(record['enum']);
+  for (const value of Object.values(record)) {
+    if (Array.isArray(value)) {
+      value.forEach((item) => collectEnums(item, found));
+    } else if (value && typeof value === 'object') {
+      collectEnums(value, found);
+    }
+  }
+  return found;
+};
 
 describe('TOOL_REGISTRY', () => {
   it('has exactly one entry per declared tool name', () => {
@@ -78,6 +93,22 @@ describe('zodToGeminiSchema', () => {
     expect(result.properties!['name'].maxLength).toBe('50');
     expect(result.properties!['tasks'].minItems).toBe('1');
     expect(result.properties!['tasks'].maxItems).toBe('20');
+  });
+
+  it("strips the empty-string enum member a `z.literal('')` \"clearable\" field produces, since Gemini rejects `enum: ['']` outright", () => {
+    const schema = z
+      .union([z.string(), z.literal('')])
+      .nullable()
+      .optional();
+    const result = zodToGeminiSchema(z.object({ dueDate: schema }));
+    const enums = collectEnums(result);
+    expect(enums.every((values) => !values.includes(''))).toBe(true);
+  });
+
+  it('produces no empty-string enum anywhere in a real tool schema (updateTaskInput has this exact shape on dueDate/notes)', () => {
+    const result = zodToGeminiSchema(updateTaskInput);
+    const enums = collectEnums(result);
+    expect(enums.every((values) => !values.includes(''))).toBe(true);
   });
 
   it('sets format: "enum" alongside an enum field', () => {

@@ -26,6 +26,13 @@ export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
 
 const MAX_ITERATIONS = 5;
 
+// A budget of exactly 0 ("no thinking") is rejected outright by
+// gemini-3.5-flash-lite with a 400 INVALID_ARGUMENT — confirmed live; the
+// full gemini-3.5-flash model accepts 0 but 1 works identically there too
+// (thoughtsTokenCount stays 0 either way). One value that both accept keeps
+// this from silently breaking whenever GEMINI_MODEL points at a Lite variant.
+const MIN_THINKING_BUDGET = 1;
+
 // Only 429 (rate limited) and 503 (transiently unavailable) are worth
 // retrying — a 400 means the request itself is wrong and will stay wrong.
 const RETRYABLE_STATUSES = [429, 503];
@@ -180,7 +187,7 @@ export class AgentService {
       tools: [
         { functionDeclarations: TOOL_REGISTRY.map((t) => t.declaration) },
       ],
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingBudget: MIN_THINKING_BUDGET },
     };
 
     const toolCalls: AgentToolCallRecord[] = [];
@@ -314,7 +321,7 @@ export class AgentService {
       tools: [
         { functionDeclarations: TOOL_REGISTRY.map((t) => t.declaration) },
       ],
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingBudget: MIN_THINKING_BUDGET },
     };
     const startedAt = Date.now();
     let totalTokens = 0;
@@ -416,6 +423,8 @@ export class AgentService {
         return this.agentToolsService.deleteTask(userId, chatId, call.input);
       case 'list_tasks':
         return this.agentToolsService.listTasks(userId, call.input);
+      case 'find_tasks':
+        return this.agentToolsService.findTasks(userId, call.input);
     }
   }
 }

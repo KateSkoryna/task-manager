@@ -4,6 +4,7 @@ import {
   completeTaskInput,
   createTasksInput,
   deleteTaskInput,
+  findTasksInput,
   listTasksInput,
   ToolName,
   updateTaskInput,
@@ -86,9 +87,21 @@ const convertNode = (
       continue;
     }
     if (key === 'anyOf' && Array.isArray(value)) {
-      result['anyOf'] = value.map((branch) =>
+      const branches = value.map((branch) =>
         convertNode(branch as Record<string, unknown>)
       );
+      // A `z.union([..., z.literal('')])` field (used for "clearable" inputs
+      // like an optional dueDate/notes) degenerates, once its empty-string
+      // enum member is stripped below, to a branch identical to the plain
+      // string branch already in the union — drop the duplicate rather than
+      // sending Gemini a redundant `anyOf` entry.
+      const seen = new Set<string>();
+      result['anyOf'] = branches.filter((branch) => {
+        const serialized = JSON.stringify(branch);
+        if (seen.has(serialized)) return false;
+        seen.add(serialized);
+        return true;
+      });
       continue;
     }
     if (STRING_ENCODED_NUMERIC_KEYS.has(key) && typeof value === 'number') {
@@ -101,6 +114,20 @@ const convertNode = (
   const type = node['type'];
   if (typeof type === 'string') {
     result['type'] = toGeminiType(type);
+  }
+
+  // Gemini rejects an empty string as an enum member outright ("enum[0]:
+  // cannot be empty") — `z.literal('')`, used by this project's "clearable"
+  // optional-string schemas, produces exactly that. Strip it; if nothing is
+  // left, the field reverts to an unconstrained string rather than a bad
+  // enum.
+  if (Array.isArray(result['enum'])) {
+    const nonEmpty = (result['enum'] as unknown[]).filter((v) => v !== '');
+    if (nonEmpty.length === 0) {
+      delete result['enum'];
+    } else {
+      result['enum'] = nonEmpty;
+    }
   }
 
   // Gemini requires `format: "enum"` alongside `enum` to actually constrain
@@ -193,6 +220,17 @@ const TOOL_DEFINITIONS: Array<
       "List the user's tasks, optionally filtered to one list. Pass " +
       '`todolistId: null` for the Inbox.',
     schema: listTasksInput,
+    requiresConfirmation: () => false,
+  },
+  {
+    name: 'find_tasks',
+    description:
+      "Retrieve the user's tasks so you can reason about which ones match a " +
+      'natural-language description. This does not search or filter itself — ' +
+      'it hands you the candidate tasks and you decide which, if any, match ' +
+      'the query. Use it for vague or indirect references (e.g. a query about ' +
+      '"my t-shirt" that should surface a "do laundry" task).',
+    schema: findTasksInput,
     requiresConfirmation: () => false,
   },
 ];

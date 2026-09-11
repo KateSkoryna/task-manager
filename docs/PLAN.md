@@ -94,6 +94,20 @@ Reasoning, from the current [pricing page](https://ai.google.dev/gemini-api/docs
 - **Fallback pin:** if 3.5 Flash misbehaves on the eval set, drop to `gemini-2.5-flash`, which
   is the most-documented free-tier function-calling model.
 
+> **Local development model, 2026-09-11.** `gemini-3.5-flash`'s free-tier RPD cap is only 20
+> requests/day (confirmed live via a `429 RESOURCE_EXHAUSTED` during Phase 6 manual testing),
+> which exhausts fast during interactive development — this is a local-dev convenience choice,
+> not a reversal of the production model decision above. `.env`'s `GEMINI_MODEL` is set to
+> `gemini-3.1-flash-lite` for local work: confirmed live to resolve and to have its own,
+> separate free-tier quota bucket (quotas are keyed by `{project, model}`, not shared across
+> models). Discovered in the process: **a `thinkingBudget` of exactly `0` is rejected outright
+> by `gemini-3.5-flash-lite` with a `400 INVALID_ARGUMENT`** — confirmed live — while the full
+> `gemini-3.5-flash` model accepts `0` fine. `1` works identically on both (`thoughtsTokenCount`
+> stays `0` either way), so `agent.service.ts` now hardcodes `MIN_THINKING_BUDGET = 1` instead
+> of `0`, which is what makes any Lite-family model usable at all through this code. This
+> constant, not `.env`, is what production must keep in mind if `GEMINI_MODEL` is ever pointed
+> at a Lite variant there.
+
 > **Quota caveat — verify before Phase 4.** Google no longer publishes per-model free-tier
 > RPM/TPD/RPD in the docs; `ai.google.dev/gemini-api/docs/rate-limits` now redirects to AI
 > Studio. Third-party trackers disagree badly (250 RPD vs 20 RPD for Flash). **Read the live
@@ -904,6 +918,14 @@ It is deliberately a log line and not an alert or an automatic behaviour change 
 - A test asserts the warning contains no task name and no query text.
 - Measured tokens-per-task is recorded in this document.
 
+### Step 6.1 results
+
+Measured 2026-09-11 with the exact heuristic `find_tasks` logs against (`Math.ceil(JSON.stringify(payload).length / 4)`, chars/4), over 500 synthetic `FindTasksCandidate` rows with representative field values (mixed due dates, priorities, statuses, list membership):
+
+- **~40 tokens/task** — inside the plan's estimated 25–50 range.
+- 500 tasks (the hard cap) → **~20,100 tokens**, already above the `PHASE_10_TOKEN_THRESHOLD` of 15,000. In practice this only matters once a single user is anywhere near the 500-task cap; the current maximum in `todo_dev` is about 50 tasks (~2,000 tokens), far below either Phase 10 trigger.
+- This is a proxy (chars/4), not the Gemini tokenizer's actual count — it exists to decide "should Phase 10 be reconsidered," a threshold check, not a billing figure.
+
 ### Step 6.2 — Wire the header input
 
 **What to do.** Add state and an `onChange` to the `Input` in `TopHeader.tsx`. Debounce 400 ms. On submit, call `POST /api/agent/message` with the query, render matching tasks in a dropdown below the field, and navigate to a task on click. Show empty, loading, and error states. Add i18n for `en`, `de`, `uk`. Reuse existing Tailwind tokens.
@@ -1011,6 +1033,18 @@ a model round-trip for the same job.
 ---
 
 ## Phase 9 — Evals and hardening
+
+> **Local model note, 2026-09-11.** `.env`'s `GEMINI_MODEL` is currently `gemini-3.1-flash-lite`,
+> not the `gemini-3.5-flash` chosen in "Model selection" above — `gemini-3.5-flash`'s free-tier
+> daily quota (20 requests/day) was exhausted during Phase 6 manual testing, and `3.1-flash-lite`
+> has its own, separate, untouched quota bucket. This is a local-development stopgap, not a
+> revised model decision. It matters here specifically because `eval:agent` reports the model
+> name alongside the pass rate (Step 9.1's "Done when") — a run against `3.1-flash-lite` is not
+> evidence about `gemini-3.5-flash`'s accuracy, and PLAN.md's own reasoning for avoiding the Lite
+> tier ("function-calling reliability on ambiguous natural language is exactly where the Lite
+> tier gives ground") is precisely what this phase's 20-case harness would need to check before
+> that stopgap is trusted for anything beyond quota-exhausted local testing. Confirm `GEMINI_MODEL`
+> before recording any eval result in this document.
 
 ### Step 9.1 — The eval harness
 

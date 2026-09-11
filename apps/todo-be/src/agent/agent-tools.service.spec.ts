@@ -1,5 +1,9 @@
+import { Logger } from '@nestjs/common';
 import { TodoItem } from '@shared/types';
-import { AgentToolsService } from './agent-tools.service';
+import {
+  AgentToolsService,
+  PHASE_10_TASK_THRESHOLD,
+} from './agent-tools.service';
 import { AgentSessionService } from './agent-session.service';
 import { TodoService } from '../todo/todo.service';
 
@@ -302,6 +306,89 @@ describe('AgentToolsService', () => {
         'user-1',
         undefined
       );
+    });
+  });
+
+  describe('findTasks', () => {
+    it('returns only the allow-listed fields, never image or notes', async () => {
+      todoService.findAllOwned.mockResolvedValue([
+        makeTodo({
+          id: 'todo-1',
+          notes: 'secret notes',
+          image: 'data:image/png;base64,abc',
+        }),
+      ]);
+
+      const result = await service.findTasks('user-1', { query: 't-shirt' });
+
+      expect(result).toEqual({
+        ok: true,
+        data: {
+          tasks: [
+            {
+              id: 'todo-1',
+              name: 'Buy milk',
+              dueDate: null,
+              priority: 'medium',
+              status: 'pending',
+              todolistId: null,
+            },
+          ],
+          truncated: false,
+        },
+      });
+      expect(todoService.findAllOwned).toHaveBeenCalledWith('user-1');
+    });
+
+    it("queries only the requesting user's tasks, with no list filter", async () => {
+      todoService.findAllOwned.mockResolvedValue([makeTodo({ id: 'mine' })]);
+
+      await service.findTasks('user-1', { query: 'anything' });
+
+      expect(todoService.findAllOwned).toHaveBeenCalledWith('user-1');
+      expect(todoService.findAllOwned).toHaveBeenCalledTimes(1);
+    });
+
+    it('caps the result at 500 tasks and reports the truncation', async () => {
+      const many = Array.from({ length: 600 }, (_, i) =>
+        makeTodo({ id: `todo-${i}` })
+      );
+      todoService.findAllOwned.mockResolvedValue(many);
+
+      const result = await service.findTasks('user-1', { query: 'anything' });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.data.tasks).toHaveLength(500);
+        expect(result.data.truncated).toBe(true);
+      }
+    });
+
+    it('warns once when the task-count threshold is exceeded, without logging the query or task names', async () => {
+      const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+      const many = Array.from({ length: PHASE_10_TASK_THRESHOLD + 1 }, (_, i) =>
+        makeTodo({ id: `todo-${i}`, name: `secret task name ${i}` })
+      );
+      todoService.findAllOwned.mockResolvedValue(many);
+
+      await service.findTasks('user-1', { query: 'a secret query' });
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('PLAN.md Phase 10 trigger reached');
+      expect(message).not.toContain('secret task name');
+      expect(message).not.toContain('a secret query');
+      warnSpy.mockRestore();
+    });
+
+    it('stays silent below both thresholds', async () => {
+      const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+      todoService.findAllOwned.mockResolvedValue([makeTodo()]);
+
+      await service.findTasks('user-1', { query: 'anything' });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
     });
   });
 });

@@ -14,6 +14,9 @@
     "closeMenu": "Menü schließen",
     "menuTitle": "Navigationsmenü",
     "search": "Suchen",
+    "searchLoading": "Ihre Aufgaben werden durchsucht...",
+    "searchNoResults": "Keine passenden Aufgaben gefunden",
+    "searchError": "Suche fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "notifications": "Benachrichtigungen"
   },
   "auth": {

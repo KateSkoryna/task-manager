@@ -3,6 +3,7 @@ import {
   completeTaskInput,
   createTasksInput,
   deleteTaskInput,
+  findTasksInput,
   listTasksInput,
   TOOL_NAMES,
   updateTaskInput,
@@ -122,6 +123,32 @@ describe('listTasksInput', () => {
 
   it('rejects an unknown field', () => {
     expect(listTasksInput.safeParse({ extra: 1 }).success).toBe(false);
+  });
+});
+
+describe('findTasksInput', () => {
+  it('accepts a valid query', () => {
+    expect(findTasksInput.safeParse({ query: 't-shirt' }).success).toBe(true);
+  });
+
+  it('rejects an unknown field', () => {
+    expect(
+      findTasksInput.safeParse({ query: 't-shirt', extra: 1 }).success
+    ).toBe(false);
+  });
+
+  it('rejects an empty query', () => {
+    expect(findTasksInput.safeParse({ query: '' }).success).toBe(false);
+  });
+
+  it('rejects an oversized query', () => {
+    expect(findTasksInput.safeParse({ query: 'x'.repeat(201) }).success).toBe(
+      false
+    );
+  });
+
+  it('rejects an empty input', () => {
+    expect(findTasksInput.safeParse({}).success).toBe(false);
   });
 });
 
