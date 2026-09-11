@@ -4,6 +4,7 @@ import { createNestTestApplication } from './app/nest-test-app';
 
 const EXPECTED = [
   'POST /api/agent/message',
+  'POST /api/agent/parse-todo',
   'GET /api/auth/user',
   'POST /api/auth/provision',
   'GET /api/users/{userId}/preferences',
@@ -31,7 +32,7 @@ describe('generated OpenAPI document', () => {
 
   afterAll(async () => app.close());
 
-  it('documents exactly the seventeen authoritative operations with bearer security', () => {
+  it('documents exactly the eighteen authoritative operations with bearer security', () => {
     const document = createOpenApiDocument(app);
     const operations = Object.entries(document.paths)
       .flatMap(([path, item]) =>

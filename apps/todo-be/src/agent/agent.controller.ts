@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
+  HttpCode,
   Logger,
   Post,
   Req,
@@ -21,6 +23,9 @@ import {
   agentMessageInputSchema,
   AgentTurn,
   dayKeyInZone,
+  ParsedTask,
+  ParseTodoInput,
+  parseTodoInputSchema,
 } from '@shared/types';
 import { AuthenticatedUser } from '../auth/authenticated-user';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
@@ -48,6 +53,11 @@ const sessionTurnToAgentTurn = (turn: {
 
 const writeEvent = (res: Response, event: string, data: unknown): void => {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+};
+
+const AI_CONSENT_REQUIRED = {
+  code: 'ai_consent_required',
+  message: 'Enable AI assistance in your preferences to use the agent.',
 };
 
 @ApiTags('agent')
@@ -93,10 +103,7 @@ export class AgentController {
   ): Promise<void> {
     const preferences = await this.userPreferencesService.findByUserId(user.id);
     if (!preferences?.aiConsent) {
-      res.status(403).json({
-        code: 'ai_consent_required',
-        message: 'Enable AI assistance in your preferences to use the agent.',
-      });
+      res.status(403).json(AI_CONSENT_REQUIRED);
       return;
     }
 
@@ -159,5 +166,38 @@ export class AgentController {
     } finally {
       if (!res.writableEnded) res.end();
     }
+  }
+
+  @Post('parse-todo')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Parse one line of free text into a single structured task',
+  })
+  @ApiBody({ schema: zodToApiSchema(parseTodoInputSchema) })
+  @ApiResponse({ status: 200, description: 'The parsed task' })
+  @ApiResponse({
+    status: 403,
+    description: 'The user has not enabled AI assistance in preferences',
+  })
+  async parseTodo(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(parseTodoInputSchema)) body: ParseTodoInput,
+    @Req() req: Request
+  ): Promise<ParsedTask> {
+    const preferences = await this.userPreferencesService.findByUserId(user.id);
+    if (!preferences?.aiConsent) {
+      throw new ForbiddenException(AI_CONSENT_REQUIRED);
+    }
+
+    const abortController = new AbortController();
+    req.on('close', () => abortController.abort());
+
+    const timezone = preferences.timezone;
+    return this.agentService.parseTodo(
+      user.id,
+      body.text,
+      { today: dayKeyInZone(new Date(), timezone), timezone },
+      { signal: abortController.signal }
+    );
   }
 }

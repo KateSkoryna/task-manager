@@ -388,6 +388,125 @@ describe('AgentService', () => {
     ).rejects.toThrow('aborted');
   });
 
+  describe('parseTodo', () => {
+    const parseTodoTextResponse = (json: unknown) => ({
+      candidates: [
+        { content: { role: 'model', parts: [{ text: JSON.stringify(json) }] } },
+      ],
+      text: JSON.stringify(json),
+      usageMetadata: { totalTokenCount: 12 },
+    });
+
+    it('parses free text into a structured task', async () => {
+      generateContent.mockResolvedValue(
+        parseTodoTextResponse({
+          name: 'Buy milk',
+          dueDate: '2026-09-11',
+          priority: 'high',
+          notes: null,
+          ambiguous: false,
+        })
+      );
+
+      const result = await service.parseTodo(
+        'user-1',
+        'buy milk friday high prio',
+        context
+      );
+
+      expect(result).toEqual({
+        name: 'Buy milk',
+        dueDate: '2026-09-11',
+        priority: 'high',
+        notes: null,
+        ambiguous: false,
+      });
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      const call = generateContent.mock.calls[0][0];
+      expect(call.config.responseMimeType).toBe('application/json');
+      expect(call.config.responseSchema).toBeDefined();
+    });
+
+    it('rejects when the model returns text that is not valid JSON', async () => {
+      generateContent.mockResolvedValue({
+        candidates: [
+          { content: { role: 'model', parts: [{ text: 'not json' }] } },
+        ],
+        text: 'not json',
+        usageMetadata: { totalTokenCount: 5 },
+      });
+
+      await expect(
+        service.parseTodo('user-1', 'buy milk', context)
+      ).rejects.toThrow('invalid JSON');
+    });
+
+    it('rejects when the model returns JSON that does not match parsedTaskSchema', async () => {
+      generateContent.mockResolvedValue(
+        parseTodoTextResponse({ dueDate: '2026-09-11' })
+      );
+
+      await expect(
+        service.parseTodo('user-1', 'buy milk friday', context)
+      ).rejects.toThrow();
+    });
+
+    it('aborts a call that runs past the configured timeout', async () => {
+      generateContent.mockImplementation(
+        ({ config }: { config: { abortSignal: AbortSignal } }) =>
+          new Promise((_resolve, reject) => {
+            config.abortSignal.addEventListener('abort', () => {
+              reject(new Error('The operation was aborted'));
+            });
+          })
+      );
+
+      await expect(
+        service.parseTodo('user-1', 'buy milk', context)
+      ).rejects.toThrow('aborted');
+    });
+
+    it('flags text describing several unrelated tasks as ambiguous', async () => {
+      generateContent.mockResolvedValue(
+        parseTodoTextResponse({
+          name: 'buy milk, call mom tuesday, pay rent friday',
+          dueDate: null,
+          priority: 'medium',
+          notes: null,
+          ambiguous: true,
+        })
+      );
+
+      const result = await service.parseTodo(
+        'user-1',
+        'buy milk, call mom tuesday, pay rent friday',
+        context
+      );
+
+      expect(result.ambiguous).toBe(true);
+    });
+
+    it('does not flag a single shopping errand with a list of items', async () => {
+      generateContent.mockResolvedValue(
+        parseTodoTextResponse({
+          name: 'Buy milk, bread and eggs',
+          dueDate: '2026-09-11',
+          priority: 'medium',
+          notes: null,
+          ambiguous: false,
+        })
+      );
+
+      const result = await service.parseTodo(
+        'user-1',
+        'buy milk, bread and eggs on friday',
+        context
+      );
+
+      expect(result.ambiguous).toBe(false);
+    });
+  });
+
   describe('replyStream', () => {
     it('streams tokens and ends with done when the model answers directly', async () => {
       generateContentStream.mockResolvedValue(

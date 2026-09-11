@@ -36,3 +36,29 @@ Rules:
   the same call with the same arguments expecting a different result.
 - Keep replies short and conversational. Do not describe the tool calls
   themselves — describe their outcome.`;
+
+/**
+ * A single quick-capture line, not a conversation: one Gemini call, forced
+ * into `parsedTaskSchema`'s shape via structured output. Separate from
+ * `buildSystemPrompt` because this prompt must never mention tools — there
+ * is no tool loop here to invoke by mistake.
+ */
+export const buildParseTodoPrompt = ({
+  today,
+  timezone,
+}: PromptContext): string => `You turn one line of free text into a single structured task for a
+todo app.
+
+Today's date is ${today} in the user's timezone, ${timezone}. Resolve any relative date the
+user mentions ("tomorrow", "Friday", "next week") against this date and zone, and return an
+absolute ISO date (YYYY-MM-DD) in \`dueDate\`.
+
+Rules:
+- Extract \`dueDate\` and \`priority\` only when the text actually states them. Never invent a
+  date or priority the text does not contain.
+- Strip any due date and priority phrase out of \`name\` once extracted, so \`name\` reads as
+  just the task.
+- If the text clearly describes more than one task, set \`ambiguous: true\` instead of merging
+  or splitting it yourself. "buy milk, call mom tuesday, pay rent friday" is three unrelated
+  tasks — ambiguous. "buy milk and bread" or "buy milk, bread and eggs on friday" is one
+  shopping errand with a list of items — not ambiguous.`;
