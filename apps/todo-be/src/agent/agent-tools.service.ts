@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   CompleteTaskInput,
   CreateTasksInput,
   DeleteTaskInput,
+  FindTasksInput,
   ListTasksInput,
   TodoItem,
   UpdateTaskInput,
@@ -10,6 +11,38 @@ import {
 import { TodoService } from '../todo/todo.service';
 import { AgentSessionService } from './agent-session.service';
 import { TOOL_REGISTRY } from './agent.tools';
+
+export interface FindTasksCandidate {
+  id: string;
+  name: string;
+  dueDate: string | null;
+  priority: TodoItem['priority'];
+  status: TodoItem['status'];
+  todolistId: string | null;
+}
+
+export interface FindTasksResult {
+  tasks: FindTasksCandidate[];
+  truncated: boolean;
+}
+
+const MAX_FIND_TASKS_RESULTS = 500;
+
+/**
+ * `find_tasks` is the only place that knows the real payload size, so the
+ * Phase 10 "should we build semantic search" trigger is measured here rather
+ * than remembered — see PLAN.md Phase 10.
+ */
+export const PHASE_10_TOKEN_THRESHOLD = 15_000;
+export const PHASE_10_TASK_THRESHOLD = 2_000;
+
+const PHASE_10_WARNING_THROTTLE_MS = 60 * 60 * 1000;
+
+// A rough chars-per-token heuristic (~4 chars/token), good enough to decide
+// whether a threshold was crossed without depending on the Gemini SDK's
+// tokenizer for a one-line log line.
+const estimateTokens = (payload: unknown): number =>
+  Math.ceil(JSON.stringify(payload).length / 4);
 
 export interface ToolFailure {
   ok: false;
@@ -50,6 +83,9 @@ const requiresConfirmation = (toolName: string, input: unknown): boolean =>
 
 @Injectable()
 export class AgentToolsService {
+  private readonly logger = new Logger(AgentToolsService.name);
+  private lastPhase10WarningAt = 0;
+
   constructor(
     private readonly todoService: TodoService,
     private readonly agentSessionService: AgentSessionService
@@ -137,5 +173,54 @@ export class AgentToolsService {
     { todolistId }: ListTasksInput
   ): Promise<ToolResult<TodoItem[]>> {
     return ok(await this.todoService.findAllOwned(userId, todolistId));
+  }
+
+  /**
+   * Hands the model the user's candidate tasks so it can reason over which
+   * ones match a natural-language query — retrieval by reasoning rather than
+   * by distance (PLAN.md Phase 6). Deliberately field-limited: this payload
+   * goes to Google, so `notes`, `location`, and `image` never leave the
+   * server, and only this user's own tasks are ever included.
+   */
+  async findTasks(
+    userId: string,
+    _input: FindTasksInput
+  ): Promise<ToolResult<FindTasksResult>> {
+    const all = await this.todoService.findAllOwned(userId);
+    const truncated = all.length > MAX_FIND_TASKS_RESULTS;
+    const tasks: FindTasksCandidate[] = all
+      .slice(0, MAX_FIND_TASKS_RESULTS)
+      .map(({ id, name, dueDate, priority, status, todolistId }) => ({
+        id,
+        name,
+        dueDate: dueDate ?? null,
+        priority,
+        status,
+        todolistId,
+      }));
+
+    this.warnIfPhase10TriggerReached(tasks, all.length);
+
+    return ok({ tasks, truncated });
+  }
+
+  private warnIfPhase10TriggerReached(
+    tasks: FindTasksCandidate[],
+    totalTaskCount: number
+  ): void {
+    const tokens = estimateTokens(tasks);
+    const overTokenThreshold = tokens > PHASE_10_TOKEN_THRESHOLD;
+    const overTaskThreshold = totalTaskCount > PHASE_10_TASK_THRESHOLD;
+    if (!overTokenThreshold && !overTaskThreshold) return;
+
+    const now = Date.now();
+    if (now - this.lastPhase10WarningAt < PHASE_10_WARNING_THROTTLE_MS) return;
+    this.lastPhase10WarningAt = now;
+
+    // Never log task names or the query — same rule as Step 4.4's log
+    // hygiene, applied here because this line is the Phase 10 trigger record.
+    this.logger.warn(
+      `find_tasks payload ${tokens} tokens / ${totalTaskCount} tasks — PLAN.md Phase 10 trigger reached`
+    );
   }
 }

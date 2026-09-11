@@ -67,6 +67,14 @@ export const listTasksInput = z
   })
   .strict();
 
+const MAX_QUERY_LENGTH = 200;
+
+export const findTasksInput = z
+  .object({
+    query: z.string().trim().min(1).max(MAX_QUERY_LENGTH),
+  })
+  .strict();
+
 export const agentToolCallSchema = z.discriminatedUnion('name', [
   z
     .object({ name: z.literal('create_tasks'), input: createTasksInput })
@@ -77,6 +85,7 @@ export const agentToolCallSchema = z.discriminatedUnion('name', [
     .strict(),
   z.object({ name: z.literal('delete_task'), input: deleteTaskInput }).strict(),
   z.object({ name: z.literal('list_tasks'), input: listTasksInput }).strict(),
+  z.object({ name: z.literal('find_tasks'), input: findTasksInput }).strict(),
 ]);
 
 export type AgentToolCall = z.infer<typeof agentToolCallSchema>;
@@ -95,3 +104,4 @@ export type UpdateTaskInput = z.infer<typeof updateTaskInput>;
 export type CompleteTaskInput = z.infer<typeof completeTaskInput>;
 export type DeleteTaskInput = z.infer<typeof deleteTaskInput>;
 export type ListTasksInput = z.infer<typeof listTasksInput>;
+export type FindTasksInput = z.infer<typeof findTasksInput>;

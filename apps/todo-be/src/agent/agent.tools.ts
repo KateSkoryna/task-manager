@@ -4,6 +4,7 @@ import {
   completeTaskInput,
   createTasksInput,
   deleteTaskInput,
+  findTasksInput,
   listTasksInput,
   ToolName,
   updateTaskInput,
@@ -219,6 +220,17 @@ const TOOL_DEFINITIONS: Array<
       "List the user's tasks, optionally filtered to one list. Pass " +
       '`todolistId: null` for the Inbox.',
     schema: listTasksInput,
+    requiresConfirmation: () => false,
+  },
+  {
+    name: 'find_tasks',
+    description:
+      "Retrieve the user's tasks so you can reason about which ones match a " +
+      'natural-language description. This does not search or filter itself — ' +
+      'it hands you the candidate tasks and you decide which, if any, match ' +
+      'the query. Use it for vague or indirect references (e.g. a query about ' +
+      '"my t-shirt" that should surface a "do laundry" task).',
+    schema: findTasksInput,
     requiresConfirmation: () => false,
   },
 ];

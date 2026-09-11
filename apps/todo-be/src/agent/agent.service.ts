@@ -416,6 +416,8 @@ export class AgentService {
         return this.agentToolsService.deleteTask(userId, chatId, call.input);
       case 'list_tasks':
         return this.agentToolsService.listTasks(userId, call.input);
+      case 'find_tasks':
+        return this.agentToolsService.findTasks(userId, call.input);
     }
   }
 }

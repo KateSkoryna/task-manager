@@ -904,6 +904,14 @@ It is deliberately a log line and not an alert or an automatic behaviour change 
 - A test asserts the warning contains no task name and no query text.
 - Measured tokens-per-task is recorded in this document.
 
+### Step 6.1 results
+
+Measured 2026-09-11 with the exact heuristic `find_tasks` logs against (`Math.ceil(JSON.stringify(payload).length / 4)`, chars/4), over 500 synthetic `FindTasksCandidate` rows with representative field values (mixed due dates, priorities, statuses, list membership):
+
+- **~40 tokens/task** — inside the plan's estimated 25–50 range.
+- 500 tasks (the hard cap) → **~20,100 tokens**, already above the `PHASE_10_TOKEN_THRESHOLD` of 15,000. In practice this only matters once a single user is anywhere near the 500-task cap; the current maximum in `todo_dev` is about 50 tasks (~2,000 tokens), far below either Phase 10 trigger.
+- This is a proxy (chars/4), not the Gemini tokenizer's actual count — it exists to decide "should Phase 10 be reconsidered," a threshold check, not a billing figure.
+
 ### Step 6.2 — Wire the header input
 
 **What to do.** Add state and an `onChange` to the `Input` in `TopHeader.tsx`. Debounce 400 ms. On submit, call `POST /api/agent/message` with the query, render matching tasks in a dropdown below the field, and navigate to a task on click. Show empty, loading, and error states. Add i18n for `en`, `de`, `uk`. Reuse existing Tailwind tokens.
