@@ -5,6 +5,7 @@ import { TodoItem as TodoItemType } from '@shared/types';
 import TodoItem from './TodoItem';
 import { AvailableList } from './MoveToListSelect';
 import TodoForm from './TodoForm';
+import QuickCaptureInput from './QuickCaptureInput';
 import Text from '../elements/Text';
 import Card from '../elements/Card';
 import { sortByOrder } from '../../lib/reorder';
@@ -68,6 +69,13 @@ function InboxSection({
       </div>
 
       <div className="p-4 space-y-3 bg-surface">
+        <QuickCaptureInput
+          inputTestId="inbox-quick-capture-input"
+          submitTestId="inbox-quick-capture-submit"
+          noticeTestId="inbox-enrichment-notice"
+          undoTestId="inbox-enrichment-undo"
+        />
+
         {showAddForm && (
           <Card variant="nested">
             <TodoForm onAddTodo={handleAddTodo} />

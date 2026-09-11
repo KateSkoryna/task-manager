@@ -7,7 +7,6 @@ import {
   CheckSquare,
   Flame,
   Inbox as InboxIcon,
-  Plus,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -17,18 +16,22 @@ import { TodoItem, TodoList, TodoStatus } from '@shared/types';
 import {
   useTodoListsQuery,
   useInboxTodosQuery,
-  useAddInboxTodoMutation,
   useDeleteTodoMutation,
 } from '../../fetchers/api';
 import { useDateStore } from '../../store/dateStore';
 import { useIsCompactScreen } from '../../hooks/useIsCompactScreen';
+import { useFittingItemCount } from '../../hooks/useFittingItemCount';
 import TodoItemComponent from '../todo/TodoItem';
-import Input from '../elements/Input';
-import Button from '../elements/Button';
+import QuickCaptureInput from '../todo/QuickCaptureInput';
 import ErrorFallback from '../elements/ErrorFallback';
 import DashboardSkeleton from './DashboardSkeleton';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
+
+// Upper bound on how many tasks `TodoPanel` will ever measure/render per
+// page — `useFittingItemCount` picks the actual count from this ceiling
+// down to whatever the panel's measured height allows.
+const MAX_TODO_PAGE_SIZE = 8;
 
 function toDateStr(d: Dayjs): string {
   return d.format('YYYY-MM-DD');
@@ -178,10 +181,14 @@ function TodoPanel({
 }) {
   const { t } = useTranslation();
   const isCompact = useIsCompactScreen();
-  // Always show 3 tasks per page on desktop/tablet — each item wrapper below
-  // is flex-1 so the 3 cards share whatever height the panel actually has,
-  // shrinking together instead of one getting clipped or a 3rd never fitting.
-  const pageSize = 3;
+  // How many tasks fit in the panel's actual available height varies by
+  // screen — a 15" MacBook has room for more rows than a smaller laptop.
+  // Measure it instead of hardcoding a page size.
+  const {
+    containerRef,
+    itemRef,
+    count: pageSize,
+  } = useFittingItemCount(MAX_TODO_PAGE_SIZE);
   const [page, setPage] = useState(0);
   const dateKey = toDateStr(selectedDate);
 
@@ -205,7 +212,7 @@ function TodoPanel({
           : 'bg-surface rounded-xl border border-default p-4 flex min-h-0 h-full flex-col'
       } ${className}`}
     >
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 text-primary">
           <ClipboardList className="w-5 h-5" />
           <h3 className="font-bold text-lg leading-none">
@@ -238,18 +245,19 @@ function TodoPanel({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-muted text-sm flex-1">
+        <p className="text-muted/60 text-sm flex-1">
           {t('dashboard.noTasksForDay')}
         </p>
       ) : (
         <div
+          ref={isCompact ? undefined : containerRef}
           className={
             isCompact
               ? 'space-y-3'
               : 'flex flex-col gap-2 min-h-0 flex-1 overflow-hidden'
           }
         >
-          {pageItems.map((item) =>
+          {pageItems.map((item, index) =>
             isCompact ? (
               <TodoItemComponent
                 key={item.id}
@@ -259,7 +267,11 @@ function TodoPanel({
                 hideDueDate
               />
             ) : (
-              <div key={item.id} className="flex-1 min-h-0 overflow-hidden">
+              <div
+                key={item.id}
+                ref={index === 0 ? itemRef : undefined}
+                className="shrink-0 overflow-hidden"
+              >
                 <TodoItemComponent
                   todo={item}
                   onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
@@ -347,7 +359,13 @@ function TaskStatusPanel({
   );
 }
 
-function CompletedPanel({ items }: { items: FlatItem[] }) {
+function CompletedPanel({
+  items,
+  className = '',
+}: {
+  items: FlatItem[];
+  className?: string;
+}) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const pageCount = Math.ceil(items.length / 2);
@@ -355,7 +373,9 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
   const pageItems = items.slice(currentPage * 2, currentPage * 2 + 2);
 
   return (
-    <div className="bg-surface rounded-xl border border-default p-4">
+    <div
+      className={`bg-surface rounded-xl border border-default p-4 flex flex-col ${className}`}
+    >
       <div className="flex items-center gap-2 text-primary mb-3">
         <CheckSquare className="w-5 h-5" />
         <h3 className="font-bold text-lg leading-none">
@@ -383,11 +403,11 @@ function CompletedPanel({ items }: { items: FlatItem[] }) {
         </div>
       </div>
       {pageItems.length === 0 ? (
-        <p className="text-muted text-sm h-[5rem] flex items-center">
+        <p className="text-muted/60 text-sm flex-1">
           {t('dashboard.noCompletedTasks')}
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 content-start flex-1">
           {pageItems.map((item) => (
             <CompletedCard key={item.id} item={item} />
           ))}
@@ -486,22 +506,9 @@ function TodayCompletionRing({
 function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const addInboxTodo = useAddInboxTodoMutation();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    addInboxTodo.mutate({ name: trimmed });
-    setName('');
-  };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-2 flex-1 min-w-0"
-    >
+    <div className="flex flex-col gap-2 flex-1 min-w-0">
       <button
         type="button"
         onClick={() => navigate('/tasks')}
@@ -512,26 +519,13 @@ function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
           {t('dashboard.inboxCount', { count: inboxCount })}
         </span>
       </button>
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t('dashboard.quickAddPlaceholder')}
-            inputTestId="dashboard-quick-add-input"
-          />
-        </div>
-        <Button
-          type="submit"
-          variant="primary"
-          className="text-sm shrink-0"
-          dataTestId="dashboard-quick-add-submit"
-        >
-          <Plus className="w-4 h-4" />
-          {t('dashboard.quickAdd')}
-        </Button>
-      </div>
-    </form>
+      <QuickCaptureInput
+        inputTestId="dashboard-quick-add-input"
+        submitTestId="dashboard-quick-add-submit"
+        noticeTestId="dashboard-enrichment-notice"
+        undoTestId="dashboard-enrichment-undo"
+      />
+    </div>
   );
 }
 
@@ -601,7 +595,7 @@ function TopPriorityPanel({ items }: { items: FlatItem[] }) {
         </div>
       </div>
       {pageItems.length === 0 ? (
-        <p className="text-muted text-sm">{t('dashboard.noTopPriority')}</p>
+        <p className="text-muted/60 text-sm">{t('dashboard.noTopPriority')}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {pageItems.map((item) => (
@@ -738,7 +732,7 @@ function DashboardPage() {
       <TopPriorityPanel items={todayItems} />
 
       <div className="grid min-h-0 grid-cols-1 lg:grid-cols-5 gap-4 flex-1">
-        <div className="space-y-4 lg:col-span-2">
+        <div className="flex flex-col gap-4 lg:col-span-2">
           <TaskStatusPanel
             selectedDate={selectedDate}
             successful={successful}
@@ -746,7 +740,7 @@ function DashboardPage() {
             failed={failed}
             total={dateItems.length}
           />
-          <CompletedPanel items={completedItems} />
+          <CompletedPanel items={completedItems} className="flex-1 min-h-0" />
         </div>
 
         <TodoPanel

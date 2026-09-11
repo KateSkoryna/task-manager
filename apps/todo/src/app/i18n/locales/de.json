@@ -134,7 +134,11 @@
     "viewMode": "Ansicht",
     "groupedView": "Gruppiert",
     "flatView": "Flach",
-    "dueSoon": "Bald fällig"
+    "dueSoon": "Bald fällig",
+    "quickCapturePlaceholder": "Aufgabe hinzufügen... (z. B. \"Milch kaufen Freitag hohe Priorität\")",
+    "quickCaptureAdd": "Hinzufügen",
+    "enriched": "Mit KI aktualisiert",
+    "undo": "Rückgängig"
   },
   "todoForm": {
     "todoName": "Aufgabenname:",

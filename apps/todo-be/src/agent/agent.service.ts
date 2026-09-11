@@ -1,7 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiError, Content, GoogleGenAI, Part } from '@google/genai';
-import { AgentToolCall, agentToolCallSchema, AgentTurn } from '@shared/types';
+import {
+  AgentToolCall,
+  agentToolCallSchema,
+  AgentTurn,
+  ParsedTask,
+  parsedTaskSchema,
+} from '@shared/types';
 import {
   AgentToolsService,
   isToolFailure,
@@ -10,9 +16,10 @@ import {
 import {
   PROMPT_VERSION,
   PromptContext,
+  buildParseTodoPrompt,
   buildSystemPrompt,
 } from './agent.prompt';
-import { TOOL_REGISTRY } from './agent.tools';
+import { TOOL_REGISTRY, zodToGeminiSchema } from './agent.tools';
 
 export const GEMINI_CLIENT = Symbol('GEMINI_CLIENT');
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
@@ -78,6 +85,9 @@ const turnToContent = (turn: AgentTurn): Content => ({
   role: turn.role === 'assistant' ? 'model' : 'user',
   parts: [{ text: turn.text }],
 });
+
+// Built once — `zodToGeminiSchema` walks the whole schema tree on every call.
+const PARSE_TODO_RESPONSE_SCHEMA = zodToGeminiSchema(parsedTaskSchema);
 
 @Injectable()
 export class AgentService {
@@ -231,6 +241,54 @@ export class AgentService {
 
       this.logCall('capped_out', startedAt, totalTokens);
       return { text: CAPPED_OUT_MESSAGE, toolCalls, cappedOut: true };
+    } catch (error) {
+      this.logCall('error', startedAt, totalTokens);
+      throw error;
+    }
+  }
+
+  /**
+   * One Gemini call, forced into `parsedTaskSchema`'s shape via structured
+   * output — no tool loop, no session, no streaming. Used by quick capture,
+   * where a fast round trip matters more than the conversational machinery
+   * `reply`/`replyStream` provide.
+   */
+  async parseTodo(
+    _userId: string,
+    text: string,
+    context: PromptContext,
+    options: { signal?: AbortSignal } = {}
+  ): Promise<ParsedTask> {
+    const startedAt = Date.now();
+    let totalTokens = 0;
+
+    try {
+      const response = await this.callGemini(
+        (signal) =>
+          this.client.models.generateContent({
+            model: this.model,
+            contents: [{ role: 'user', parts: [{ text }] }],
+            config: {
+              systemInstruction: buildParseTodoPrompt(context),
+              responseMimeType: 'application/json',
+              responseSchema: PARSE_TODO_RESPONSE_SCHEMA,
+              abortSignal: signal,
+            },
+          }),
+        options.signal
+      );
+      totalTokens = response.usageMetadata?.totalTokenCount ?? totalTokens;
+
+      let raw: unknown;
+      try {
+        raw = JSON.parse(response.text ?? '');
+      } catch {
+        throw new Error('parseTodo: model returned invalid JSON');
+      }
+
+      const parsed = parsedTaskSchema.parse(raw);
+      this.logCall('completed', startedAt, totalTokens);
+      return parsed;
     } catch (error) {
       this.logCall('error', startedAt, totalTokens);
       throw error;

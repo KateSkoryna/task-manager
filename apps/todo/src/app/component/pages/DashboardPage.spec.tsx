@@ -47,6 +47,8 @@ jest.mock('../../fetchers/api', () => ({
   useTodoListsQuery: () => useTodoListsQuery(),
   useInboxTodosQuery: () => useInboxTodosQuery(),
   useAddInboxTodoMutation: () => ({ mutate: jest.fn() }),
+  useEditTodoMutation: () => ({ mutate: jest.fn() }),
+  useParseTodoMutation: () => ({ mutate: jest.fn() }),
   useDeleteTodoMutation: () => ({ mutate: jest.fn() }),
 }));
 

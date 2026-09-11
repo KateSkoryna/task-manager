@@ -134,7 +134,11 @@
     "viewMode": "View mode",
     "groupedView": "Grouped",
     "flatView": "Flat",
-    "dueSoon": "Due soon"
+    "dueSoon": "Due soon",
+    "quickCapturePlaceholder": "Add a task... (e.g. \"buy milk friday high priority\")",
+    "quickCaptureAdd": "Add",
+    "enriched": "Updated with AI",
+    "undo": "Undo"
   },
   "todoForm": {
     "todoName": "Todo Name:",
