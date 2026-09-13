@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { streamAgentMessage } from '../fetchers/agent';
+import { generateId } from '../lib/id';
 
 export interface TaskSearchMatch {
   id: string;
@@ -22,14 +23,6 @@ type SearchStatus = 'idle' | 'loading' | 'success' | 'error';
 // normal thinking pause between words without waiting so long the box feels
 // unresponsive.
 const DEBOUNCE_MS = 800;
-
-// `crypto.randomUUID` isn't implemented by every `crypto` (notably jsdom's),
-// so fall back to a non-cryptographic id — this only needs to be unique
-// enough to keep two search sessions from colliding, not secure.
-const generateChatId = (): string =>
-  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `search-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 /**
  * The agent's system prompt (`agent.prompt.ts`) is written for a general
@@ -91,7 +84,7 @@ export const useHeaderTaskSearch = () => {
       let candidates: TaskSearchMatch[] | null = null;
 
       for await (const event of streamAgentMessage(
-        generateChatId(),
+        generateId('search'),
         buildSearchMessage(searchText),
         { signal: controller.signal }
       )) {

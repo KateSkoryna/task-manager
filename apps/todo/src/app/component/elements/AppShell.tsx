@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import MobileDrawer from './MobileDrawer';
 import TopHeader from './TopHeader';
 import Footer from './Footer';
+import ChatPanel from '../agent/ChatPanel';
 
 function AppShell() {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -30,6 +31,7 @@ function AppShell() {
           <Footer />
         </div>
       </div>
+      <ChatPanel />
     </div>
   );
 }

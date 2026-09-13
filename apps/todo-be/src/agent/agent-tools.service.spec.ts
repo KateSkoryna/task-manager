@@ -173,9 +173,14 @@ describe('AgentToolsService', () => {
     it('never deletes without a confirmation token, and proposes one instead', async () => {
       agentSessionService.createConfirmation.mockResolvedValue('token-abc');
 
-      const result = await service.deleteTask('user-1', 'chat-1', {
-        id: 'todo-1',
-      });
+      const result = await service.deleteTask(
+        'user-1',
+        'chat-1',
+        {
+          id: 'todo-1',
+        },
+        true
+      );
 
       expect(result).toEqual({
         ok: false,
@@ -200,10 +205,15 @@ describe('AgentToolsService', () => {
       agentSessionService.consumeConfirmation.mockResolvedValue(true);
       todoService.deleteOwned.mockResolvedValue(deleted);
 
-      const result = await service.deleteTask('user-1', 'chat-1', {
-        id: 'todo-1',
-        confirmationToken: 'token-abc',
-      });
+      const result = await service.deleteTask(
+        'user-1',
+        'chat-1',
+        {
+          id: 'todo-1',
+          confirmationToken: 'token-abc',
+        },
+        true
+      );
 
       expect(result).toEqual({ ok: true, data: deleted });
       expect(agentSessionService.consumeConfirmation).toHaveBeenCalledWith(
@@ -220,10 +230,15 @@ describe('AgentToolsService', () => {
       agentSessionService.consumeConfirmation.mockResolvedValue(false);
       agentSessionService.createConfirmation.mockResolvedValue('token-new');
 
-      const result = await service.deleteTask('user-1', 'chat-1', {
-        id: 'todo-1',
-        confirmationToken: 'token-abc',
-      });
+      const result = await service.deleteTask(
+        'user-1',
+        'chat-1',
+        {
+          id: 'todo-1',
+          confirmationToken: 'token-abc',
+        },
+        true
+      );
 
       expect(result).toEqual({
         ok: false,
@@ -241,10 +256,15 @@ describe('AgentToolsService', () => {
       agentSessionService.consumeConfirmation.mockResolvedValue(false);
       agentSessionService.createConfirmation.mockResolvedValue('token-new');
 
-      await service.deleteTask('user-1', 'chat-1', {
-        id: 'todo-2',
-        confirmationToken: 'token-for-todo-1',
-      });
+      await service.deleteTask(
+        'user-1',
+        'chat-1',
+        {
+          id: 'todo-2',
+          confirmationToken: 'token-for-todo-1',
+        },
+        true
+      );
 
       expect(agentSessionService.consumeConfirmation).toHaveBeenCalledWith(
         'user-1',
@@ -260,12 +280,45 @@ describe('AgentToolsService', () => {
       agentSessionService.consumeConfirmation.mockResolvedValue(true);
       todoService.deleteOwned.mockResolvedValue(null);
 
-      const result = await service.deleteTask('user-1', 'chat-1', {
-        id: 'missing',
-        confirmationToken: 'token-abc',
-      });
+      const result = await service.deleteTask(
+        'user-1',
+        'chat-1',
+        {
+          id: 'missing',
+          confirmationToken: 'token-abc',
+        },
+        true
+      );
 
       expect(result).toEqual({ ok: false, reason: 'not_found' });
+    });
+
+    it("refuses a confirmation token when this request was not itself the user's confirm reply, even if the token would otherwise be valid", async () => {
+      // A token lives inside the model's own context for this one request,
+      // so the model can see one it was just handed (via the tool result
+      // below) and immediately replay it in the same turn, before any real
+      // person answered a prompt. `confirmedReply: false` is what a plain
+      // "delete task X" request looks like — nothing must get deleted here.
+      agentSessionService.createConfirmation.mockResolvedValue('token-new');
+
+      const result = await service.deleteTask(
+        'user-1',
+        'chat-1',
+        { id: 'todo-1', confirmationToken: 'token-abc' },
+        false
+      );
+
+      expect(result).toEqual({
+        ok: false,
+        reason: 'confirmation_required',
+        proposal: {
+          toolName: 'delete_task',
+          input: { id: 'todo-1' },
+          token: 'token-new',
+        },
+      });
+      expect(agentSessionService.consumeConfirmation).not.toHaveBeenCalled();
+      expect(todoService.deleteOwned).not.toHaveBeenCalled();
     });
   });
 

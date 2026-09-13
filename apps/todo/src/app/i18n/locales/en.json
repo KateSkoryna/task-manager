@@ -251,6 +251,33 @@
   "footer": {
     "rights": "\u00a9 {{year}} Kateryna Skoryna. All rights reserved."
   },
+  "agent": {
+    "name": "TaskPal",
+    "tagline": "Reads your lists, asks before it changes anything",
+    "open": "Ask TaskPal",
+    "close": "Close TaskPal",
+    "composerPlaceholder": "Tell TaskPal what to do…",
+    "send": "Send",
+    "tool": {
+      "createTask": "Created a task",
+      "createTasks": "Created {{count}} tasks",
+      "updateTask": "Updated task",
+      "completeTask": "Completed task",
+      "deleteTask": "Deleted task",
+      "listTasks": "Looked up your tasks",
+      "findTasks": "Searched your tasks",
+      "generic": "Did something",
+      "failed": "That didn't work"
+    },
+    "proposal": {
+      "confirmTitle": "Create this task?",
+      "deleteTitle": "Delete this task?",
+      "notYet": "Not yet",
+      "addTask": "Add task",
+      "keep": "Keep it",
+      "delete": "Delete"
+    }
+  },
   "statistics": {
     "title": "Statistics",
     "loading": "Loading statistics\u2026",
