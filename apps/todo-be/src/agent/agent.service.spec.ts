@@ -663,12 +663,7 @@ describe('AgentService', () => {
       ];
       generateContentStream
         .mockResolvedValueOnce(
-          asAsyncIterable([
-            functionCallChunk('delete_task', {
-              id: 'todo-1',
-              confirmationToken: 'token-abc',
-            }),
-          ])
+          asAsyncIterable([functionCallChunk('delete_task', { id: 'todo-1' })])
         )
         .mockResolvedValueOnce(asAsyncIterable([textChunk('Deleted.')]));
       agentToolsService.deleteTask.mockResolvedValue({
@@ -683,7 +678,7 @@ describe('AgentService', () => {
       expect(agentToolsService.deleteTask).toHaveBeenCalledWith(
         'user-1',
         'chat-1',
-        { id: 'todo-1', confirmationToken: 'token-abc' },
+        { id: 'todo-1' },
         true
       );
     });

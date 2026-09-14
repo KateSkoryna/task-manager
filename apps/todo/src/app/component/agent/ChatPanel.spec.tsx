@@ -164,7 +164,7 @@ describe('ChatPanel', () => {
               },
               {
                 name: 'delete_task',
-                input: { id: 't1', confirmationToken: 'tok-2' },
+                input: { id: 't1' },
                 result: { ok: true, data: { id: 't1' } },
               },
             ],

@@ -40,27 +40,22 @@ describe('AgentSessionService', () => {
     ).rejects.toThrow();
   });
 
-  it('consumes a valid token exactly once and refuses replay', async () => {
+  it('consumes a pending confirmation exactly once and refuses replay', async () => {
     const session = await seedSession();
     const userId = session.userId.toString();
-    const token = await service.createConfirmation(
-      userId,
-      session.chatId,
-      'delete_task',
-      { id: 'todo-1' }
-    );
+    await service.createConfirmation(userId, session.chatId, 'delete_task', {
+      id: 'todo-1',
+    });
 
     const firstAttempt = await service.consumeConfirmation(
       userId,
       session.chatId,
-      token,
       'delete_task',
       { id: 'todo-1' }
     );
     const replay = await service.consumeConfirmation(
       userId,
       session.chatId,
-      token,
       'delete_task',
       { id: 'todo-1' }
     );
@@ -72,20 +67,19 @@ describe('AgentSessionService', () => {
     expect(reloaded?.pendingConfirmation).toBeNull();
   });
 
-  it('refuses a token that does not match the tool it was issued for', async () => {
+  // No client-supplied token is involved in matching — see
+  // `consumeConfirmation`'s doc comment for why a token can't survive across
+  // the requests this method is meant to bridge.
+  it('refuses a confirmation that does not match the tool it was issued for', async () => {
     const session = await seedSession();
     const userId = session.userId.toString();
-    const token = await service.createConfirmation(
-      userId,
-      session.chatId,
-      'delete_task',
-      { id: 'todo-1' }
-    );
+    await service.createConfirmation(userId, session.chatId, 'delete_task', {
+      id: 'todo-1',
+    });
 
     const confirmed = await service.consumeConfirmation(
       userId,
       session.chatId,
-      token,
       'update_task',
       { id: 'todo-1' }
     );
@@ -93,20 +87,16 @@ describe('AgentSessionService', () => {
     expect(confirmed).toBe(false);
   });
 
-  it('refuses a token whose stored input does not match the call being confirmed', async () => {
+  it('refuses a confirmation whose stored input does not match the call being confirmed', async () => {
     const session = await seedSession();
     const userId = session.userId.toString();
-    const token = await service.createConfirmation(
-      userId,
-      session.chatId,
-      'delete_task',
-      { id: 'todo-1' }
-    );
+    await service.createConfirmation(userId, session.chatId, 'delete_task', {
+      id: 'todo-1',
+    });
 
     const confirmed = await service.consumeConfirmation(
       userId,
       session.chatId,
-      token,
       'delete_task',
       { id: 'todo-2' }
     );
@@ -116,7 +106,7 @@ describe('AgentSessionService', () => {
     expect(reloaded?.pendingConfirmation).toBeNull();
   });
 
-  it('refuses an expired token', async () => {
+  it('refuses an expired confirmation', async () => {
     const session = await seedSession({
       pendingConfirmation: {
         token: 'expired-token',
@@ -129,7 +119,6 @@ describe('AgentSessionService', () => {
     const confirmed = await service.consumeConfirmation(
       session.userId.toString(),
       session.chatId,
-      'expired-token',
       'delete_task',
       { id: 'todo-1' }
     );
@@ -137,13 +126,12 @@ describe('AgentSessionService', () => {
     expect(confirmed).toBe(false);
   });
 
-  it('refuses an unknown token', async () => {
+  it('refuses when there is no pending confirmation', async () => {
     const session = await seedSession();
 
     const confirmed = await service.consumeConfirmation(
       session.userId.toString(),
       session.chatId,
-      'never-issued',
       'delete_task',
       { id: 'todo-1' }
     );

@@ -136,26 +136,25 @@ export class AgentToolsService {
   async deleteTask(
     userId: string,
     chatId: string,
-    { id, confirmationToken }: DeleteTaskInput,
+    { id }: DeleteTaskInput,
     confirmedReply: boolean
   ): Promise<ToolResult<TodoItem>> {
     if (requiresConfirmation('delete_task', { id })) {
-      // A confirmation token lives only inside this one request's model
-      // context (see `agent.service.ts`'s `isConfirmedReply`), so the model
-      // can see a token it was just handed and immediately replay it in the
-      // very next tool call — before any real person ever answered a
-      // prompt. That self-service loop is also how a *genuine* confirmation
-      // resolves (the follow-up request can't carry the original token
-      // either), so the token's validity alone can't tell the two apart.
-      // Only honor a token when this request was actually triggered by the
-      // user's own confirm click.
+      // The security boundary here is `confirmedReply`, not a token the
+      // model echoes back — a fresh HTTP request rebuilds the model's
+      // context purely from stored turn text, so it structurally cannot
+      // know a token issued during a prior request (see
+      // `agent-session.service.ts`'s `consumeConfirmation` doc comment).
+      // `confirmedReply` (`agent.service.ts`'s `isConfirmedReply`) is only
+      // true when the actual persisted last user turn is the literal
+      // confirm-button reply, which the model cannot inject into its own
+      // context mid-request — that's what stops it from self-confirming
+      // the moment `confirmation_required` comes back.
       const confirmed =
         confirmedReply &&
-        confirmationToken != null &&
         (await this.agentSessionService.consumeConfirmation(
           userId,
           chatId,
-          confirmationToken,
           'delete_task',
           { id }
         ));

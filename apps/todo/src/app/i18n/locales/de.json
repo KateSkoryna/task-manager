@@ -230,7 +230,7 @@
     "tone_encouraging": "Ermutigend",
     "tone_direct": "Direkt",
     "aiConsent": "KI-Funktionen erlauben",
-    "aiConsentDescription": "Wenn aktiviert, können deine Aufgabentexte an Google Gemini gesendet werden, um Funktionen wie Berichte und den Telegram-Assistenten zu ermöglichen. Standardmäßig deaktiviert.",
+    "aiConsentDescription": "Wenn aktiviert, können deine Aufgabentexte an Google Gemini gesendet werden, um Funktionen wie Berichte und den Telegram-Assistenten zu ermöglichen. Nutzt du die Spracheingabe im Chat, sendet dein Browser deine Sprachaufnahme außerdem zur Erkennung an die Server von Google. Standardmäßig deaktiviert.",
     "save": "Speichern",
     "saving": "Speichern…",
     "saved": "Gespeichert",
@@ -258,6 +258,13 @@
     "close": "TaskPal schließen",
     "composerPlaceholder": "Sag TaskPal, was zu tun ist…",
     "send": "Senden",
+    "micStart": "Spracheingabe starten (wird zur Erkennung an Google gesendet)",
+    "micStop": "Spracheingabe stoppen",
+    "speechError": {
+      "permission-denied": "Mikrofonzugriff wurde verweigert.",
+      "no-speech": "Keine Sprache erkannt — versuch es erneut.",
+      "unknown": "Spracheingabe ist gerade nicht verfügbar."
+    },
     "tool": {
       "createTask": "Aufgabe erstellt",
       "createTasks": "{{count}} Aufgaben erstellt",

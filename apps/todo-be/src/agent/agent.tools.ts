@@ -209,8 +209,13 @@ const TOOL_DEFINITIONS: Array<
   {
     name: 'delete_task',
     description:
-      'Permanently delete an existing task identified by id. Destructive — ' +
-      'only call this when the user clearly asked to remove the task.',
+      'Permanently delete an existing task identified by id. Call this as ' +
+      'soon as the user clearly asked to remove a task you have identified ' +
+      '— do not ask them to confirm in plain text first. This tool enforces ' +
+      'its own confirmation step: the first call returns ' +
+      '`confirmation_required` — relay that request to the user in plain ' +
+      'language, then once they reply, call this again with the exact same ' +
+      '`id` and nothing else.',
     schema: deleteTaskInput,
     requiresConfirmation: () => true,
   },

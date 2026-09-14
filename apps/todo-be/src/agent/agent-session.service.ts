@@ -22,10 +22,20 @@ export class AgentSessionService {
   ) {}
 
   /**
-   * Issues a short-lived, single-use token for a destructive tool call and
-   * stores it on the session so `consumeConfirmation` can later validate it.
-   * Requires the `(userId, chatId)` session to already exist — a tool call
-   * cannot arrive before the session that carries its conversation does.
+   * Issues a short-lived token for a destructive tool call and stores it on
+   * the session, marking that (userId, chatId, toolName) has a pending
+   * confirmation `consumeConfirmation` can later resolve. Requires the
+   * `(userId, chatId)` session to already exist — a tool call cannot arrive
+   * before the session that carries its conversation does.
+   *
+   * The token is only returned for the SSE `proposal` event's payload — it
+   * is *not* how `consumeConfirmation` authenticates the follow-up call. A
+   * fresh HTTP request rebuilds the model's context purely from each turn's
+   * stored text (`turnToContent` in `agent.service.ts`); no tool call or
+   * result — including this token — carries over across requests. The model
+   * genuinely cannot know the token on a later call, so requiring it back
+   * would make a real confirmation impossible to complete, not just an
+   * unwanted replay.
    */
   createConfirmation(
     userId: string,
@@ -55,15 +65,19 @@ export class AgentSessionService {
 
   /**
    * Validates and atomically clears the pending confirmation in one step, so
-   * a second attempt with the same token finds nothing left to match —
-   * replay is impossible by construction, not by a separate check. Matching
-   * `input` too means a token issued for one task can never be redirected
-   * onto a different one by changing the call's arguments.
+   * a second attempt finds nothing left to match — replay is impossible by
+   * construction, not by a separate check. Matched by `(userId, chatId,
+   * toolName)` rather than the token `createConfirmation` issued (see that
+   * method's doc comment for why matching a client-supplied token can't
+   * work here). The caller is responsible for only invoking this when the
+   * request itself was genuinely triggered by the user's confirm reply
+   * (`agent.service.ts`'s `isConfirmedReply`) — that, not the token, is this
+   * flow's actual security boundary. Matching `input` too means a pending
+   * confirmation for one task can never be silently applied to another.
    */
   consumeConfirmation(
     userId: string,
     chatId: string,
-    token: string,
     toolName: string,
     input: Record<string, unknown>
   ): Promise<boolean> {
@@ -72,7 +86,6 @@ export class AgentSessionService {
         {
           userId,
           chatId,
-          'pendingConfirmation.token': token,
           'pendingConfirmation.toolName': toolName,
           'pendingConfirmation.expiresAt': { $gt: new Date() },
         },

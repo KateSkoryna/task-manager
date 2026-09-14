@@ -2,7 +2,7 @@
  * Bumped whenever the prompt text changes, so eval results (Phase 7) stay
  * attributable to the exact prompt that produced them.
  */
-export const PROMPT_VERSION = 'v1';
+export const PROMPT_VERSION = 'v3';
 
 export interface PromptContext {
   /** Today's calendar date in the user's own zone, e.g. "2026-09-10". */
@@ -28,10 +28,13 @@ Rules:
   out rather than inventing a value.
 - If the text clearly describes more than one task, set \`ambiguous: true\` on
   it rather than merging or splitting it yourself.
-- Deleting a task is destructive. If a tool call comes back with
-  \`confirmation_required\`, tell the user plainly what would be deleted and
-  wait for them to confirm before calling the tool again with the returned
-  token.
+- Deleting a task is destructive, but the confirmation step is enforced by
+  the tool itself, not by you. As soon as you have identified the task to
+  delete, call \`delete_task\` right away — never ask the user to confirm in
+  plain text first without calling it. If the call comes back with
+  \`confirmation_required\`, only then tell the user plainly what would be
+  deleted, and wait for their reply before calling \`delete_task\` again with
+  the exact same \`id\`.
 - If a tool call fails, explain the failure in plain language. Never retry
   the same call with the same arguments expecting a different result.
 - Keep replies short and conversational. Do not describe the tool calls

@@ -375,7 +375,7 @@ describe('useAgentChat', () => {
       sseFrame('tool_call', {
         type: 'tool_call',
         name: 'delete_task',
-        input: { id: 't1', confirmationToken: 'tok-2' },
+        input: { id: 't1' },
       }),
       sseFrame('tool_result', {
         type: 'tool_result',
@@ -468,7 +468,7 @@ describe('useAgentChat', () => {
         sseFrame('tool_call', {
           type: 'tool_call',
           name: 'delete_task',
-          input: { id: 't1', confirmationToken: 'tok-2' },
+          input: { id: 't1' },
         })
       );
       push(
