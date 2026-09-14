@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiError, Content, GoogleGenAI, Part } from '@google/genai';
 import {
+  AGENT_CONFIRM_REPLY_TEXT,
   AgentToolCall,
   agentToolCallSchema,
   AgentTurn,
@@ -93,6 +94,24 @@ const turnToContent = (turn: AgentTurn): Content => ({
   parts: [{ text: turn.text }],
 });
 
+/**
+ * A confirmation token lives entirely inside one request's `contents` — the
+ * model reads it straight out of the tool result it just received, so
+ * nothing stops it from immediately calling `delete_task` again with that
+ * same token, within the very turn that created it, before any real user
+ * ever saw or answered a prompt. That self-service round trip is also
+ * exactly how a *genuine* confirmation resolves (a fresh request has no way
+ * to carry a prior request's token either), so the two can't be told apart
+ * by looking at the token alone. The one signal that does distinguish them
+ * is what the user actually typed to trigger this request: the chat UI
+ * sends the literal `AGENT_CONFIRM_REPLY_TEXT` only when they clicked
+ * Confirm. `deleteTask` uses this to refuse same-request self-resolution
+ * unless that's what triggered it.
+ */
+const isConfirmedReply = (turns: AgentTurn[]): boolean =>
+  turns[turns.length - 1]?.role === 'user' &&
+  turns[turns.length - 1]?.text === AGENT_CONFIRM_REPLY_TEXT;
+
 // Built once — `zodToGeminiSchema` walks the whole schema tree on every call.
 const PARSE_TODO_RESPONSE_SCHEMA = zodToGeminiSchema(parsedTaskSchema);
 
@@ -182,6 +201,7 @@ export class AgentService {
     context: PromptContext
   ): Promise<AgentReplyResult> {
     const contents: Content[] = turns.map(turnToContent);
+    const confirmedReply = isConfirmedReply(turns);
     const config = {
       systemInstruction: buildSystemPrompt(context),
       tools: [
@@ -232,7 +252,12 @@ export class AgentService {
 
           let result: ToolResult<unknown>;
           if (parsed.success) {
-            result = await this.dispatch(userId, chatId, parsed.data);
+            result = await this.dispatch(
+              userId,
+              chatId,
+              parsed.data,
+              confirmedReply
+            );
           } else {
             result = { ok: false, reason: 'invalid_tool_call' };
           }
@@ -316,6 +341,7 @@ export class AgentService {
     options: { signal?: AbortSignal } = {}
   ): AsyncGenerator<AgentStreamEvent> {
     const contents: Content[] = turns.map(turnToContent);
+    const confirmedReply = isConfirmedReply(turns);
     const config = {
       systemInstruction: buildSystemPrompt(context),
       tools: [
@@ -381,7 +407,12 @@ export class AgentService {
           const parsed = agentToolCallSchema.safeParse({ name, input: args });
           let result: ToolResult<unknown>;
           if (parsed.success) {
-            result = await this.dispatch(userId, chatId, parsed.data);
+            result = await this.dispatch(
+              userId,
+              chatId,
+              parsed.data,
+              confirmedReply
+            );
           } else {
             result = { ok: false, reason: 'invalid_tool_call' };
           }
@@ -410,7 +441,8 @@ export class AgentService {
   private dispatch(
     userId: string,
     chatId: string,
-    call: AgentToolCall
+    call: AgentToolCall,
+    confirmedReply: boolean
   ): Promise<ToolResult<unknown>> {
     switch (call.name) {
       case 'create_tasks':
@@ -420,7 +452,12 @@ export class AgentService {
       case 'complete_task':
         return this.agentToolsService.completeTask(userId, call.input);
       case 'delete_task':
-        return this.agentToolsService.deleteTask(userId, chatId, call.input);
+        return this.agentToolsService.deleteTask(
+          userId,
+          chatId,
+          call.input,
+          confirmedReply
+        );
       case 'list_tasks':
         return this.agentToolsService.listTasks(userId, call.input);
       case 'find_tasks':

@@ -64,11 +64,10 @@ const AI_CONSENT_REQUIRED = {
 @ApiBearerAuth()
 @UseGuards(FirebaseAuthGuard, AgentThrottlerGuard)
 // The global per-client ThrottlerGuard (APP_GUARD) still runs too and caps
-// each caller individually. AgentThrottlerGuard adds a second check against
-// the same numbers, tracked by one shared bucket instead of per-client — the
-// real constraint here is a single project-wide Gemini quota, not fairness
-// between callers, and two guards is simpler than fighting Nest's metadata
-// system to make one guard behave differently per instance.
+// each caller individually at a generous rate. AgentThrottlerGuard adds a
+// second, tighter check against the same numbers, tracked per signed-in
+// user — so one user's usage (or a stranger's) can't 429 everyone else, but
+// each user is still bounded against the shared Gemini free-tier quota.
 @Throttle({
   default: { limit: AGENT_THROTTLE_LIMIT, ttl: AGENT_THROTTLE_TTL_MS },
 })

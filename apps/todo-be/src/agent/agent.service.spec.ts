@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiError, GoogleGenAI } from '@google/genai';
-import { AgentTurn, TodoItem } from '@shared/types';
+import { AGENT_CONFIRM_REPLY_TEXT, AgentTurn, TodoItem } from '@shared/types';
 import { AgentService, CAPPED_OUT_MESSAGE } from './agent.service';
 import { AgentToolsService } from './agent-tools.service';
 
@@ -619,6 +619,73 @@ describe('AgentService', () => {
           token: 'token-abc',
         },
       });
+    });
+
+    it('tells deleteTask this is not a confirmed reply for an ordinary request', async () => {
+      // A token lives only in this one request's model context, so nothing
+      // stops the model from immediately replaying one it was just handed —
+      // deleteTask itself refuses that unless the request was genuinely
+      // triggered by the user's confirm click, and it can only know that if
+      // this flag is passed through correctly.
+      generateContentStream
+        .mockResolvedValueOnce(
+          asAsyncIterable([functionCallChunk('delete_task', { id: 'todo-1' })])
+        )
+        .mockResolvedValueOnce(asAsyncIterable([textChunk('Please confirm.')]));
+      agentToolsService.deleteTask.mockResolvedValue({
+        ok: false,
+        reason: 'confirmation_required',
+        proposal: {
+          toolName: 'delete_task',
+          input: { id: 'todo-1' },
+          token: 'token-abc',
+        },
+      });
+
+      await collect(service.replyStream('user-1', 'chat-1', turns, context));
+
+      expect(agentToolsService.deleteTask).toHaveBeenCalledWith(
+        'user-1',
+        'chat-1',
+        { id: 'todo-1' },
+        false
+      );
+    });
+
+    it('tells deleteTask this is a confirmed reply when the user actually clicked confirm', async () => {
+      const confirmTurns: AgentTurn[] = [
+        ...turns,
+        {
+          role: 'user',
+          text: AGENT_CONFIRM_REPLY_TEXT,
+          at: new Date().toISOString(),
+        },
+      ];
+      generateContentStream
+        .mockResolvedValueOnce(
+          asAsyncIterable([
+            functionCallChunk('delete_task', {
+              id: 'todo-1',
+              confirmationToken: 'token-abc',
+            }),
+          ])
+        )
+        .mockResolvedValueOnce(asAsyncIterable([textChunk('Deleted.')]));
+      agentToolsService.deleteTask.mockResolvedValue({
+        ok: true,
+        data: makeTodo(),
+      });
+
+      await collect(
+        service.replyStream('user-1', 'chat-1', confirmTurns, context)
+      );
+
+      expect(agentToolsService.deleteTask).toHaveBeenCalledWith(
+        'user-1',
+        'chat-1',
+        { id: 'todo-1', confirmationToken: 'token-abc' },
+        true
+      );
     });
 
     it('stops at the iteration cap rather than looping forever', async () => {

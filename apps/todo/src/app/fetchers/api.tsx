@@ -172,7 +172,7 @@ export const useAddInboxTodoMutation = () => {
   });
 };
 
-const invalidateTodoCaches = (
+export const invalidateTodoCaches = (
   queryClient: ReturnType<typeof useQueryClient>,
   userId?: string
 ) => {

@@ -42,7 +42,8 @@ describe('TodoItem', () => {
       />
     );
     expect(screen.getByText('tasks.priority_high')).toBeInTheDocument();
-    expect(screen.getByText(/Due:/)).toBeInTheDocument();
+    expect(screen.getByText('tasks.due')).toBeInTheDocument();
+    expect(screen.getByText(/05\/08\/2026/)).toBeInTheDocument();
   });
   test('renders attached image', () => {
     render(
@@ -73,7 +74,7 @@ describe('TodoItem', () => {
       />
     );
     const controlsRow = container.querySelector(
-      '.flex.flex-wrap.items-center.gap-x-3.gap-y-1'
+      '.flex.flex-nowrap.items-center'
     );
     expect(controlsRow).not.toBeNull();
     fireEvent.click(controlsRow as Element);

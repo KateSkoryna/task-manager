@@ -105,7 +105,7 @@ function TodoList({
             >
               {todoList.name}
             </h3>
-            <span className="text-muted text-xs shrink-0">
+            <span className="hidden text-muted text-xs shrink-0 sm:inline">
               {completedCount}/{todoList.todos.length}
             </span>
             {todoList.priority && (
@@ -147,12 +147,14 @@ function TodoList({
         </div>
 
         {(todoList.category || formattedDate) && (
-          <div className="flex items-center gap-4 text-xs text-muted mt-1.5 ml-7">
+          <div className="hidden items-center gap-4 text-xs text-muted mt-1.5 ml-11 sm:flex">
             {todoList.category && (
-              <span>{t(`tasks.category_${todoList.category}`)}</span>
+              <span>
+                {t('tasks.category')} {t(`tasks.category_${todoList.category}`)}
+              </span>
             )}
             {formattedDate && (
-              <span>
+              <span className="ml-auto">
                 {t('todoList.due')} {formattedDate}
               </span>
             )}
@@ -160,7 +162,7 @@ function TodoList({
         )}
 
         {todoList.notes && (
-          <p className="mt-1.5 ml-7 text-xs text-muted truncate">
+          <p className="hidden mt-1.5 ml-11 text-xs text-muted truncate sm:block">
             {todoList.notes}
           </p>
         )}

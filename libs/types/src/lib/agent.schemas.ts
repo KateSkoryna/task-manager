@@ -9,6 +9,19 @@ export type AgentTurnRole = (typeof AGENT_TURN_ROLES)[number];
 export const MAX_TURN_TEXT_LENGTH = 4000;
 
 /**
+ * The exact plain-text replies the chat UI sends for a proposal's Confirm
+ * and Cancel buttons. Shared between frontend and backend because the
+ * backend uses these literals to gate confirmation: a destructive tool call
+ * may only create *and* consume a confirmation token within the same
+ * request when the request's own triggering message is this literal
+ * confirm reply — otherwise the model could see a freshly-issued token in
+ * its own tool-call response and immediately reuse it to bypass the user
+ * ever actually confirming (see `agent-tools.service.ts`'s `deleteTask`).
+ */
+export const AGENT_CONFIRM_REPLY_TEXT = 'Yes, go ahead.';
+export const AGENT_CANCEL_REPLY_TEXT = "No, don't do that.";
+
+/**
  * One message in a conversation. Sessions keep a bounded rolling window of
  * these; the full history is never sent to the model.
  */

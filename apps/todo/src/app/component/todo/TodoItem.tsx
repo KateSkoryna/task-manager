@@ -79,7 +79,7 @@ function TodoItem({
       }}
     >
       <div className="flex flex-col gap-2">
-        {/* Row 1: name + selected pill + edit btn */}
+        {/* Row 1: name + selected pill + priority + edit/delete btns */}
         <div className="flex items-center gap-3">
           <p
             className={`flex-1 min-w-0 truncate font-semibold text-primary leading-snug ${
@@ -93,6 +93,9 @@ function TodoItem({
               {t('tasks.selected')}
             </span>
           )}
+          <Badge tone={`priority-${todo.priority}`} className="shrink-0">
+            {t(`tasks.priority_${todo.priority}`)}
+          </Badge>
           {(onEdit || onDelete) && (
             <div className="flex items-center gap-1 lg:gap-3 shrink-0">
               {onEdit && (
@@ -136,17 +139,16 @@ function TodoItem({
           </div>
         )}
 
-        {/* Row 3: priority, status, reorder + move-to-list controls, due date */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <Badge tone={`priority-${todo.priority}`}>
-            {t(`tasks.priority_${todo.priority}`)}
-          </Badge>
-          <span className="hidden sm:inline text-xs text-muted">
-            {t('tasks.status')}{' '}
-            <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
-              {statusLabel}
-            </span>
+        {/* Row 3: status */}
+        <span className="hidden sm:inline text-xs text-muted">
+          {t('tasks.status')}{' '}
+          <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
+            {statusLabel}
           </span>
+        </span>
+
+        {/* Row 4: reorder + move-to-list controls, due date */}
+        <div className="flex flex-nowrap items-center gap-x-1.5 sm:gap-x-3">
           {(onMoveUp || onMoveDown) && (
             <div
               className="flex items-center border border-default rounded-inner overflow-hidden shrink-0"
@@ -173,7 +175,10 @@ function TodoItem({
             </div>
           )}
           {onMoveToList && (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div
+              className="min-w-0 flex-1 sm:flex-none"
+              onClick={(e) => e.stopPropagation()}
+            >
               <MoveToListSelect
                 value={currentListId ?? null}
                 availableLists={availableLists ?? []}
@@ -183,7 +188,7 @@ function TodoItem({
           )}
           {todo.dueDate && !hideDueDate && (
             <span
-              className={`flex items-center gap-1 text-xs ml-auto ${
+              className={`flex shrink-0 items-center gap-1 text-xs ml-auto ${
                 isUrgent ? 'text-danger font-semibold' : 'text-muted'
               }`}
             >
@@ -195,7 +200,8 @@ function TodoItem({
                   }`}
                 />
               )}
-              Due: {dayjs(todo.dueDate).format('DD/MM/YYYY')}
+              <span className="hidden sm:inline">{t('tasks.due')} </span>
+              {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               {isUrgent && (
                 <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
                   {t('tasks.dueSoon')}

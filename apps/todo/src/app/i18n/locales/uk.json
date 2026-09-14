@@ -251,6 +251,33 @@
   "footer": {
     "rights": "© {{year}} Катерина Скорина. Усі права захищено."
   },
+  "agent": {
+    "name": "TaskPal",
+    "tagline": "Читає твої списки, питає перш ніж щось змінити",
+    "open": "Запитати TaskPal",
+    "close": "Закрити TaskPal",
+    "composerPlaceholder": "Скажи TaskPal, що зробити…",
+    "send": "Надіслати",
+    "tool": {
+      "createTask": "Створено завдання",
+      "createTasks": "Створено {{count}} завдань",
+      "updateTask": "Завдання оновлено",
+      "completeTask": "Завдання виконано",
+      "deleteTask": "Завдання видалено",
+      "listTasks": "Переглянуто твої завдання",
+      "findTasks": "Знайдено твої завдання",
+      "generic": "Щось зроблено",
+      "failed": "Це не спрацювало"
+    },
+    "proposal": {
+      "confirmTitle": "Створити це завдання?",
+      "deleteTitle": "Видалити це завдання?",
+      "notYet": "Ще ні",
+      "addTask": "Додати завдання",
+      "keep": "Залишити",
+      "delete": "Видалити"
+    }
+  },
   "statistics": {
     "title": "Статистика",
     "loading": "Завантаження статистики...",

@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { AuthenticatedRequest } from '../auth/authenticated-user';
 
 /**
- * The default `ThrottlerGuard` tracks by client (IP), which protects against
- * one abusive caller but not the resource this route actually shares: a
- * single Gemini free-tier project quota (5 requests/minute total, see
- * docs/PLAN.md Step 4.1/4.4). Two well-behaved signed-in users each staying
- * under a per-client limit can still blow through the shared budget, so this
- * guard tracks one bucket for every caller instead of one per client.
+ * Tracks one bucket per signed-in user rather than one shared bucket for
+ * every caller: a single global bucket (the previous behavior) meant one
+ * user's own usage — or another user entirely — could exhaust the whole
+ * app's agent quota and 429 everyone else. `FirebaseAuthGuard` runs before
+ * this guard on every route that uses it (see `AgentController`'s
+ * `@UseGuards` order), so `request.user` is always populated here.
  */
 @Injectable()
 export class AgentThrottlerGuard extends ThrottlerGuard {
-  protected async getTracker(): Promise<string> {
-    return 'agent-message';
+  protected async getTracker(req: AuthenticatedRequest): Promise<string> {
+    return req.user?.id ?? 'anonymous-agent-caller';
   }
 }
