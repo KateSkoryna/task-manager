@@ -230,7 +230,7 @@
     "tone_encouraging": "Encouraging",
     "tone_direct": "Direct",
     "aiConsent": "Allow AI-generated features",
-    "aiConsentDescription": "When enabled, your task text may be sent to Google Gemini to power natural-language features like reports and the Telegram assistant. Off by default.",
+    "aiConsentDescription": "When enabled, your task text may be sent to Google Gemini to power natural-language features like reports and the Telegram assistant. If you use the chat's voice input, your browser also sends your speech audio to Google's servers for recognition. Off by default.",
     "save": "Save",
     "saving": "Saving…",
     "saved": "Saved",
@@ -258,6 +258,13 @@
     "close": "Close TaskPal",
     "composerPlaceholder": "Tell TaskPal what to do…",
     "send": "Send",
+    "micStart": "Start voice input (sent to Google's servers for recognition)",
+    "micStop": "Stop voice input",
+    "speechError": {
+      "permission-denied": "Microphone access was denied.",
+      "no-speech": "No speech detected — try again.",
+      "unknown": "Voice input isn't available right now."
+    },
     "tool": {
       "createTask": "Created a task",
       "createTasks": "Created {{count}} tasks",
