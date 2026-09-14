@@ -170,7 +170,7 @@ describe('AgentToolsService', () => {
   });
 
   describe('deleteTask', () => {
-    it('never deletes without a confirmation token, and proposes one instead', async () => {
+    it('never deletes without a confirmed reply, and proposes a confirmation instead', async () => {
       agentSessionService.createConfirmation.mockResolvedValue('token-abc');
 
       const result = await service.deleteTask(
@@ -200,7 +200,7 @@ describe('AgentToolsService', () => {
       expect(todoService.deleteOwned).not.toHaveBeenCalled();
     });
 
-    it('deletes once a valid confirmation token is consumed', async () => {
+    it('deletes once a pending confirmation is consumed for a confirmed reply', async () => {
       const deleted = makeTodo();
       agentSessionService.consumeConfirmation.mockResolvedValue(true);
       todoService.deleteOwned.mockResolvedValue(deleted);
@@ -210,7 +210,6 @@ describe('AgentToolsService', () => {
         'chat-1',
         {
           id: 'todo-1',
-          confirmationToken: 'token-abc',
         },
         true
       );
@@ -219,14 +218,13 @@ describe('AgentToolsService', () => {
       expect(agentSessionService.consumeConfirmation).toHaveBeenCalledWith(
         'user-1',
         'chat-1',
-        'token-abc',
         'delete_task',
         { id: 'todo-1' }
       );
       expect(todoService.deleteOwned).toHaveBeenCalledWith('todo-1', 'user-1');
     });
 
-    it('refuses to replay an already-consumed confirmation token', async () => {
+    it('refuses when there is no matching pending confirmation left to consume', async () => {
       agentSessionService.consumeConfirmation.mockResolvedValue(false);
       agentSessionService.createConfirmation.mockResolvedValue('token-new');
 
@@ -235,7 +233,6 @@ describe('AgentToolsService', () => {
         'chat-1',
         {
           id: 'todo-1',
-          confirmationToken: 'token-abc',
         },
         true
       );
@@ -252,7 +249,7 @@ describe('AgentToolsService', () => {
       expect(todoService.deleteOwned).not.toHaveBeenCalled();
     });
 
-    it('passes the current id to consumeConfirmation, not just the token, so a token cannot be redirected onto a different task', async () => {
+    it('passes the current id to consumeConfirmation, so a pending confirmation cannot be redirected onto a different task', async () => {
       agentSessionService.consumeConfirmation.mockResolvedValue(false);
       agentSessionService.createConfirmation.mockResolvedValue('token-new');
 
@@ -261,7 +258,6 @@ describe('AgentToolsService', () => {
         'chat-1',
         {
           id: 'todo-2',
-          confirmationToken: 'token-for-todo-1',
         },
         true
       );
@@ -269,7 +265,6 @@ describe('AgentToolsService', () => {
       expect(agentSessionService.consumeConfirmation).toHaveBeenCalledWith(
         'user-1',
         'chat-1',
-        'token-for-todo-1',
         'delete_task',
         { id: 'todo-2' }
       );
@@ -285,7 +280,6 @@ describe('AgentToolsService', () => {
         'chat-1',
         {
           id: 'missing',
-          confirmationToken: 'token-abc',
         },
         true
       );
@@ -293,18 +287,19 @@ describe('AgentToolsService', () => {
       expect(result).toEqual({ ok: false, reason: 'not_found' });
     });
 
-    it("refuses a confirmation token when this request was not itself the user's confirm reply, even if the token would otherwise be valid", async () => {
-      // A token lives inside the model's own context for this one request,
-      // so the model can see one it was just handed (via the tool result
-      // below) and immediately replay it in the same turn, before any real
-      // person answered a prompt. `confirmedReply: false` is what a plain
-      // "delete task X" request looks like — nothing must get deleted here.
+    it("never consumes a pending confirmation when this request was not itself the user's confirm reply, even if one is pending", async () => {
+      // `confirmedReply: false` is what a plain "delete task X" request
+      // looks like — the model can see a pending confirmation exists (via
+      // the tool result it just received) and try to immediately call
+      // `delete_task` again within the same request, before any real person
+      // ever answered a prompt. `consumeConfirmation` must never even be
+      // asked in that case — see `agent-tools.service.ts`'s `deleteTask`.
       agentSessionService.createConfirmation.mockResolvedValue('token-new');
 
       const result = await service.deleteTask(
         'user-1',
         'chat-1',
-        { id: 'todo-1', confirmationToken: 'token-abc' },
+        { id: 'todo-1' },
         false
       );
 
