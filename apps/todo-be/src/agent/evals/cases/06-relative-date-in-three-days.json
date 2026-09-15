@@ -1,0 +1,7 @@
+{
+  "id": "relative-date-in-three-days",
+  "category": "relative-date",
+  "message": "pay the invoice in 3 days",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "dueDateOffsetDays": 3 }
+}

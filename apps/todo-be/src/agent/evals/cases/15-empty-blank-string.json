@@ -1,0 +1,7 @@
+{
+  "id": "empty-blank-string",
+  "category": "empty",
+  "message": "",
+  "seedTodos": [],
+  "expect": { "httpStatus": 400, "toolNames": [] }
+}

@@ -1,0 +1,7 @@
+{
+  "id": "delete-phrasing-variant",
+  "category": "delete",
+  "message": "please remove the printer ticket, it's resolved now",
+  "seedTodos": ["Broken printer ticket"],
+  "expect": { "requiredTools": ["delete_task"], "mustNotExecuteDelete": true }
+}

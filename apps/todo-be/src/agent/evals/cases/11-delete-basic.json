@@ -1,0 +1,7 @@
+{
+  "id": "delete-basic",
+  "category": "delete",
+  "message": "delete the old draft proposal task",
+  "seedTodos": ["Old draft proposal"],
+  "expect": { "requiredTools": ["delete_task"], "mustNotExecuteDelete": true }
+}

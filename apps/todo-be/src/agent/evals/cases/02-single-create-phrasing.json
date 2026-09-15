@@ -1,0 +1,7 @@
+{
+  "id": "single-create-phrasing",
+  "category": "single-create",
+  "message": "add a task to call the plumber about the leak",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "minTaskCount": 1 }
+}

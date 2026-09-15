@@ -19,6 +19,7 @@
     "lint": "nx run-many --target=lint",
     "check:deprecated-tokens": "node scripts/check-deprecated-tokens.js",
     "typecheck": "tsc --build apps/todo apps/todo-be libs/types",
+    "eval:agent": "ts-node -r tsconfig-paths/register --project apps/todo-be/tsconfig.app.json apps/todo-be/src/agent/evals/run-eval.ts",
     "emulator": "firebase emulators:start",
     "all": "npm run docker:mongodb & npm run emulator & npm run serve:be & npm run serve:fe"
   },
@@ -121,6 +122,7 @@
     "tailwindcss": "^3.4.19",
     "ts-jest": "29.1.1",
     "ts-node": "10.9.1",
+    "tsconfig-paths": "4.2.0",
     "typescript": "5.2.2",
     "url-loader": "4.1.1",
     "webpack": "5.76.2",

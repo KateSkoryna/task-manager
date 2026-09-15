@@ -1,0 +1,7 @@
+{
+  "id": "ambiguous-delete-target",
+  "category": "ambiguous",
+  "message": "delete the appointment task",
+  "seedTodos": ["Doctor appointment", "Dentist appointment"],
+  "expect": { "mustAskQuestion": true }
+}

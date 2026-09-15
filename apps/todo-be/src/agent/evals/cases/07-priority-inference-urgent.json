@@ -1,0 +1,7 @@
+{
+  "id": "priority-inference-urgent",
+  "category": "priority-inference",
+  "message": "URGENT: the production server is down, fix it now",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "priority": "high" }
+}

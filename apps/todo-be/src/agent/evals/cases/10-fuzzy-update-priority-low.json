@@ -1,0 +1,7 @@
+{
+  "id": "fuzzy-update-priority-low",
+  "category": "fuzzy-update",
+  "message": "the quarterly report thing isn't urgent anymore, set it to low priority",
+  "seedTodos": ["Quarterly report draft"],
+  "expect": { "requiredTools": ["update_task"], "priority": "low" }
+}
