@@ -1,0 +1,7 @@
+{
+  "id": "relative-date-tomorrow",
+  "category": "relative-date",
+  "message": "remind me to submit the report tomorrow",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "dueDateOffsetDays": 1 }
+}

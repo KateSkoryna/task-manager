@@ -1,0 +1,7 @@
+{
+  "id": "single-create-basic",
+  "category": "single-create",
+  "message": "add buy milk to my list",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "minTaskCount": 1 }
+}

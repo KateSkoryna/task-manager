@@ -1,0 +1,7 @@
+{
+  "id": "multi-create-three",
+  "category": "multi-create",
+  "message": "add three tasks: buy milk, call mom, and pay the electric bill",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "minTaskCount": 3 }
+}

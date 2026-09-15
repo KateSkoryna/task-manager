@@ -1,0 +1,7 @@
+{
+  "id": "ambiguous-update-target",
+  "category": "ambiguous",
+  "message": "mark the meeting prep task as high priority",
+  "seedTodos": ["Client meeting prep", "Team meeting prep"],
+  "expect": { "mustAskQuestion": true }
+}

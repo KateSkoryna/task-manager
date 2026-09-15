@@ -1,0 +1,7 @@
+{
+  "id": "fuzzy-update-priority-high",
+  "category": "fuzzy-update",
+  "message": "bump the priority of the team meeting task to high",
+  "seedTodos": ["Team meeting notes"],
+  "expect": { "requiredTools": ["update_task"], "priority": "high" }
+}

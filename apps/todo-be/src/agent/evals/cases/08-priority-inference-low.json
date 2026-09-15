@@ -1,0 +1,7 @@
+{
+  "id": "priority-inference-low",
+  "category": "priority-inference",
+  "message": "whenever you get a chance, no rush at all, water the office plants",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "priority": "low" }
+}

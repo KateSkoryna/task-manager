@@ -1,0 +1,7 @@
+{
+  "id": "off-topic-recipe",
+  "category": "off-topic",
+  "message": "give me a recipe for chocolate chip cookies",
+  "seedTodos": [],
+  "expect": { "toolNames": [], "mustStayOnTopic": true }
+}

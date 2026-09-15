@@ -1,0 +1,7 @@
+{
+  "id": "multi-create-two",
+  "category": "multi-create",
+  "message": "I need to water the plants and also take out the trash",
+  "seedTodos": [],
+  "expect": { "toolNames": ["create_tasks"], "minTaskCount": 2 }
+}
