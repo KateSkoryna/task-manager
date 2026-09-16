@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import 'dotenv/config';
+import './instrument';
 import { createApplication } from './bootstrap';
 
 async function bootstrap(): Promise<void> {
