@@ -1,0 +1,46 @@
+# One-command stack for a fresh clone: MongoDB + the NestJS backend.
+#
+# `docker-compose up` gets a reviewer a running backend with no local Node
+# or MongoDB install. It does not containerize the frontend (a Vite/webpack
+# dev server already hot-reloads fine as a plain process, and containerizing
+# it would only add overhead) or the Firebase emulators (a CLI tool, not
+# normally containerized for local dev) — start those the usual way:
+#
+#   npm run emulator
+#   npm run serve:fe
+#
+# If the Firebase Auth emulator is running on the host while the backend
+# runs in this container, FIREBASE_AUTH_EMULATOR_HOST below points at
+# host.docker.internal, not 127.0.0.1 — 127.0.0.1 inside the container
+# means the container itself, not your machine.
+services:
+  mongo:
+    image: mongo:7
+    container_name: todo-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - '27017:27017'
+    volumes:
+      - todo-mongo-data:/data/db
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/todo-be/Dockerfile
+    container_name: todo-backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://root:password@mongo:27017/todo?authSource=admin
+      FIREBASE_AUTH_EMULATOR_HOST: host.docker.internal:9099
+    ports:
+      - '3333:3333'
+
+volumes:
+  todo-mongo-data:
