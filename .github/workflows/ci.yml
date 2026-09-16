@@ -155,3 +155,4 @@ jobs:
             firebase-emulator.log
             backend.log
             frontend.log
+            dist/cypress/apps/todo-e2e/screenshots
