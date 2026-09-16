@@ -72,6 +72,18 @@ npm run serve:fe
 - Security headers, CORS policy, configurable rate limiting on auth routes,
   structured JSON request logging with request IDs and redaction, bounded
   cursor pagination for todo lists, and liveness/readiness health checks.
+- A conversational task agent (Gemini, tool-calling) exposed as a chat panel: create, update,
+  complete, delete, list, and find tasks through natural language, with relative-date and
+  priority inference, a confirmation gate on deletes, consent gating, per-user rate limiting,
+  and no user content in logs. Voice input via the Web Speech API. See
+  [`docs/AGENT-ARCHITECTURE.md`](docs/AGENT-ARCHITECTURE.md).
+- Inbox quick capture: typing a task with an inline due date and/or priority parses and fills
+  those fields automatically via one Gemini call, without blocking task creation on the
+  network.
+- A 22-case deterministic eval harness (`npm run eval:agent`) scoring the agent's tool calls
+  against fixed cases, covering creation, relative dates, priority inference, fuzzy
+  updates/deletes, ambiguous targets, adversarial and off-topic input, and edge cases —
+  current baseline in `docs/PLAN.md` Phase 9.
 
 ### Not yet complete
 
@@ -79,7 +91,8 @@ npm run serve:fe
 - Frontend test coverage is not yet comprehensive or threshold-enforced project-wide.
 - API documentation is generated from the NestJS application and served with Swagger UI.
 - Firebase Storage reads are public; writes are restricted to the authenticated user's path.
-- Gemini is installed but no AI feature is connected to the application.
+- The agent's eval pass rate (81.8% as of the last recorded run) is below the 90% target;
+  see `docs/PLAN.md` Phase 9 for the specific failure categories.
 
 [`docs/PLAN.md`](docs/PLAN.md) is the source of truth for shipped status, planned work, priorities, and acceptance criteria.
 
@@ -96,15 +109,18 @@ NestJS REST API
   ├─ Firebase Admin ─────────── token verification
   ├─ guards ─────────────────── MongoDB profile lookup + ownership check
   ├─ injectable controllers/services
+  ├─ AgentService ───────────── Gemini tool-calling loop (SSE)
   └─ injected Mongoose models
              │
              ▼
-MongoDB ─────────────────────── users, todo lists, todos, image URLs
+MongoDB ─────────────────────── users, todo lists, todos, image URLs, agent sessions
 ```
 
 The browser authenticates with Firebase and attaches the current ID token to API requests. The backend verifies that token, resolves the corresponding MongoDB profile, and rejects requests whose `:userId` does not match the authenticated user.
 
 Images follow a separate path: the frontend compresses the selected file, uploads it directly to `todos/{firebaseUid}/...` in Firebase Storage, and stores the resulting download URL on the todo document.
+
+The agent never touches MongoDB directly — every tool call is validated and routed through the same `TodoService` the REST API uses, so ownership checks apply automatically. See [`docs/AGENT-ARCHITECTURE.md`](docs/AGENT-ARCHITECTURE.md) for the trust boundary, the confirmation gate on deletes, and rate-limit/retention details.
 
 ## Tech stack
 
@@ -125,6 +141,7 @@ Images follow a separate path: the frontend compresses the selected file, upload
 - Node.js 20 and NestJS 10
 - Mongoose 7 and MongoDB
 - Firebase Admin SDK
+- `@google/genai` (Gemini) for the conversational agent and Inbox parsing
 - Generated OpenAPI with Swagger UI
 
 ### Tests and delivery
@@ -158,6 +175,7 @@ todo-list/
 │   │       └── environments/
 │   ├── todo-be/                       # NestJS/Mongoose API
 │   │   └── src/
+│   │       ├── agent/                  # Gemini tool-calling loop, tools, evals
 │   │       ├── auth/                  # Profile endpoints and Firebase guards
 │   │       ├── common/                # Decorators, pipes, filters, errors
 │   │       ├── integrations/firebase/ # Injectable Firebase Admin provider
@@ -168,7 +186,8 @@ todo-list/
 ├── libs/types/                        # Shared TypeScript types and Zod schemas
 ├── tools/mongodb/                     # MongoDB + mongo-express Compose stack
 ├── docs/
-│   └── PLAN.md                        # Authoritative phased implementation plan
+│   ├── PLAN.md                        # Authoritative phased implementation plan
+│   └── AGENT-ARCHITECTURE.md          # Agent data flow, trust boundary, retention
 ├── firebase.json                      # Auth/Storage emulator configuration
 ├── storage.rules
 └── render.yaml
@@ -222,6 +241,12 @@ THROTTLE_TTL_MS=60000
 THROTTLE_LIMIT=300
 AUTH_THROTTLE_TTL_MS=60000
 AUTH_THROTTLE_LIMIT=10
+
+# Conversational agent (Gemini) — required only if a user enables AI assistance
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.5-flash
+AGENT_THROTTLE_TTL_MS=60000
+AGENT_THROTTLE_LIMIT=3
 ```
 
 Notes:
@@ -282,11 +307,15 @@ DELETE /api/users/:userId/todolists/:todolistId
 POST   /api/users/:userId/todolists/:todolistId/todos
 PUT    /api/users/:userId/todolists/:todolistId/todos/:id
 DELETE /api/users/:userId/todolists/:todolistId/todos/:id
+
+# Conversational agent (requires preferences.aiConsent; 403 otherwise)
+POST   /api/agent/message      # text/event-stream: token, tool_call, tool_result, proposal, done, error
+POST   /api/agent/parse-todo   # single-shot structured parse for Inbox quick capture
 ```
 
 `GET /api/users/:userId/todolists` populates the todos inside each list, so the frontend does not use separate read endpoints for individual todos.
 
-The generated OpenAPI document at `/api-docs-json` contains exactly these operations; Swagger UI is available at `/api-docs`.
+The generated OpenAPI document at `/api-docs-json` contains exactly these operations; Swagger UI is available at `/api-docs`. See [`docs/AGENT-ARCHITECTURE.md`](docs/AGENT-ARCHITECTURE.md) for the agent endpoints' data flow, tool contract, and trust boundary.
 
 ## Data model
 
@@ -363,6 +392,10 @@ npm run test:e2e:watch
 
 # Headless authenticated smoke flow (starts the frontend automatically)
 npm run test:e2e
+
+# Agent eval harness: 22 fixed cases scored against a live Gemini call,
+# reporting pass rate, p50/p95 latency, prompt version, and model name
+npm run eval:agent
 ```
 
 Useful Nx commands:

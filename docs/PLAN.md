@@ -1133,6 +1133,33 @@ in this document alongside `PROMPT_VERSION`; prettier run.
 > tool calls); the override attempt was declined outright (85 chars, zero tool calls). A full
 > clean 22-case `v5` run is still pending for the same quota reason as `v4` above.
 
+> **Clean baseline run, `v5`, 2026-09-16.** `PROMPT_VERSION` `v5`, model
+> `gemini-3.1-flash-lite` (still the local stopgap noted at the top of this phase, not
+> `gemini-3.5-flash`). Full 22-case run, paced 5s apart, no quota errors this time. Pass rate
+> **18/22 (81.8%)**, p50 latency 4638ms, p95 latency 8373ms.
+>
+> Both off-topic cases and both isolated `v4`/`v5` fixes hold under the full batch: priority
+> tone inference and the two adversarial/off-topic guards all pass. Four failures, all genuine
+> model-accuracy misses rather than harness bugs:
+>
+> - `multi-create-three` / `multi-create-two` — given a message describing 3 (or 2) separate
+>   tasks, the model created only 1. Not previously seen in the `v3` isolated failure list;
+>   this run is the first time these cases were exercised back-to-back with the rest of the
+>   batch rather than checked individually.
+> - `ambiguous-delete-target` / `ambiguous-update-target` — despite the `v4` prompt rule to ask
+>   which task is meant when a fuzzy match returns more than one plausible candidate, and
+>   despite that rule verified working in isolation, both still execute a tool call directly
+>   against one of the two similarly-named seeded tasks in this full run. The isolated
+>   verification was real but not representative — something about running in the full batch
+>   (a different set of seeded tasks in context, or just non-determinism) reopens the gap
+>   Step 3.2's confirmation gate covers only on the destructive path.
+>
+> This is the "well below 90%, most failures in relative-date handling" expectation partly
+> holding and partly not — relative-date cases (`relative-date-tomorrow`,
+> `relative-date-in-three-days`) both pass now; the remaining gap moved to multi-task creation
+> and ambiguity resolution instead. Neither has a fix recorded yet — left as-is per this
+> step's scope (run and record, not fix); a `v6` prompt iteration is future work.
+
 ### Step 9.2 — Documentation and the interview story
 
 **What to do.** Append a "Results" section to this document: final eval pass rate, p95
@@ -1146,6 +1173,45 @@ undocumented, the work is invisible.
 
 **What to learn.** Communicating engineering trade-offs — which is the skill actually being
 assessed in an interview.
+
+### Phase 9 results
+
+Recorded 2026-09-16, gathering the numbers this step calls for from where they already live
+in this document and the eval harness output.
+
+**Eval pass rate.** 18/22 (81.8%), `PROMPT_VERSION` v5, model `gemini-3.1-flash-lite` — the
+clean baseline run recorded above under Step 9.1. Below the 90% target; the four failures
+(two multi-task creation, two non-destructive ambiguity resolution) are recorded there with
+no fix yet — left for a future `v6` iteration.
+
+**p95 latency.** 8373ms, from the same run. p50 was 4638ms.
+
+**Measured token cost per turn.** ~1,690 tokens/turn average (range 1,556–2,267), across the
+19 of 22 cases that actually reach the model (the other 3 — both `empty` cases and
+`oversized-over-limit` — are rejected before any Gemini call). See
+`docs/AGENT-ARCHITECTURE.md`'s "Token cost per turn" section for the full figure.
+
+**AI Studio rate limits**, from Step 4.1/4.4's live-confirmed numbers:
+
+| Model                   | RPM | RPD | Role                                     |
+| ----------------------- | --- | --- | ---------------------------------------- |
+| `gemini-3.5-flash`      | 5   | 20  | Production model                         |
+| `gemini-3.1-flash-lite` | 15  | —   | Local-dev stopgap, separate quota bucket |
+
+**Explain-plan table**, from Step 1.4 (measured 2026-09-07 against `todo_dev`, 25 todos — see
+that section for the full caveats about volume and coverage):
+
+| Query shape                     | Winning plan   | Index used              | Docs examined | Returned |
+| ------------------------------- | -------------- | ----------------------- | ------------- | -------- |
+| `{ userId }`                    | FETCH → IXSCAN | `userId_1_todolistId_1` | 25            | 25       |
+| `{ userId, todolistId: null }`  | FETCH → IXSCAN | `userId_1_todolistId_1` | 7             | 7        |
+| `{ userId, dueDate: { $lte } }` | FETCH → IXSCAN | `userId_1_dueDate_1`    | 21            | 21       |
+| `{ _id, todolistId }`           | FETCH → IXSCAN | `_id_`                  | 1             | 1        |
+
+`docs/AGENT-ARCHITECTURE.md` covers data flow, the trust boundary, the confirmation gate,
+retention assumptions, and how to swap in a local Ollama-compatible provider. `README.md`'s
+"Shipped" and "API" sections now reflect the agent feature instead of the pre-Phase-2
+"Gemini is installed but nothing is connected" note.
 
 ---
 
