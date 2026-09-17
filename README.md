@@ -15,6 +15,17 @@ npm run all
 
 Open the app at `http://localhost:4200`. See [Prerequisites](#prerequisites) and [Environment variables](#environment-variables) if this is your first local setup.
 
+### Backend-only via Docker
+
+`docker-compose.yml` at the repo root runs MongoDB and the backend as containers — no local Node or MongoDB install needed for the API:
+
+```bash
+cp .env.example .env   # fill in Firebase/Gemini values
+docker compose up
+```
+
+The backend is then live at `http://localhost:3333` (`/api/health/ready` should report `{"status":"ok","mongo":"connected"}`). This does not containerize the frontend or the Firebase emulators — start those separately with `npm run serve:fe` and `npm run emulator` if you need the full app, not just the API. If the Firebase Auth emulator is running on the host while the backend runs in this container, the compose file already points `FIREBASE_AUTH_EMULATOR_HOST` at `host.docker.internal` so the container can reach it.
+
 ## Local services
 
 | Service                     | URL                              |
@@ -203,7 +214,7 @@ todo-list/
 
 ## Environment variables
 
-Create `.env` in the repository root. Never commit real credentials.
+Create `.env` in the repository root (`.env.example` documents every key with placeholders). Never commit real credentials.
 
 ```dotenv
 # Runtime
@@ -245,8 +256,12 @@ AUTH_THROTTLE_LIMIT=10
 # Conversational agent (Gemini) — required only if a user enables AI assistance
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash
+GEMINI_TIMEOUT_MS=30000
 AGENT_THROTTLE_TTL_MS=60000
 AGENT_THROTTLE_LIMIT=3
+
+# Error monitoring — optional; the SDK no-ops without a DSN
+SENTRY_DSN=
 ```
 
 Notes:
@@ -257,6 +272,7 @@ Notes:
 - `FIREBASE_AUTH_EMULATOR_HOST` is for local development. Do not set it in production.
 - The Firebase Storage emulator is selected by frontend code whenever `environment.production` is `false`.
 - `CORS_ORIGIN` accepts a comma-separated list of allowed origins; leave unset to allow all origins in local development. The backend refuses to start with `NODE_ENV=production` and no `CORS_ORIGIN` set.
+- `SENTRY_DSN` enables error monitoring (`apps/todo-be/src/instrument.ts`). Request/response bodies, auto-populated user info, and AI input/output are never collected — task text, tokens, and agent payloads only ever live in this app's own request handling, not in Sentry.
 
 ## Local authentication
 
@@ -268,6 +284,16 @@ The development frontend connects to the Firebase Auth and Storage emulators. Ke
 - **Emulator users:** view and remove them at `http://localhost:4000/auth`.
 
 After Firebase authentication, the frontend calls `POST /api/auth/provision` to create or link the MongoDB profile. Subsequent requests load that profile through the protected API guard.
+
+### Demo account
+
+`npm run seed:demo` creates a ready-to-explore account — login-enabled, with sample lists and todos, AI assistance already opted in — against MongoDB and the Firebase Auth emulator. It refuses to run without `FIREBASE_AUTH_EMULATOR_HOST` set, since it creates a fixed, published password that must never exist against a real Firebase project. Safe to run repeatedly; every document is upserted by a stable key rather than duplicated. With the emulator running:
+
+```bash
+npm run seed:demo
+```
+
+Then sign in at `/login` with `demo@example.com` / `DemoPass123!`.
 
 ## Frontend routes
 

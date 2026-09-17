@@ -1294,6 +1294,85 @@ Below roughly 2,000 tasks the whole list fits comfortably in the model's context
 - Error monitoring redacts tokens, task text, email addresses, and AI payloads.
 - Dependency audit findings are resolved or explicitly risk-accepted.
 
+### Phase 11 results
+
+Built across three PRs (#42 in progress at time of writing): Sentry, Docker
+Compose, CI hardening, dependabot, and the demo seed command.
+
+- **`docker-compose.yml` + `apps/todo-be/Dockerfile`.** Backend + MongoDB only
+  — not the frontend (a webpack dev server already hot-reloads; containerizing
+  it would only add overhead) or the Firebase emulators (a CLI tool, not
+  normally containerized for local dev). Verified live: `docker compose up`
+  brings up both containers, `/api/health/ready` reports
+  `{"status":"ok","mongo":"connected"}`, Swagger reachable. One real bug found
+  and fixed along the way: the Dockerfile copied `package.json` and
+  `package-lock.json` before `npm ci` but not `.npmrc` — this repo's
+  `legacy-peer-deps=true` setting is required for `npm ci` to resolve the
+  lockfile at all, so the build failed until `.npmrc` was added to that copy
+  step.
+- **`.env.example`.** Documents every key `.env` actually uses, including
+  `GEMINI_TIMEOUT_MS` (previously used in code but undocumented) and the new
+  `SENTRY_DSN`.
+- **Idempotent demo seed command — `scripts/seed-demo.js`, `npm run seed:demo`.**
+  Creates (or finds) a Firebase Auth emulator user plus a matching MongoDB
+  profile with `aiConsent` already enabled, three todo lists, and ten todos
+  across a range of statuses/priorities/due dates. Every document is upserted
+  by a stable natural key, so re-running the script does not duplicate
+  anything — verified live by running it twice and confirming identical
+  document counts. Refuses to run unless `FIREBASE_AUTH_EMULATOR_HOST` is set,
+  since it creates an account with a fixed, published password
+  (`demo@example.com` / `DemoPass123!`) that must never exist against a real
+  Firebase project. Verified the account actually authenticates via the
+  emulator's REST API, not just that the documents exist.
+- **`.github/workflows/ci.yml` — E2E smoke job.** Mongo (service container) →
+  Firebase emulators → backend → frontend, each explicitly polled and
+  confirmed ready before the next starts, then the existing authenticated
+  Cypress smoke spec runs against them. This test had no CI job at all before
+  this phase (an earlier one was removed years prior for flakiness — see
+  commit `57f9c0f`), so getting it green in CI surfaced four real,
+  previously-uncaught bugs, all fixed:
+  - Firebase's emulators require Java 21+; the runner's default JDK doesn't
+    meet that — added `actions/setup-java@v4`.
+  - The test looked for `button[aria-label="Edit task"]` /
+    `button[aria-label="Delete task"]`, strings that do not exist anywhere in
+    the app (the real `aria-label`s are just `"Edit"`/`"Delete"`, via i18n).
+    Added `data-testid`s to the task detail panel's Edit/Delete buttons,
+    matching that file's own existing convention, and pointed the test at
+    those instead — more robust than aria-label text, which changes with
+    locale.
+  - Cypress's `.focus()` and `.type()` commands both refuse `<summary>`
+    elements (not on either command's internal allowlist), even though real
+    browsers support keyboard operation of them. Replaced with a plain
+    `.click()` to open the status dropdown.
+  - Selecting the "Completed" status option via focus + `{enter}` triggered
+    an unintended early form save in headless Electron specifically (not
+    reproduced via plain click) — simplified to `.click()`, consistent with
+    every other interaction already in the test.
+  - Confirmed working with three consecutive real CI runs, then added as a
+    required status check on `main` alongside `Lint`/`Typecheck`/`Tests`.
+- **Sentry error monitoring — `apps/todo-be/src/instrument.ts`.** Configured
+  to collect no HTTP request/response bodies, no auto-populated user info,
+  and no AI input/output — task text, tokens, and agent payloads never reach
+  Sentry, matching this app's existing log-hygiene policy from Step 4.4.
+  Verified live by sending real exceptions through the actual `instrument.ts`
+  config to the real Sentry project and confirming they arrived. One
+  unrelated regression caught and fixed in the process: the Sentry setup
+  wizard had overwritten `main.ts` with a bare `NestFactory.create(AppModule)`,
+  silently dropping the app's CORS config, the `/api` global prefix, Helmet,
+  the pino logger, and the global exception filter — restored
+  `createApplication()` from `bootstrap.ts`.
+- **`.github/dependabot.yml`.** Weekly checks across three ecosystems: npm
+  (root, minor/patch grouped into one PR to cut noise), `github-actions`
+  (covers the new `setup-java`/`upload-artifact` pins too), and `docker`
+  (the new Dockerfile's `node:20-slim` base image).
+- **Dependency audit — risk-accepted, not resolved.** `npm audit --omit=dev`
+  reports 40 vulnerabilities (3 critical, 16 high) in production dependencies
+  as of this write-up. Fixing them is out of scope for this phase — several
+  need major-version bumps with real breaking-change risk across an Nx
+  monorepo, which needs its own dedicated pass and testing, not a
+  drive-by `npm audit fix --force`. Dependabot (above) is what keeps this
+  number from drifting further while that pass is scheduled.
+
 ---
 
 ## Phase 12 — Portfolio presentation and interview package

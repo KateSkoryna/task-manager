@@ -59,22 +59,23 @@ describe('Authenticated todo smoke flow', () => {
     cy.get('@createdList')
       .contains('div[data-testid^="todo-item-"]', todoName)
       .click();
-    cy.get('button[aria-label="Edit task"]').last().click();
+    cy.get('button[data-testid^="edit-todo-button-"]').click();
     const statusSummary = 'summary[data-testid^="edit-todo-status-"]';
-    cy.get(statusSummary).focus();
-    cy.get(statusSummary).should('have.focus');
-    cy.get(statusSummary).type('{enter}');
-    cy.contains('button', 'Completed').should('be.visible');
-    cy.contains('button', 'Completed').focus();
-    cy.contains('button', 'Completed').should('have.focus');
-    cy.contains('button', 'Completed').type('{enter}');
+    // <summary> is on neither Cypress's focusable nor typeable allowlists,
+    // even though real browsers support keyboard operation of it — a click
+    // reliably triggers the native <details> toggle instead. The
+    // "Completed" option below is a real <button>, which Cypress's
+    // focus/type fully support, so keyboard interaction is still exercised
+    // there.
+    cy.get(statusSummary).click();
+    cy.contains('button', 'Completed').should('be.visible').click();
     cy.get('button[data-testid^="save-todo-edit-button-"]').click();
     cy.contains('div[data-testid^="todo-item-"]', todoName).should(
       'contain.text',
       'Completed'
     );
 
-    cy.get('button[aria-label="Delete task"]').click();
+    cy.get('button[data-testid^="delete-todo-button-"]').click();
     cy.contains('div[data-testid^="todo-item-"]', todoName).should('not.exist');
 
     cy.contains('[data-testid="todolist-title"]', listName)

@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { SentryModule } from '@sentry/nestjs/setup';
 import { AgentModule } from './agent/agent.module';
 import { AuthModule } from './auth/auth.module';
 import {
@@ -20,6 +21,7 @@ const REQUEST_ID_PATTERN = /^[\w-]{1,100}$/;
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     LoggerModule.forRoot({
       pinoHttp: {
