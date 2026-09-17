@@ -285,6 +285,16 @@ The development frontend connects to the Firebase Auth and Storage emulators. Ke
 
 After Firebase authentication, the frontend calls `POST /api/auth/provision` to create or link the MongoDB profile. Subsequent requests load that profile through the protected API guard.
 
+### Demo account
+
+`npm run seed:demo` creates a ready-to-explore account — login-enabled, with sample lists and todos, AI assistance already opted in — against MongoDB and the Firebase Auth emulator. It refuses to run without `FIREBASE_AUTH_EMULATOR_HOST` set, since it creates a fixed, published password that must never exist against a real Firebase project. Safe to run repeatedly; every document is upserted by a stable key rather than duplicated. With the emulator running:
+
+```bash
+npm run seed:demo
+```
+
+Then sign in at `/login` with `demo@example.com` / `DemoPass123!`.
+
 ## Frontend routes
 
 | Route              | Access        | Current behavior                                                                         |

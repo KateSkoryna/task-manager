@@ -18,6 +18,7 @@
     "test:e2e:watch": "nx e2e todo-e2e --watch",
     "lint": "nx run-many --target=lint",
     "check:deprecated-tokens": "node scripts/check-deprecated-tokens.js",
+    "seed:demo": "node scripts/seed-demo.js",
     "typecheck": "tsc --build apps/todo apps/todo-be libs/types",
     "eval:agent": "ts-node -r tsconfig-paths/register --project apps/todo-be/tsconfig.app.json apps/todo-be/src/agent/evals/run-eval.ts",
     "emulator": "firebase emulators:start",
