@@ -6,7 +6,7 @@
 # workspace's node_modules must exist alongside dist/apps/todo-be at
 # runtime. Render deploys from source instead (see render.yaml) and is
 # unaffected by this file.
-FROM node:20-slim
+FROM node:26-slim
 
 WORKDIR /workspace
 
