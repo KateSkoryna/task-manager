@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import Container from '../elements/Container';
-import { useTodoListsQuery } from '../../fetchers/api';
+import { useTodoListsQuery, useInboxTodosQuery } from '../../fetchers/api';
 import {
   Period,
   CHART_COLORS,
@@ -115,11 +115,15 @@ const AXIS_TICK_STYLE = { fontSize: 11, fill: 'rgb(var(--color-muted))' };
 export default function StatisticsPage() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>('month');
-  const { data: todoLists = [], isLoading } = useTodoListsQuery();
+  const { data: todoLists = [], isLoading: isLoadingTodoLists } =
+    useTodoListsQuery();
+  const { data: inboxTodos = [], isLoading: isLoadingInboxTodos } =
+    useInboxTodosQuery();
+  const isLoading = isLoadingTodoLists || isLoadingInboxTodos;
 
   const allTodos = useMemo(
-    () => todoLists.flatMap((l) => l.todos),
-    [todoLists]
+    () => [...todoLists.flatMap((l) => l.todos), ...inboxTodos],
+    [todoLists, inboxTodos]
   );
   const filteredTodos = useMemo(
     () => filterByPeriod(allTodos, period),
