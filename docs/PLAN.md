@@ -1641,6 +1641,32 @@ Removed from today's page: the status pie, the "tasks per weekday" chart, "total
 
 **Done when.** The results section exists, every question is marked answered or explained, and `npm run test:unit` exits zero.
 
+### Phase 13 results
+
+Verified 2026-09-19 against demo data seeded with `npm run seed:demo`, in all three locales (English, German, Ukrainian) and at ~400px width.
+
+**The six questions from the end of `docs/statistics.md`:**
+
+| Question                           | Answered by                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| What am I planning?                | Row 2 — Planned vs Completed, Workload Distribution                                                     |
+| What am I actually doing?          | Row 1 — Completion Rate / Completed Tasks KPIs; Row 2 — Planned vs Completed                            |
+| Where does my attention go?        | Row 3 — Category Distribution, Completion Rate by Category                                              |
+| What do I keep leaving unfinished? | Row 5 — Unfinished Task Aging, Overdue snapshot (oldest/newest overdue task and their categories)       |
+| How realistic is my planning?      | Row 2 — Workload Distribution vs normal workload; Row 4 — Priority Distribution and its completion rate |
+| How consistent am I over time?     | Row 6 — Consistency (mostly-completed days, completion-rate trend), Period Comparison                   |
+
+All six are answered directly from the page with no extra clicks, for Week / Month / Year, across all three locales and at narrow width — confirmed by walking the live page rather than only the unit suite.
+
+**Bug found and fixed during this verification:** the "Unfinished Task Aging" chart's bucket labels (`1 day`, `2-3 days`, `4-7 days`, `more than 7 days`) were hardcoded in `aging.ts` and rendered untranslated in the German and Ukrainian UI. Fixed by mapping each `AgingBucketLabel` to a new `statistics.agingBucket*` i18n key in `UnfinishedSection.tsx` before handing the data to the chart. Added translations in `en.json`, `de.json`, `uk.json`.
+
+**Definitions that turned out ambiguous in practice:**
+
+- The Definitions table doesn't say whether "Unfinished Work" (Row 5) should respect the selected period or always reflect the current moment. Resolved as **current state, not period-filtered** — overdue tasks don't belong to the period they were due in, and the point of the row is "what's piling up right now." Implemented as a deliberate exception, called out in a code comment in `StatisticsPage.tsx`.
+- The "Summary" sub-section of Row 5 (statistics.md §8) only asks for the oldest unfinished task and its category. In practice a lone "oldest" figure read as incomplete once the numbers were visually emphasized, so a symmetrical "newest overdue task" (and its categories) was added alongside it — not in the original spec, but consistent with the row's own data (`agingSummary`'s existing min/max age split).
+
+**`npm run test:unit`:** 199/199 passing (`todo`, `todo-be`, `types` projects) after the bucket-label fix, confirmed on a clean (non-cached) run.
+
 ---
 
 ## Phase 14 — Periodic reports (weekly, monthly, quarterly, yearly)
