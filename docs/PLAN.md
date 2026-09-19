@@ -1408,7 +1408,335 @@ Compose, CI hardening, dependabot, and the demo seed command.
 
 ---
 
-## Phase 13 — Performance optimization and refactor lab
+## Phase 13 — Statistics page redesign
+
+**Why:** today's Statistics page shows numbers without context. It cannot tell the user whether they plan realistically, follow through on what they plan, neglect a life area, overuse High priority, or keep leaving the same work unfinished. The product requirements are in `docs/statistics.md` — read it in full before any step. This phase turns that document into a page where every chart answers one named question.
+
+**Decided 2026-09-17:**
+
+- **Computation stays client-side**, in pure functions, like today. At this data volume the network round-trip dominates, not the math. No new backend endpoint.
+- **Statistics stays separate from reports.** Do not import from `reports/`, do not read the `Report` model, do not reuse `REPORT_PERIODS`. Statistics shows objective data; AI interpretation is a later, separate feature.
+- **The inbox bug is fixed first, alone** (Step 13.1), so the current page is correct before it is redesigned.
+- **No schema changes except exposing `createdAt`** (Step 13.2). Category stays on `TodoList`; inbox tasks are shown as "Uncategorized".
+- **Deleted tasks are a known limitation.** Todos are hard-deleted and statistics are computed live, so deleting a task removes it from past periods too. Accepted; not fixed in this phase.
+
+**Goal (measurable):** the page answers the six questions at the end of `docs/statistics.md` for Week / Month / Year; every metric follows the definitions below and has a unit test; no label says "Failed"; comparisons with the previous period appear only when there is enough data; the page works at 400px width in all three locales.
+
+**Concepts:** metric definitions as a contract, calendar periods in a user's timezone, fair comparison of a partial period, median vs mean, choosing one chart per question, pure-function testing.
+
+**Libs/deps:** no new dependency. `recharts`, `dayjs` (its `isoWeek` plugin), and the timezone helpers in `@shared/types`. This phase adds the week/month/year boundary helpers (Step 13.3); Phase 14 (Reports) reuses them.
+
+**Sequencing:** Statistics first, then Reports (Phase 14), then the refactor lab (Phase 15).
+
+### Definitions — the contract every step follows
+
+Status values in this app mean: `successful` = Completed, `pending` = In Progress, `failed` = **Not Started** (see `tasks.status_*` in `en.json`). The current page wrongly labels `failed` as "Failed".
+
+| Term                 | Definition                                                                                                                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Period               | Calendar-aligned in the user's `preferences.timezone`: ISO week (Mon–Sun), calendar month, calendar year. The user can step to previous periods.                                                                                                                          |
+| Planned (in period)  | Task whose `dueDate` falls inside the period. The planned date is never changed for statistics.                                                                                                                                                                           |
+| Due                  | Planned task whose `dueDate` is on or before today. Future-dated tasks count toward workload but not toward completion rate.                                                                                                                                              |
+| Completed            | `status === 'successful'`. For planning charts it is attributed to its **planned date**, not its completion date.                                                                                                                                                         |
+| Unfinished           | `status !== 'successful'` — both In Progress and Not Started.                                                                                                                                                                                                             |
+| Overdue              | Unfinished and `dueDate` before the start of today.                                                                                                                                                                                                                       |
+| Stale                | Overdue by more than 7 days.                                                                                                                                                                                                                                              |
+| Unscheduled          | No `dueDate`. Excluded from planning metrics; counted separately in "Unfinished work".                                                                                                                                                                                    |
+| Active day           | A day with at least one planned task.                                                                                                                                                                                                                                     |
+| Category             | The parent list's `category`; tasks with `todolistId: null` are **Uncategorized**. No new categories are added.                                                                                                                                                           |
+| Completion rate      | Completed due tasks ÷ due tasks. `null` (shown as "—") when nothing was due — never 0%.                                                                                                                                                                                   |
+| Time to completion   | `completedAt − createdAt`, for completed tasks whose `completedAt` is in the period. Tasks missing either timestamp are skipped. Report median (headline) and average.                                                                                                    |
+| Normal workload      | The user's own average planned tasks per active day across the 12 weeks before the selected period. Used for "deviation from normal" (statistics.md §3).                                                                                                                  |
+| Mostly completed day | An active day where at least 80% of due tasks were completed (statistics.md §10).                                                                                                                                                                                         |
+| Comparison           | Viewing the current period: compare with the previous period over the same elapsed span (e.g. Mon–Wed vs last Mon–Wed). Viewing a past period: compare full periods. Show a comparison only when the previous span has at least `MIN_TASKS_FOR_COMPARISON = 5` due tasks. |
+
+Active duration (time actually spent working) is **not** shown: the app has no start/pause/stop tracking, and it must not be estimated.
+
+### Final page structure
+
+**Source of ideas: `docs/statistics.md`.** The page follows that document's "Suggested Page Structure" (Rows 1–6) and implements its sections 1–11. Each row below names the section it comes from. When a detail here is unclear, `docs/statistics.md` wins; do not add metrics or charts that are not in it. The only departures are forced by the data model and are listed under "Adapted to the data model".
+
+Aggregation level per period: **Week → days**, **Month → days**, **Year → months** (statistics.md §2 and UX principle 10).
+
+**Header.** Period selector (Week / Month / Year) with previous / next navigation and the period's date range.
+
+**Row 1 — Overview** (§1, §11). Four KPI cards, each with a comparison to the previous period when enough data exists:
+
+- **Completion Rate** — `68% completed`, `13 of 19 tasks`, `+8 pp vs previous week`.
+- **Completed Tasks** — `13 / 19 completed`.
+- **Unfinished / Overdue** — `6 unfinished`, `2 older than 7 days`.
+- **Planning Load** — `7.4 tasks/day` (average planned per active day), plus the highest-load day.
+
+**Row 2 — Planning vs Reality** (§2, §3).
+
+- Large chart: **Planned vs Completed** per bucket, with unfinished shown per bucket (stacked or in the tooltip).
+- Secondary chart: **Workload Distribution** — planned tasks per bucket, with average tasks per day, busiest day, lightest day, and deviation from the user's normal workload. "Normal" is the user's own average planned per active day across the previous 12 weeks — never a universal limit (§3).
+
+**Row 3 — Life / Work Balance** (§4, §5).
+
+- **Category Distribution** — planned by category and completed by category, as percentages with absolute numbers (`Work: 12 / 15 completed`).
+- **Completion Rate by Category** — `Work — 82%`. A separate visualization, because it answers a different question ("Which areas do I follow through on?" vs "Where does my attention go?").
+
+**Row 4 — Priority Behavior** (§6, §7).
+
+- **Priority Distribution** — High / Medium / Low counts and percentages for the period (`60% of tasks were marked High priority`), priority distribution by bucket, and the High-priority percentage trend.
+- **Completion Rate by Priority** — `High: 7 / 12 completed — 58%`.
+
+**Row 5 — Unfinished Work** (§8). Describes the current state, so it is not filtered by the selected period.
+
+- **Unfinished Task Aging** — buckets: 1 day, 2–3 days, 4–7 days, more than 7 days. Age is measured from the original planned date.
+- **Summary** — number of unfinished tasks, average age, oldest unfinished task, number of stale tasks, and which categories hold the oldest unfinished tasks.
+
+**Row 6 — Trends** (§9, §10, §11).
+
+- **Consistency** — daily completion rate, weekly completion rate (Month and Year views), number of days where planned work was mostly completed (≥ 80% of due tasks), and the completion-rate trend. No single "consistency score" (§10).
+- **Time to Completion** — median and average, by category and by priority. Median is the headline because outliers distort the average (§9).
+- **Period comparison** — the metrics from §11 side by side with the previous period: completion rate, average daily workload, High-priority share.
+
+**Adapted to the data model:**
+
+- **Categories** are the app's existing ones (Home, Education, Work, Family, Health) plus **Uncategorized** for inbox tasks. statistics.md's "Personal" and "Other" are examples, not categories that exist. Do not add categories.
+- **Active Duration** (§9) is not shown — the app has no start/pause/stop tracking. Only Time to Completion is.
+- **Recurring tasks** (Before Implementation, point 6) do not exist in this app, so no rule is needed.
+
+Removed from today's page: the status pie, the "tasks per weekday" chart, "total todos ever", and "days tracked" — replaced by the rows above or excluded as vanity metrics (§1, UX principle 2).
+
+**Code layout:**
+
+- `apps/todo/src/app/component/statistics/lib/` — pure functions, one file per concern, each with a `.spec.ts`: `periods.ts`, `taskClassification.ts`, `planning.ts`, `comparison.ts`, `categories.ts`, `priorities.ts`, `aging.ts`, `timing.ts`, `consistency.ts`.
+- `apps/todo/src/app/component/statistics/sections/` — one component per row.
+- `apps/todo/src/app/component/statistics/components/` — `KpiCard`, `ChartCard`, `PeriodNavigator`, and `PeriodSelector` moved out of `StatisticsPage.tsx` into `apps/todo/src/app/component/elements/PeriodSelector.tsx` with its options passed as props, so Phase 14's Reports page can reuse it.
+- `StatisticsPage.tsx` only loads data, holds the selected period, and composes sections.
+- `statsUtils.ts` and its spec are deleted once nothing imports them (Step 13.7).
+
+**Acceptance checks:**
+
+- Every metric function has tests for: normal data, an empty period, a period where nothing was due, and a task at a day boundary in a non-UTC timezone.
+- Inbox tasks are included in every metric.
+- No UI string says "Failed"; statuses use Completed / In Progress / Not Started, and derived states use Unfinished / Overdue / Stale.
+- Comparisons are hidden below the data threshold instead of showing misleading percentages.
+- Charts use existing color tokens only — if a needed color does not exist, stop and ask before adding one.
+- New i18n keys exist in `en.json`, `de.json`, and `uk.json`; unused `statistics.*` keys are removed.
+- Layout works at 400px width and has loading and empty states.
+
+### Step 13.1 — Include inbox tasks in statistics
+
+**What to do.** In `StatisticsPage.tsx`, also call `useInboxTodosQuery()` and include its todos in `allTodos`. The page is loading until both queries resolve. Add a test proving an inbox todo is counted in the KPI totals and the time series.
+
+**Files.** `StatisticsPage.tsx`, a new `StatisticsPage.spec.tsx`.
+
+**Why.** Inbox tasks (`todolistId: null`) come from a separate query that this page never calls, so every number undercounts. The backend `UserService.getStats` had the same bug and was fixed; this page was not. Fixing it alone gives a verifiable before/after, instead of hiding it inside a large redesign.
+
+**What to expect.** A few lines of change. Category data will still skip inbox tasks — that is handled in Step 13.5, not here.
+
+**What to learn.** How a data source split across two queries quietly produces wrong totals, and why a correctness fix should land separately from a redesign.
+
+**Not in this step.** No new metrics, labels, or layout changes.
+
+**Done when.** `npm run test:unit:fe` exits zero, `npm run typecheck` exits zero, prettier run.
+
+### Step 13.2 — Expose `createdAt` on todos
+
+**What to do.** Add `createdAt?: string` to `TodoItem` in `libs/types/src/lib/todo.types.ts`. In `todo.model.ts`, add `createdAt` (ISO string) to the `toJSON` transform. Add a backend test asserting a returned todo includes `createdAt`, both from the lists endpoint and the inbox endpoint.
+
+**Files.** `libs/types/src/lib/todo.types.ts`, `apps/todo-be/src/app/models/todo.model.ts`, the existing backend todo spec.
+
+**Why.** Time to completion and the age of unscheduled tasks need a creation time. MongoDB already stores it (`timestamps: true`); the transform just drops it.
+
+**What to expect.** Type is optional because older cached responses and test fixtures will not have it; metric functions must skip tasks without it.
+
+**What to learn.** The difference between what the database stores and what the API contract exposes.
+
+**Not in this step.** No frontend metric code.
+
+**Done when.** `npm run test:unit` exits zero, `npm run typecheck` exits zero, prettier run.
+
+### Step 13.3 — Periods and task classification
+
+**What to do.** In `libs/types/src/lib/datetime.ts`, add `startOfWeekInZone`/`endOfWeekInZone` (ISO week, Monday start, via the `isoWeek` plugin), `startOfMonthInZone`/`endOfMonthInZone`, and `startOfYearInZone`/`endOfYearInZone`, matching the style of `startOfDayInZone`, with cases in `apps/todo-be/src/app/shared-datetime.spec.ts` across the Berlin DST dates already used there. Then create `lib/periods.ts` using those helpers: `resolvePeriod(kind, anchor, zone)` returning `{ start, end, cutoff }` (cutoff = the earlier of period end and now), `shiftPeriod(period, -1 | 1)`, `previousComparableSpan(period)`, and `bucketsFor(period)` (days for week/month, months for year). Create `lib/taskClassification.ts` implementing every term in the Definitions table as a small pure function (`isPlannedIn`, `isDue`, `isCompleted`, `isUnfinished`, `isOverdue`, `isStale`, `isUnscheduled`, `overdueAgeInDays`, `categoryOf`). Read the timezone from the user's `preferences.timezone` (the same source `PreferencesForm.tsx` uses), falling back to `detectTimezone()`.
+
+**Files.** `libs/types/src/lib/datetime.ts`, `apps/todo-be/src/app/shared-datetime.spec.ts`, the two `lib/` files and their specs.
+
+**Why.** Every later metric depends on these definitions. Writing them once, tested, stops each chart from quietly using its own idea of "overdue" or "this week".
+
+**What to expect.** The tricky cases are the partial current period, ISO weeks crossing a month or year, and DST days — test all three.
+
+**What to learn.** Treating metric definitions as a contract, and why "last 7 days" and "this week" are different questions.
+
+**Not in this step.** No metric aggregation, no UI.
+
+**Done when.** `npm run test:unit:fe` exits zero, `npm run typecheck` exits zero, prettier run.
+
+### Step 13.4 — Planning metrics and comparison
+
+**What to do.** Create `lib/planning.ts` for statistics.md §1–3: completion rate (with counts), completed vs planned, unfinished and "older than 7 days" counts, planning load (average per active day, highest-load day), the planned-vs-completed-vs-unfinished series, and workload distribution (average, busiest, lightest, deviation from normal workload as defined above). Create `lib/comparison.ts`: compute a metric for the comparable previous span and return a delta only above `MIN_TASKS_FOR_COMPARISON`; otherwise return `null`.
+
+**Files.** The two `lib/` files and their specs.
+
+**Why.** These feed Rows 1 and 2, the page's main message: plan versus reality.
+
+**What to expect.** Completion rate must be `null`, not `0`, when nothing was due. Deltas for rates are percentage points, not percent change — name them that way.
+
+**What to learn.** Why "+8%" and "+8 percentage points" mean different things, and why a comparison without enough data misleads more than no comparison.
+
+**Not in this step.** No UI.
+
+**Done when.** `npm run test:unit:fe` exits zero, `npm run typecheck` exits zero, prettier run.
+
+### Step 13.5 — Category, priority, aging, timing, and consistency metrics
+
+**What to do.** One file per statistics.md section, each returning exactly what that section lists: `lib/categories.ts` (§4–5: planned and completed by category with percentages and counts, completion rate by category, including Uncategorized), `lib/priorities.ts` (§6–7: distribution for the period, distribution per bucket, High-priority percentage trend, completion rate by priority), `lib/aging.ts` (§8: aging buckets, unfinished count, average age, oldest unfinished task, stale count, categories holding the oldest tasks), `lib/timing.ts` (§9: median and average time to completion, by category and by priority), `lib/consistency.ts` (§10: daily and weekly completion rate, mostly-completed days, completion-rate trend).
+
+**Files.** The five `lib/` files and their specs.
+
+**Why.** These feed Rows 3–6. Keeping them pure means every number on the page is covered by a unit test, not by looking at a chart.
+
+**What to expect.** Use shared `median` and `average` helpers — do not write them twice. Aging is computed against "now", not the selected period. If a section of statistics.md asks for something the data cannot support, stop and report instead of approximating it.
+
+**What to learn.** When the median is more honest than the mean, and how to present follow-through separately from share of attention.
+
+**Not in this step.** No UI.
+
+**Done when.** `npm run test:unit:fe` exits zero, `npm run typecheck` exits zero, prettier run.
+
+### Step 13.6 — Page shell, header, and Rows 1–2
+
+**What to do.** Create `components/KpiCard.tsx`, `components/ChartCard.tsx`, `components/PeriodNavigator.tsx`, `sections/OverviewSection.tsx` (Row 1: the four KPI cards from statistics.md §1), and `sections/PlanningSection.tsx` (Row 2: Planned vs Completed chart and Workload Distribution chart). Rewrite `StatisticsPage.tsx` to load data, hold `{ kind, anchor }` state, compute metrics with `useMemo`, and render the header plus Rows 1–2. Add the needed `statistics.*` keys to all three locale files. Include loading and empty states.
+
+**Files.** The listed components and sections, `component/elements/PeriodSelector.tsx` (moved out of `StatisticsPage.tsx`, options as props), `StatisticsPage.tsx`, `StatisticsPage.spec.tsx`, `en.json`, `de.json`, `uk.json`.
+
+**Why.** Building the shell with the two most important rows first lets Kate review the layout direction before the rest is built on it.
+
+**What to expect.** Old charts below Row 2 may stay temporarily so the page is not half-empty; they are removed in Step 13.7.
+
+**What to learn.** Keeping a page component to orchestration while sections stay presentational.
+
+**Not in this step.** Rows 3–6; deleting `statsUtils.ts`.
+
+**Done when.** `npm run test:unit:fe` exits zero (spec renders KPI values from mocked queries and period navigation changes the range), `npm run typecheck` exits zero, `npm run lint` exits zero, prettier run. Kate checks the page in the browser.
+
+### Step 13.7 — Rows 3–6 and removal of the old page
+
+**What to do.** Create `sections/BalanceSection.tsx` (Row 3), `sections/PrioritySection.tsx` (Row 4), `sections/UnfinishedSection.tsx` (Row 5), and `sections/TrendsSection.tsx` (Row 6), matching the rows above, and add them to the page. Remove the old charts, `statsUtils.ts`, `statsUtils.spec.ts`, and any `statistics.*` keys no longer used in all three locales.
+
+**Files.** The four sections, `StatisticsPage.tsx`, its spec, `statsUtils.ts`, `statsUtils.spec.ts`, the three locale files.
+
+**Why.** Finishes the structure and removes duplicated logic, so there is one definition of each metric in the codebase.
+
+**What to expect.** Before deleting `statsUtils.ts`, search for other importers. If something outside the statistics folder uses it, stop and report.
+
+**What to learn.** Finishing a replacement by deleting the old code, not leaving both.
+
+**Not in this step.** New metrics beyond the page structure above.
+
+**Done when.** `npm run test:unit:fe` exits zero, `npm run typecheck` exits zero, `npm run lint` exits zero, a search shows no remaining `statsUtils` imports and no "Failed" label on the page, prettier run. Kate checks all periods at desktop and 400px widths.
+
+### Step 13.8 — Verification and results
+
+**What to do.** Seed data with `npm run seed:demo`, then verify each question from the end of `docs/statistics.md` can be answered from the page, in all three locales and at 400px width. Record the findings in a "Phase 13 results" section in this document, including any definition that turned out ambiguous in practice.
+
+**Files.** `docs/PLAN.md` only, unless a bug is found — then report it before fixing.
+
+**Why.** Tests prove the functions are right; this proves the page answers the questions it was designed for.
+
+**Done when.** The results section exists, every question is marked answered or explained, and `npm run test:unit` exits zero.
+
+---
+
+## Phase 14 — Periodic reports (weekly, monthly, quarterly, yearly)
+
+**Why:** the Statistics page (Phase 13) shows live data computed in the browser. It does not keep a stable record of a finished period, and it is not the backend pattern a reviewer looks for when a job spec says "reporting". The `Report` Mongoose model and its Zod schema already exist for exactly this (idempotent per-period documents, richer metrics than the stats endpoint) but nothing generates or serves them yet. This phase finishes that model into a real feature: server-side aggregation, persisted per-period reports, and a dedicated Reports page — the more market-relevant "I built a reporting system" story for full-stack roles.
+
+**Decided 2026-09-17:** personal reports only — one user's own reports, no team/assignee concept (this app has none today, and inventing one is out of scope). Built after the Statistics redesign (Phase 13) and does not change it; reuses its date helpers and `PeriodSelector`. Sequenced before the performance/refactor lab (Phase 15) so that lab's baselines and any refactor targets already account for the new `reports/` module and endpoints, instead of the lab running against a codebase that changes shape immediately afterward.
+
+**Goal (measurable):** `GET users/:userId/reports?period=weekly|monthly|quarterly|yearly` returns a paginated list of persisted `Report` documents for the authenticated user, generating the current period on demand when it doesn't exist yet; a `/reports` page renders a period selector, a trend chart across past periods, and KPI tiles for the latest period; every metric is computed once server-side and never recomputed differently by the frontend.
+
+**Concepts:** MongoDB aggregation pipelines, idempotent upsert-based document generation, timezone-correct calendar period boundaries (ISO weeks, calendar quarters), REST list pagination, deriving a shared enum across a Zod schema/Mongoose schema/NestJS pipe/frontend selector from one source.
+
+**Libs/deps:** no new dependency. `dayjs` needs its `quarterOfYear` plugin enabled (already a transitive part of the installed `dayjs` package, just unused) for quarter arithmetic. `recharts` and the shared `component/elements/PeriodSelector.tsx` from Phase 13 cover the frontend.
+
+**Files:**
+
+- `libs/types/src/lib/report.schemas.ts` — extend `REPORT_PERIODS` to `['weekly', 'monthly', 'quarterly', 'yearly']` (drop `daily`, which no phase ever used).
+- `libs/types/src/lib/datetime.ts` — add `startOfQuarterInZone`/`endOfQuarterInZone`. The week, month, and year helpers already exist from Step 13.3.
+- `apps/todo-be/src/reports/reports.module.ts`, `reports.controller.ts`, `reports.service.ts`, `report-period.pipe.ts` — new module, following `apps/todo-be/src/user/` exactly.
+- `apps/todo-be/src/app/models/report.model.ts` — no schema change, just consumed.
+- `apps/todo/src/app/fetchers/api.tsx` — add `useReportsQuery`.
+- `apps/todo/src/app/component/pages/ReportsPage.tsx` + `ReportsPageSkeleton.tsx`, wired into `PAGE_SKELETONS` and the `/reports` route in `main.tsx`, plus an entry in the app's nav.
+- i18n: `reports.*` keys alongside the existing `statistics.*` keys.
+
+**Acceptance checks:**
+
+- Report boundaries are computed in the user's `preferences.timezone`, not server UTC — verified across a DST transition, matching the existing `shared-datetime.spec.ts` pattern.
+- Regenerating a report for a period that already has one document upserts in place rather than erroring or duplicating (the unique index on `{userId, period, periodStart}` is exercised, not bypassed).
+- `FirebaseAuthGuard`'s existing `params.userId === profile.id` check applies unchanged; no new auth pattern introduced.
+- Every number shown on the Reports page traces to a `ReportMetrics` field computed once in `ReportsService`; the frontend does no independent counting.
+
+### Step 14.1 — Period boundaries and the widened period enum
+
+**What to do.** In `libs/types/src/lib/report.schemas.ts`, change `REPORT_PERIODS` to `['weekly', 'monthly', 'quarterly', 'yearly']`. In `libs/types/src/lib/datetime.ts`, add `dayjs.extend(quarterOfYear)` and `startOfQuarterInZone`/`endOfQuarterInZone`, matching the week/month/year helpers added in Step 13.3. Reuse those helpers; do not add second versions. Add cases to `apps/todo-be/src/app/shared-datetime.spec.ts` for a quarter boundary across the same Berlin DST dates already used there.
+
+**Why.** `daily` in the old enum was never read by any phase; shipping the type the feature actually needs, rather than leaving an unused option next to the ones this phase adds, keeps the enum honest. Quarter/year boundaries have the same DST correctness trap as day boundaries — a naive `dayjs().startOf('year')` without an explicit zone silently uses server UTC.
+
+**What to expect.** `dayjs`'s `quarterOfYear` plugin adds `.quarter()` and lets `.startOf('quarter')` work; without the plugin `startOf('quarter')` throws. Weekly reports use the same Monday-start ISO week as Statistics, through `startOfWeekInZone`.
+
+**What to learn.** Why calendar-period arithmetic needs an explicit plugin and an explicit zone, and how a small, deliberate enum change (dropping `daily`) is itself a decision worth recording, not just an addition.
+
+**Not in this step.** No backend service, no controller, no frontend.
+
+**Done when.** `npm run test:unit` exits zero (covers the `libs/types` spec and `shared-datetime.spec.ts`), `npm run typecheck` exits zero, prettier run.
+
+### Step 14.2 — `ReportsService`: aggregate metrics and idempotent generation
+
+**What to do.** Create `apps/todo-be/src/reports/reports.service.ts` with `getOrGenerate(userId, period, referenceDate)`: compute `periodStart`/`periodEnd` via Step 14.1's helpers and the user's `preferences.timezone`, then either return the existing `Report` document for `{userId, period, periodStart}` or compute one via a Mongoose `.aggregate()` over `Todo` (matching the `$match`-then-`$group` shape already in `UserService.getStats`, extended for `dueCount`, `completedCount`, `createdCount`, `overdueCount`, `completionRatio`, `onTimeRate`, `proactivityScore` per `ReportMetrics`) and `findOneAndUpdate` with `upsert: true` to write it. Add `list(userId, period, { limit, before })` for pagination by `periodStart`. Wrap both in `executeOperation`, matching `UserService`.
+
+**Why.** `findOneAndUpdate({...}, {...}, {upsert: true})` on the existing unique index is what makes "generate the current period on demand" safe to call repeatedly (e.g., every page load) without a duplicate-key error or a check-then-write race — the same idempotency guarantee the model's own doc comment already promises.
+
+**What to expect.** `onTimeRate` and `completionRatio` must stay `null` (not `0`) when `dueCount` is `0`, per `reportMetricsSchema` and the existing `isNeutralPeriod` helper — a period with nothing due is neutral, not a failure. `proactivityScore` needs a defined formula; keep it simple and explicit in a comment (e.g., a weighted blend of on-time rate and completion ratio) rather than an unexplained magic calculation, since "what does this number mean" is the first question a reviewer asks.
+
+**What to learn.** Upsert-based idempotent generation as an alternative to a scheduled job, and why a "neutral" outcome needs to be representable in the type, not just defaulted to zero.
+
+**Not in this step.** No controller, no module wiring, no frontend.
+
+**Done when.** `npm run test:unit:be` exits zero with new `reports.service.spec.ts` cases (empty period, normal period, regeneration is idempotent, neutral period), prettier run.
+
+### Step 14.3 — `ReportsController` and `ReportsModule`
+
+**What to do.** Create `report-period.pipe.ts` (mirrors `stats-period.pipe.ts`, validating against the widened `REPORT_PERIODS`), `reports.controller.ts` (`GET users/:userId/reports`, `FirebaseAuthGuard`, `@CurrentUser()`, Swagger annotations matching `UserController`'s), and `reports.module.ts` (`MongooseModule.forFeature` for `Report` and `Todo`, imports `AuthModule`, matching `TodoModule`'s shape). Wire the module into `AppModule`.
+
+**Why.** Following `user/` and `todo/` file-for-file means anyone who has read one module already knows how to read this one — the explicit goal of "match surrounding code" in this document's execution rules.
+
+**What to expect.** Nothing novel here; if this step needs a new pattern not already in `user/` or `todo/`, stop and report rather than inventing one.
+
+**What to learn.** Nothing new — this step is deliberate repetition, which is itself worth noticing: a well-factored NestJS module is boring to add a sibling to.
+
+**Not in this step.** No frontend.
+
+**Done when.** `npm run test:unit:be` exits zero with a `reports.controller.spec.ts` (200 for the owner, 403 for a mismatched `userId`, 400 for an invalid `period`), Swagger UI shows the new route, prettier run.
+
+### Step 14.4 — Reports page (frontend)
+
+**What to do.** Add `useReportsQuery(userId, period)` to `apps/todo/src/app/fetchers/api.tsx` (React Query, matching the existing hooks' shape). Create `ReportsPage.tsx` + `ReportsPageSkeleton.tsx` under `component/pages/`: the shared `component/elements/PeriodSelector.tsx` from Phase 13 with four options, a recharts trend chart of `completionRatio`/`onTimeRate` across the returned periods, and KPI `StatCard`s for the latest period's metrics. Add the `/reports` route in `main.tsx` and a nav entry. Add `reports.*` i18n keys.
+
+**Why.** Reusing the selector/stat-card pattern rather than inventing new components keeps the two analytics surfaces visually consistent, which matters more to a reviewer skimming screenshots than either surface does alone.
+
+**What to expect.** `PeriodSelector` already takes its options as props (Phase 13). If it needs changes beyond passing four options, stop and report instead of redesigning it.
+
+**What to learn.** Where the line sits between "reuse an existing component" and "extract it first" — and why the latter is still a small, contained step rather than a refactor that expands scope.
+
+**Not in this step.** No changes to `StatisticsPage.tsx`'s own charts or metrics.
+
+**Done when.** `npm run test:unit:fe` exits zero with a `ReportsPage.spec.tsx` (renders KPI tiles from a mocked query response, period selector switches the query param), `npm run typecheck` exits zero, the page manually verified in the browser across all four periods, prettier run.
+
+### Step 14.5 — Report generation on a schedule (optional follow-up)
+
+**What to do.** Only after Steps 14.1–14.4 are reviewed and merged: revisit whether reports should also generate proactively (e.g., a completed period gets its `Report` written once, right after it ends, rather than only on next page view) using `preferences.reportCadence`/`deliveryHour`, which already exist on `User` for this purpose. This is speculative scheduling infrastructure — do not start it without confirming there's a real trigger (e.g., the stretch-roadmap "AI productivity insights" narrative wants to read a settled report) rather than building it because the fields happen to already exist.
+
+**Not in this step unless confirmed:** any narrative/AI text generation — that's the separate stretch-roadmap item, and this phase's `narrative` field can stay `''` indefinitely without weakening the reporting feature itself.
+
+---
+
+## Phase 15 — Performance optimization and refactor lab
 
 **Why:** performance work is credible only when it starts from reproducible measurements and proves that a focused change improves user-visible behavior without weakening correctness or maintainability. Exploratory profiling and refactors should remain isolated from production code until independently verified.
 
@@ -1424,7 +1752,7 @@ Compose, CI hardening, dependabot, and the demo seed command.
 - Lighthouse results for the primary authenticated flows against a production frontend build and representative local backend data.
 - Bundle analysis for the main application entry points and largest lazy-loaded routes.
 - React Profiler evidence for interactions with visible responsiveness problems.
-- Backend latency and payload measurements for representative list, image, statistics, and AI endpoints.
+- Backend latency and payload measurements for representative list, image, statistics, and AI endpoints — including the new `reports` endpoints from Phase 14, and render profiling of the redesigned Statistics page from Phase 13.
 - Small, isolated experimental refactors tied to a measured bottleneck; avoid broad cleanup without measurable impact.
 
 **Acceptance checks:**
