@@ -128,7 +128,7 @@
     "typescript": "5.2.2",
     "url-loader": "4.1.1",
     "webpack": "5.111.0",
-    "webpack-merge": "5.8.0"
+    "webpack-merge": "6.0.1"
   },
   "volta": {
     "node": "20.20.2",
