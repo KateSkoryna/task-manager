@@ -8,13 +8,17 @@ import {
 } from '@shared/types';
 
 export interface ITodoDocument
-  extends Omit<TodoItem, 'id' | 'todolistId' | 'dueDate' | 'completedAt'>,
+  extends Omit<
+      TodoItem,
+      'id' | 'todolistId' | 'dueDate' | 'completedAt' | 'createdAt'
+    >,
     Document {
   _id: Types.ObjectId;
   userId?: Types.ObjectId;
   todolistId?: Types.ObjectId | null;
   dueDate?: Date | null;
   completedAt?: Date | null;
+  createdAt?: Date;
   order: number;
   priority: TodoPriority;
   source: TodoSource;
@@ -79,6 +83,7 @@ export const todoSchema = new Schema<ITodoDocument>(
           order: ret.order ?? 0,
           priority: ret.priority ?? 'medium',
           source: ret.source ?? 'web',
+          createdAt: ret.createdAt ? ret.createdAt.toISOString() : undefined,
         };
         return todoItem;
       },

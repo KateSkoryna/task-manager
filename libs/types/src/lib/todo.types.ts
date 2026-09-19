@@ -28,6 +28,8 @@ export interface TodoItem extends NewTodoItem {
   order: number;
   priority: TodoPriority;
   source: TodoSource;
+  /** ISO timestamp. Optional: absent from older cached responses and test fixtures. */
+  createdAt?: string;
 }
 
 export interface UpdateTodoItem {
