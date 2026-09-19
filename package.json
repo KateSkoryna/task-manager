@@ -79,7 +79,7 @@
     "@nx/jest": "17.2.8",
     "@nx/js": "17.2.8",
     "@nx/node": "17.2.8",
-    "@nx/react": "17.2.8",
+    "@nx/react": "23.2.1",
     "@nx/web": "17.2.8",
     "@nx/workspace": "17.2.8",
     "@pmmmwh/react-refresh-webpack-plugin": "0.6.3",
