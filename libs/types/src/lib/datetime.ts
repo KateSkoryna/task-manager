@@ -1,9 +1,11 @@
 import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import isoWeek from 'dayjs/plugin/isoWeek';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(isoWeek);
 
 // The workspace TS lib target predates ES2022.Intl; `Intl.supportedValuesOf`
 // is a real, widely-supported runtime API (Node 18+, all evergreen browsers).
@@ -56,6 +58,26 @@ export const startOfDayInZone = (value: DateInput, zone: string): Date =>
 
 export const endOfDayInZone = (value: DateInput, zone: string): Date =>
   inZone(value, zone).endOf('day').toDate();
+
+/** ISO week: Monday start. Used so a statistics/report "week" never depends
+ * on the runtime's locale-default week start. */
+export const startOfWeekInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).startOf('isoWeek').toDate();
+
+export const endOfWeekInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).endOf('isoWeek').toDate();
+
+export const startOfMonthInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).startOf('month').toDate();
+
+export const endOfMonthInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).endOf('month').toDate();
+
+export const startOfYearInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).startOf('year').toDate();
+
+export const endOfYearInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).endOf('year').toDate();
 
 /** The local hour (0-23) at the given instant, used for report scheduling. */
 export const hourInZone = (value: DateInput, zone: string): number =>
