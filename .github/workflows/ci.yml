@@ -110,7 +110,7 @@ jobs:
       # firebase-tools' emulators require Java 21+ to run — the runner's
       # default JDK is older, confirmed live via
       # "Error: firebase-tools no longer supports Java version before 21."
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'
