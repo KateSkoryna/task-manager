@@ -54,7 +54,7 @@ function InboxSection({
       data-testid="inbox-section"
     >
       <div className="px-4 py-3 bg-surface-subtle border-b border-default flex items-center gap-3">
-        <InboxIcon className="w-4 h-4 text-accent shrink-0" />
+        <InboxIcon className="w-4 h-4 text-notification-dot shrink-0" />
         <h3 className="flex-1 min-w-0 truncate text-primary font-bold">
           {t('tasks.inbox')}
         </h3>

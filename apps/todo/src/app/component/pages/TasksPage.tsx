@@ -22,6 +22,7 @@ import { TaskDetailPanel, TodoEditPanel } from '../todo/TaskSidePanel';
 import TasksPageSkeleton from './TasksPageSkeleton';
 import Button from '../elements/Button';
 import IconButton from '../elements/IconButton';
+import PeriodSelector from '../elements/PeriodSelector';
 
 type CreateListOpts = {
   priority?: TodoListPriority;
@@ -230,36 +231,23 @@ function TasksPage() {
       >
         <div className="pb-4">
           <div className="flex items-center justify-between mb-1 gap-2">
-            <div
-              role="group"
-              aria-label={t('tasks.viewMode')}
-              className="flex items-center border border-default rounded-inner overflow-hidden"
-            >
-              <button
-                onClick={() => setViewMode('grouped')}
-                aria-pressed={viewMode === 'grouped'}
-                className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  viewMode === 'grouped'
-                    ? 'bg-accent text-on-accent'
-                    : 'bg-surface text-muted hover:text-primary'
-                }`}
-              >
-                <Rows3 className="w-3.5 h-3.5" />
-                {t('tasks.groupedView')}
-              </button>
-              <button
-                onClick={() => setViewMode('flat')}
-                aria-pressed={viewMode === 'flat'}
-                className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium border-l border-default transition-colors ${
-                  viewMode === 'flat'
-                    ? 'bg-accent text-on-accent'
-                    : 'bg-surface text-muted hover:text-primary'
-                }`}
-              >
-                <LayoutList className="w-3.5 h-3.5" />
-                {t('tasks.flatView')}
-              </button>
-            </div>
+            <PeriodSelector
+              ariaLabel={t('tasks.viewMode')}
+              options={[
+                {
+                  label: t('tasks.groupedView'),
+                  value: 'grouped' as const,
+                  icon: <Rows3 className="w-3.5 h-3.5" />,
+                },
+                {
+                  label: t('tasks.flatView'),
+                  value: 'flat' as const,
+                  icon: <LayoutList className="w-3.5 h-3.5" />,
+                },
+              ]}
+              value={viewMode}
+              onChange={setViewMode}
+            />
             <Button
               variant="primary"
               onClick={() => setShowCreateForm((v) => !v)}

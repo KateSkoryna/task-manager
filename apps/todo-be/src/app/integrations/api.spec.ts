@@ -263,6 +263,39 @@ describe('Nest API parity', () => {
     expect(removed.text).toBe('');
   });
 
+  it('includes createdAt on todos returned from the lists and inbox endpoints', async () => {
+    await Todo.create({
+      name: 'Nested with timestamp',
+      todolistId: listAId,
+      userId: userAId,
+    });
+    await Todo.create({
+      name: 'Inbox with timestamp',
+      todolistId: null,
+      userId: userAId,
+    });
+
+    const lists = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .set(auth());
+    const nestedTodo = lists.body.items
+      .find((list: { id: string }) => list.id === listAId)
+      .todos.find(
+        (todo: { name: string }) => todo.name === 'Nested with timestamp'
+      );
+    expect(nestedTodo.createdAt).toEqual(expect.any(String));
+    expect(new Date(nestedTodo.createdAt).toString()).not.toBe('Invalid Date');
+
+    const inbox = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todos/inbox`)
+      .set(auth());
+    const inboxTodo = inbox.body.find(
+      (todo: { name: string }) => todo.name === 'Inbox with timestamp'
+    );
+    expect(inboxTodo.createdAt).toEqual(expect.any(String));
+    expect(new Date(inboxTodo.createdAt).toString()).not.toBe('Invalid Date');
+  });
+
   it('preserves statistics and excludes another user data', async () => {
     await Todo.create([
       { name: 'Pending', todolistId: listAId, userId: userAId },
