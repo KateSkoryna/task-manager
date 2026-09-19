@@ -2,10 +2,16 @@ import {
   DEFAULT_TIMEZONE,
   dayKeyInZone,
   endOfDayInZone,
+  endOfMonthInZone,
+  endOfWeekInZone,
+  endOfYearInZone,
   hourInZone,
   isSameDayInZone,
   isValidTimezone,
   startOfDayInZone,
+  startOfMonthInZone,
+  startOfWeekInZone,
+  startOfYearInZone,
 } from '@shared/types';
 
 describe('isValidTimezone', () => {
@@ -68,6 +74,57 @@ describe('day boundaries', () => {
     expect(
       startOfDayInZone('2026-03-01T22:30:00.000Z', 'Europe/Atlantis')
     ).toEqual(startOfDayInZone('2026-03-01T22:30:00.000Z', DEFAULT_TIMEZONE));
+  });
+});
+
+describe('week/month/year boundaries', () => {
+  it('starts the ISO week on Monday regardless of locale default', () => {
+    // 2026-03-25 is a Wednesday.
+    const start = startOfWeekInZone('2026-03-25T10:00:00.000Z', 'UTC');
+    const end = endOfWeekInZone('2026-03-25T10:00:00.000Z', 'UTC');
+
+    expect(start.toISOString()).toBe('2026-03-23T00:00:00.000Z');
+    expect(end.toISOString()).toBe('2026-03-29T23:59:59.999Z');
+  });
+
+  it('spans a 23-hour week across the spring DST transition in Berlin', () => {
+    // The week of 2026-03-23..29 contains the 29 March Berlin DST jump.
+    const start = startOfWeekInZone(
+      '2026-03-25T10:00:00.000Z',
+      'Europe/Berlin'
+    );
+    const end = endOfWeekInZone('2026-03-25T10:00:00.000Z', 'Europe/Berlin');
+    const hours = (end.getTime() - start.getTime() + 1) / 3_600_000;
+
+    expect(hours).toBe(7 * 24 - 1);
+  });
+
+  it('resolves calendar month boundaries in the requested zone', () => {
+    const start = startOfMonthInZone('2026-03-15T10:00:00.000Z', 'Asia/Tokyo');
+    const end = endOfMonthInZone('2026-03-15T10:00:00.000Z', 'Asia/Tokyo');
+
+    expect(start.toISOString()).toBe('2026-02-28T15:00:00.000Z');
+    expect(end.toISOString()).toBe('2026-03-31T14:59:59.999Z');
+  });
+
+  it('spans a shorter month across the autumn DST transition in Berlin', () => {
+    // October 2026 contains the 25 October Berlin DST fallback (a 25-hour day).
+    const start = startOfMonthInZone(
+      '2026-10-15T10:00:00.000Z',
+      'Europe/Berlin'
+    );
+    const end = endOfMonthInZone('2026-10-15T10:00:00.000Z', 'Europe/Berlin');
+    const hours = (end.getTime() - start.getTime() + 1) / 3_600_000;
+
+    expect(hours).toBe(31 * 24 + 1);
+  });
+
+  it('resolves calendar year boundaries in the requested zone', () => {
+    const start = startOfYearInZone('2026-06-01T00:00:00.000Z', 'Asia/Tokyo');
+    const end = endOfYearInZone('2026-06-01T00:00:00.000Z', 'Asia/Tokyo');
+
+    expect(start.toISOString()).toBe('2025-12-31T15:00:00.000Z');
+    expect(end.toISOString()).toBe('2026-12-31T14:59:59.999Z');
   });
 });
 
