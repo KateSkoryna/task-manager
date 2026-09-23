@@ -24,6 +24,9 @@ import VitalTaskPageSkeleton from './app/component/pages/VitalTaskPageSkeleton';
 import SettingsPage from './app/component/pages/SettingsPage';
 import HelpPage from './app/component/pages/HelpPage';
 import StatisticsPage from './app/component/statistics/StatisticsPage';
+import ReportsPage from './app/component/pages/ReportsPage';
+import ReportsPageSkeleton from './app/component/pages/ReportsPageSkeleton';
+import ReportDetailPage from './app/component/pages/ReportDetailPage';
 import LoginPage from './app/component/auth/LoginPage';
 import RegisterPage from './app/component/auth/RegisterPage';
 import ForgotPasswordPage from './app/component/auth/ForgotPasswordPage';
@@ -38,6 +41,7 @@ const PAGE_SKELETONS: Record<string, ReactElement> = {
   '/': <DashboardSkeleton />,
   '/vital': <VitalTaskPageSkeleton />,
   '/tasks': <TasksPageSkeleton />,
+  '/reports': <ReportsPageSkeleton />,
 };
 
 function AuthBootstrap({ children }: { children: ReactElement }) {
@@ -116,6 +120,8 @@ root.render(
               <Route path="/vital" element={<VitalTaskPage />} />
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/statistics" element={<StatisticsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/reports/:reportId" element={<ReportDetailPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/help" element={<HelpPage />} />
             </Route>

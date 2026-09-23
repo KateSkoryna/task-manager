@@ -75,7 +75,12 @@ export const userSchema = new Schema<IUserDocument>(
     },
     displayName: { type: String, required: true, trim: true },
     firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
+    /**
+     * Not `required`: Mongoose's default String required-validator rejects
+     * an empty string, and a single-word display name (common with Google
+     * sign-in) legitimately has no last name to give.
+     */
+    lastName: { type: String, default: '', trim: true },
     username: { type: String, trim: true, sparse: true },
     preferences: {
       type: preferencesSchema,

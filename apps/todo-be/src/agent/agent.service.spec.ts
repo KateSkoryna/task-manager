@@ -507,6 +507,140 @@ describe('AgentService', () => {
     });
   });
 
+  describe('generateReportNarrative', () => {
+    const narrativeInput = {
+      periodLabel: 'weekly',
+      metrics: {
+        dueCount: 4,
+        completedCount: 3,
+        createdCount: 5,
+        overdueCount: 1,
+        completionRatio: 0.75,
+        onTimeRate: 0.5,
+        proactivityScore: 65,
+      },
+      categoryBreakdown: { home: 2, work: 1 },
+      priorityBreakdown: { high: 1, medium: 2 },
+    };
+
+    const narrativeResponse = (json: unknown) => ({
+      candidates: [
+        { content: { role: 'model', parts: [{ text: JSON.stringify(json) }] } },
+      ],
+      text: JSON.stringify(json),
+      usageMetadata: { totalTokenCount: 20 },
+    });
+
+    const structuredNarrative = {
+      summary: 'You completed 3 of 4 due tasks this week.',
+      problems: ['1 task overdue in Work'],
+      reasoning: ['Work tasks cluster mid-week and are easy to miss'],
+      tips: ['Review Work tasks on Mondays'],
+    };
+
+    it('returns the phrased narrative from a structured Gemini call', async () => {
+      generateContent.mockResolvedValue(narrativeResponse(structuredNarrative));
+
+      const result = await service.generateReportNarrative(narrativeInput);
+
+      expect(result).toEqual(structuredNarrative);
+      expect(generateContent).toHaveBeenCalledTimes(1);
+      const call = generateContent.mock.calls[0][0];
+      expect(call.config.responseMimeType).toBe('application/json');
+      expect(call.config.responseSchema).toBeDefined();
+      expect(JSON.parse(call.contents[0].parts[0].text)).toEqual(
+        narrativeInput
+      );
+    });
+
+    it('rejects when the model returns text that is not valid JSON', async () => {
+      generateContent.mockResolvedValue({
+        candidates: [
+          { content: { role: 'model', parts: [{ text: 'not json' }] } },
+        ],
+        text: 'not json',
+        usageMetadata: { totalTokenCount: 5 },
+      });
+
+      await expect(
+        service.generateReportNarrative(narrativeInput)
+      ).rejects.toThrow('invalid JSON');
+    });
+
+    it('rejects when the model returns an empty summary', async () => {
+      generateContent.mockResolvedValue(
+        narrativeResponse({ ...structuredNarrative, summary: '' })
+      );
+
+      await expect(
+        service.generateReportNarrative(narrativeInput)
+      ).rejects.toThrow();
+    });
+
+    describe('with a configured fallback model', () => {
+      let fallbackService: AgentService;
+
+      beforeEach(() => {
+        const configService = {
+          get: jest.fn((key: string) => {
+            if (key === 'GEMINI_MODEL') return 'primary-model';
+            if (key === 'GEMINI_FALLBACK_MODEL') return 'fallback-model';
+            if (key === 'GEMINI_RETRY_BASE_MS') return 1;
+            if (key === 'GEMINI_TIMEOUT_MS') return 50;
+            if (key === 'GEMINI_MAX_RETRIES') return 1;
+            return undefined;
+          }),
+        } as unknown as ConfigService;
+        fallbackService = new AgentService(
+          client,
+          agentToolsService,
+          configService
+        );
+      });
+
+      it('falls back once the primary model exhausts its retries on a 503', async () => {
+        generateContent
+          .mockRejectedValueOnce(
+            new ApiError({ message: 'unavailable', status: 503 })
+          )
+          .mockRejectedValueOnce(
+            new ApiError({ message: 'unavailable', status: 503 })
+          )
+          .mockResolvedValueOnce(
+            narrativeResponse({
+              ...structuredNarrative,
+              summary: 'Fallback narrative.',
+            })
+          );
+
+        const result = await fallbackService.generateReportNarrative(
+          narrativeInput
+        );
+
+        expect(result.summary).toBe('Fallback narrative.');
+        // 1 initial + 1 retry (GEMINI_MAX_RETRIES=1) on the primary, then
+        // one attempt on the fallback.
+        expect(generateContent).toHaveBeenCalledTimes(3);
+        expect(generateContent.mock.calls[0][0].model).toBe('primary-model');
+        expect(generateContent.mock.calls[1][0].model).toBe('primary-model');
+        expect(generateContent.mock.calls[2][0].model).toBe('fallback-model');
+      });
+
+      it('never falls back on a non-retryable error', async () => {
+        generateContent.mockRejectedValue(
+          new ApiError({ message: 'bad request', status: 400 })
+        );
+
+        await expect(
+          fallbackService.generateReportNarrative(narrativeInput)
+        ).rejects.toThrow('bad request');
+
+        expect(generateContent).toHaveBeenCalledTimes(1);
+        expect(generateContent.mock.calls[0][0].model).toBe('primary-model');
+      });
+    });
+  });
+
   describe('replyStream', () => {
     it('streams tokens and ends with done when the model answers directly', async () => {
       generateContentStream.mockResolvedValue(

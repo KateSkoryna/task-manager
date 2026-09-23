@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { streamAgentMessage } from '../fetchers/agent';
 import { generateId } from '../lib/id';
+import { useInboxTodosQuery, useTodoListsQuery } from '../fetchers/api';
 
 export interface TaskSearchMatch {
   id: string;
@@ -65,13 +66,38 @@ export const useHeaderTaskSearch = () => {
   const abortRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   /**
-   * The full candidate set from the last successful `find_tasks` call.
-   * `find_tasks` always hands the model the user's *whole* task list, not a
-   * query-filtered slice — the model does the filtering — so this cache is
-   * valid for any later query, not just a refinement of the one that fetched
-   * it, until the user's tasks actually change.
+   * The full candidate set to try a literal local match against before
+   * paying for a model round trip. Seeded from the same `todoLists`/
+   * `inboxTodos` queries the rest of the app already loads (React Query
+   * cache, typically warm by the time the header renders) so even the very
+   * first search of a session has *something* to render immediately,
+   * instead of a blank box until the first `find_tasks` call returns. Kept
+   * fresh from that cache on every render, then further refined by
+   * `find_tasks`'s own candidate list (always the user's *whole* task list,
+   * not query-filtered) once a real search actually runs.
    */
+  const todoListsQuery = useTodoListsQuery();
+  const inboxTodosQuery = useInboxTodosQuery();
+  const localCandidates = useMemo<TaskSearchMatch[]>(() => {
+    const fromLists = (todoListsQuery.data ?? []).flatMap((list) =>
+      list.todos.map((todo) => ({
+        id: todo.id,
+        name: todo.name,
+        todolistId: list.id,
+      }))
+    );
+    const fromInbox = (inboxTodosQuery.data ?? []).map((todo) => ({
+      id: todo.id,
+      name: todo.name,
+      todolistId: null,
+    }));
+    return [...fromLists, ...fromInbox];
+  }, [todoListsQuery.data, inboxTodosQuery.data]);
+
   const candidatesRef = useRef<TaskSearchMatch[] | null>(null);
+  useEffect(() => {
+    if (localCandidates.length > 0) candidatesRef.current = localCandidates;
+  }, [localCandidates]);
 
   const runSearch = async (searchText: string) => {
     abortRef.current?.abort();

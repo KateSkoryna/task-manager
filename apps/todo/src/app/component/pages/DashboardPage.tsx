@@ -721,7 +721,7 @@ function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-4 h-full pt-6">
       <DailyFocusStrip
         todaySuccessful={todaySuccessful}
         todayPending={todayPending}

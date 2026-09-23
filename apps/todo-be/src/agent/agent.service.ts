@@ -8,6 +8,9 @@ import {
   AgentTurn,
   ParsedTask,
   parsedTaskSchema,
+  ReportMetrics,
+  ReportNarrative,
+  reportNarrativeResponseSchema,
 } from '@shared/types';
 import {
   AgentToolsService,
@@ -18,6 +21,7 @@ import {
   PROMPT_VERSION,
   PromptContext,
   buildParseTodoPrompt,
+  buildReportNarrativePrompt,
   buildSystemPrompt,
 } from './agent.prompt';
 import { TOOL_REGISTRY, zodToGeminiSchema } from './agent.tools';
@@ -114,10 +118,28 @@ const isConfirmedReply = (turns: AgentTurn[]): boolean =>
 
 // Built once — `zodToGeminiSchema` walks the whole schema tree on every call.
 const PARSE_TODO_RESPONSE_SCHEMA = zodToGeminiSchema(parsedTaskSchema);
+const REPORT_NARRATIVE_RESPONSE_SCHEMA = zodToGeminiSchema(
+  reportNarrativeResponseSchema
+);
+
+export interface ReportNarrativeInput {
+  periodLabel: string;
+  metrics: ReportMetrics;
+  categoryBreakdown: Record<string, number>;
+  priorityBreakdown: Record<string, number>;
+}
 
 @Injectable()
 export class AgentService {
   private readonly model: string;
+  /**
+   * Undefined when it would just repeat `model` - trying the same model
+   * twice on a 503 buys nothing. Defaults to `DEFAULT_GEMINI_MODEL` so a
+   * project pointing `GEMINI_MODEL` at a narrower/free-tier variant (e.g.
+   * `-flash-lite`) gets a fallback with no extra config; override with
+   * `GEMINI_FALLBACK_MODEL` to pick a different one.
+   */
+  private readonly fallbackModel: string | undefined;
   private readonly timeoutMs: number;
   private readonly maxRetries: number;
   private readonly retryBaseMs: number;
@@ -130,6 +152,11 @@ export class AgentService {
   ) {
     this.model =
       configService.get<string>('GEMINI_MODEL') || DEFAULT_GEMINI_MODEL;
+    const fallbackModel =
+      configService.get<string>('GEMINI_FALLBACK_MODEL') ||
+      DEFAULT_GEMINI_MODEL;
+    this.fallbackModel =
+      fallbackModel !== this.model ? fallbackModel : undefined;
     this.timeoutMs =
       Number(configService.get('GEMINI_TIMEOUT_MS')) || DEFAULT_TIMEOUT_MS;
     this.maxRetries =
@@ -178,10 +205,15 @@ export class AgentService {
    * no message text, tool arguments, or model output — by construction,
    * never assembled into this object in the first place.
    */
-  private logCall(outcome: string, startedAt: number, totalTokens: number) {
+  private logCall(
+    outcome: string,
+    startedAt: number,
+    totalTokens: number,
+    model: string = this.model
+  ) {
     this.logger.log({
       promptVersion: PROMPT_VERSION,
-      model: this.model,
+      model,
       latencyMs: Date.now() - startedAt,
       totalTokens,
       outcome,
@@ -325,6 +357,74 @@ export class AgentService {
       this.logCall('error', startedAt, totalTokens);
       throw error;
     }
+  }
+
+  /**
+   * One Gemini call, same shape as `parseTodo` — no tool loop, no session.
+   * The model only phrases the already-computed `input`; it never produces
+   * or revises a number itself.
+   */
+  async generateReportNarrative(
+    input: ReportNarrativeInput,
+    options: { signal?: AbortSignal } = {}
+  ): Promise<ReportNarrative> {
+    const startedAt = Date.now();
+    // Tried in order; a model only gets skipped to on a *retryable* failure
+    // (429/503 - rate-limited/overloaded) from the one before it, never on
+    // a genuine bad-request error, which switching models won't fix.
+    const models = this.fallbackModel
+      ? [this.model, this.fallbackModel]
+      : [this.model];
+
+    for (const [index, model] of models.entries()) {
+      let totalTokens = 0;
+      try {
+        const response = await this.callGemini(
+          (signal) =>
+            this.client.models.generateContent({
+              model,
+              contents: [
+                { role: 'user', parts: [{ text: JSON.stringify(input) }] },
+              ],
+              config: {
+                systemInstruction: buildReportNarrativePrompt(),
+                responseMimeType: 'application/json',
+                responseSchema: REPORT_NARRATIVE_RESPONSE_SCHEMA,
+                abortSignal: signal,
+              },
+            }),
+          options.signal
+        );
+        totalTokens = response.usageMetadata?.totalTokenCount ?? totalTokens;
+
+        let raw: unknown;
+        try {
+          raw = JSON.parse(response.text ?? '');
+        } catch {
+          throw new Error(
+            'generateReportNarrative: model returned invalid JSON'
+          );
+        }
+
+        const parsed = reportNarrativeResponseSchema.parse(raw);
+        this.logCall('completed', startedAt, totalTokens, model);
+        return parsed;
+      } catch (error) {
+        const status = error instanceof ApiError ? error.status : undefined;
+        const retryable = RETRYABLE_STATUSES.includes(status as number);
+        const hasFallback = index < models.length - 1;
+        this.logCall(
+          retryable && hasFallback ? 'falling_back' : 'error',
+          startedAt,
+          totalTokens,
+          model
+        );
+        if (!retryable || !hasFallback) throw error;
+      }
+    }
+    // Unreachable - the loop above always returns or throws on its last
+    // iteration - but keeps the function's return type honest for TS.
+    throw new Error('generateReportNarrative: exhausted all models');
   }
 
   /**

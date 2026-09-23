@@ -4,6 +4,7 @@
     "vitalTasks": "Важливі завдання",
     "myTasks": "Мої завдання",
     "statistics": "Статистика",
+    "reports": "Звіти",
     "settings": "Налаштування",
     "help": "Допомога",
     "logout": "Вийти"
@@ -17,7 +18,9 @@
     "searchLoading": "Пошук серед ваших завдань...",
     "searchNoResults": "Відповідних завдань не знайдено",
     "searchError": "Помилка пошуку. Спробуйте ще раз.",
-    "notifications": "Сповіщення"
+    "notifications": "Сповіщення",
+    "noNotifications": "Сповіщень поки немає",
+    "reportReadyNotification": "Звіт готовий: {{name}}"
   },
   "auth": {
     "login": {
@@ -188,9 +191,6 @@
     "emptyNewList": "Новий список",
     "emptyAfter": ", щоб почати!"
   },
-  "vitalTask": {
-    "description": "Показ списків з високим пріоритетом."
-  },
   "pomodoro": {
     "workPhase": "Фокус",
     "breakPhase": "Перерва",
@@ -358,5 +358,41 @@
     "medianDays": "{{days}}д",
     "periodComparison": "Порівняння періодів",
     "vsPrevious": "порівняно з попереднім {{period}}"
+  },
+  "reports": {
+    "title": "Звіти",
+    "loading": "Завантаження звітів…",
+    "weekly": "Щотижня",
+    "monthly": "Щомісяця",
+    "yearly": "Щороку",
+    "proactivityScore": "Оцінка проактивності",
+    "completionRatio": "Рівень виконання",
+    "onTimeRate": "Вчасність",
+    "overdueCount": "Прострочено",
+    "trendTitle": "Тренд за періодами",
+    "noData": "Звітів ще немає",
+    "columnName": "Назва",
+    "columnDate": "Дата",
+    "columnPeriod": "Період",
+    "untitled": "Звіт без назви",
+    "backToList": "Назад до звітів",
+    "preparedFor": "Підготовлено для {{name}}",
+    "aiInsightsTitle": "AI-аналіз",
+    "getInsights": "Отримати AI-аналіз",
+    "regenerateInsights": "Оновити аналіз",
+    "noInsightsYet": "Отримайте AI-аналіз із порадами на основі показників цього звіту.",
+    "insightsError": "Не вдалося створити аналіз. Спробуйте ще раз.",
+    "insightsProblems": "Проблеми",
+    "insightsReasoning": "Чому",
+    "insightsTips": "Спробуйте",
+    "insightsLimitReached": "Ви вже використали всі спроби AI-аналізу для цього звіту.",
+    "searchPlaceholder": "Пошук звітів за назвою",
+    "sortNewest": "Спочатку нові",
+    "sortOldest": "Спочатку старі",
+    "loadMore": "Завантажити ще",
+    "generate": "Створити звіт",
+    "generated": "Звіт створено",
+    "viewReport": "Переглянути звіт",
+    "print": "Друк / Зберегти як PDF"
   }
 }

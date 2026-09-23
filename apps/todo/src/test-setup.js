@@ -28,6 +28,13 @@ if (!global.ResizeObserver)
     unobserve() {}
     disconnect() {}
   };
+// jsdom implements no layout, so it has no real scrolling and doesn't
+// define this at all — every test that selects a task would otherwise
+// throw on the scroll-into-view effect (TasksPage/VitalTaskPage), not just
+// the ones actually asserting on it.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => undefined;
+}
 if (!global.matchMedia)
   global.matchMedia = () => ({
     matches: false,

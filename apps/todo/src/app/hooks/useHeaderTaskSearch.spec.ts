@@ -1,13 +1,25 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useHeaderTaskSearch } from './useHeaderTaskSearch';
 import { AgentSseEvent, streamAgentMessage } from '../fetchers/agent';
+import { useInboxTodosQuery, useTodoListsQuery } from '../fetchers/api';
 
 jest.mock('../fetchers/agent', () => ({
   streamAgentMessage: jest.fn(),
 }));
 
+jest.mock('../fetchers/api', () => ({
+  useTodoListsQuery: jest.fn(),
+  useInboxTodosQuery: jest.fn(),
+}));
+
 const mockedStreamAgentMessage = streamAgentMessage as jest.MockedFunction<
   typeof streamAgentMessage
+>;
+const mockedUseTodoListsQuery = useTodoListsQuery as jest.MockedFunction<
+  typeof useTodoListsQuery
+>;
+const mockedUseInboxTodosQuery = useInboxTodosQuery as jest.MockedFunction<
+  typeof useInboxTodosQuery
 >;
 
 async function* fromEvents(events: AgentSseEvent[]) {
@@ -18,6 +30,15 @@ describe('useHeaderTaskSearch', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockedStreamAgentMessage.mockReset();
+    // No local React Query cache by default — matches the existing tests'
+    // "nothing cached yet, everything goes through the agent" expectations.
+    // The one test that cares about the local-cache seed sets these itself.
+    mockedUseTodoListsQuery.mockReturnValue({
+      data: undefined,
+    } as ReturnType<typeof useTodoListsQuery>);
+    mockedUseInboxTodosQuery.mockReturnValue({
+      data: undefined,
+    } as ReturnType<typeof useInboxTodosQuery>);
   });
 
   afterEach(() => {
@@ -240,6 +261,45 @@ describe('useHeaderTaskSearch', () => {
     const firstChatId = mockedStreamAgentMessage.mock.calls[0][0];
     const secondChatId = mockedStreamAgentMessage.mock.calls[1][0];
     expect(firstChatId).not.toBe(secondChatId);
+  });
+
+  it('renders an instant local match from already-loaded task data, with no request yet, on the very first search of a session', async () => {
+    mockedUseTodoListsQuery.mockReturnValue({
+      data: [
+        {
+          id: 'list-1',
+          name: 'Work',
+          todos: [
+            {
+              id: 'todo-1',
+              name: 'buy flowers',
+              status: 'pending',
+              todolistId: 'list-1',
+              order: 0,
+              priority: 'medium',
+              source: 'web',
+            },
+          ],
+        },
+      ],
+    } as unknown as ReturnType<typeof useTodoListsQuery>);
+    mockedUseInboxTodosQuery.mockReturnValue({
+      data: [],
+    } as unknown as ReturnType<typeof useInboxTodosQuery>);
+
+    const { result, rerender } = renderHook(() => useHeaderTaskSearch());
+    // Let the seeding effect (React Query data → local candidate cache) run.
+    act(() => rerender());
+
+    act(() => result.current.setQuery('flowers'));
+
+    // No debounce wait, no agent call — this resolves from the already-
+    // loaded todoLists/inboxTodos cache alone.
+    expect(mockedStreamAgentMessage).not.toHaveBeenCalled();
+    expect(result.current.status).toBe('success');
+    expect(result.current.matches).toEqual([
+      { id: 'todo-1', name: 'buy flowers', todolistId: 'list-1' },
+    ]);
   });
 
   it('clears results and aborts the in-flight request when the query is cleared', async () => {

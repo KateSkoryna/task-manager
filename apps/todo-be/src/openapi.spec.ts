@@ -9,6 +9,10 @@ const EXPECTED = [
   'POST /api/auth/provision',
   'GET /api/users/{userId}/preferences',
   'PATCH /api/users/{userId}/preferences',
+  'GET /api/users/{userId}/reports',
+  'POST /api/users/{userId}/reports',
+  'GET /api/users/{userId}/reports/{id}',
+  'POST /api/users/{userId}/reports/{id}/narrative',
   'GET /api/users/{userId}/stats',
   'GET /api/users/{userId}/todolists',
   'POST /api/users/{userId}/todolists',
@@ -32,7 +36,7 @@ describe('generated OpenAPI document', () => {
 
   afterAll(async () => app.close());
 
-  it('documents exactly the eighteen authoritative operations with bearer security', () => {
+  it('documents exactly the twenty-two authoritative operations with bearer security', () => {
     const document = createOpenApiDocument(app);
     const operations = Object.entries(document.paths)
       .flatMap(([path, item]) =>

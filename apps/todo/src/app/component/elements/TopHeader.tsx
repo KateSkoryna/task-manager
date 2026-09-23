@@ -1,10 +1,12 @@
-import { RefObject, useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Bell, Loader2, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHeaderTaskSearch } from '../../hooks/useHeaderTaskSearch';
+import { useNotificationStore } from '../../store/notificationStore';
+import { mergeClassNames } from '../../lib/classNames';
 import IconButton from './IconButton';
-import Input from './Input';
+import SearchInput from './SearchInput';
 import { MOBILE_DRAWER_ID } from './MobileDrawer';
 
 const ROUTE_TITLE_KEYS: Record<string, string> = {
@@ -12,6 +14,7 @@ const ROUTE_TITLE_KEYS: Record<string, string> = {
   '/vital': 'nav.vitalTasks',
   '/tasks': 'nav.myTasks',
   '/statistics': 'nav.statistics',
+  '/reports': 'nav.reports',
   '/settings': 'nav.settings',
   '/help': 'nav.help',
 };
@@ -26,13 +29,22 @@ type TopHeaderProps = {
   onOpenMenu?: () => void;
   menuButtonRef?: RefObject<HTMLButtonElement>;
   isMenuOpen?: boolean;
+  className?: string;
 };
 
-function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
+function TopHeader({
+  onOpenMenu,
+  menuButtonRef,
+  isMenuOpen,
+  className,
+}: TopHeaderProps) {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const title = t(ROUTE_TITLE_KEYS[pathname] ?? 'nav.dashboard');
+  const titleKey = pathname.startsWith('/reports/')
+    ? 'nav.reports'
+    : ROUTE_TITLE_KEYS[pathname] ?? 'nav.dashboard';
+  const title = t(titleKey);
 
   const { query, setQuery, status, matches, clear } = useHeaderTaskSearch();
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -50,6 +62,23 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSearchOpen]);
 
+  const notifications = useNotificationStore((s) => s.notifications);
+  const markNotificationRead = useNotificationStore((s) => s.markRead);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [isNotificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isNotificationsOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!notificationsContainerRef.current?.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isNotificationsOpen]);
+
   const locale =
     LOCALE_MAP[i18n.language] ??
     LOCALE_MAP[i18n.language.split('-')[0]] ??
@@ -62,7 +91,12 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
   const dateStr = `${day}/${month}/${year}`;
 
   return (
-    <header className="flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5">
+    <header
+      className={mergeClassNames(
+        'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5',
+        className
+      )}
+    >
       {onOpenMenu && (
         <IconButton
           ref={menuButtonRef}
@@ -94,8 +128,7 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
           ref={searchContainerRef}
           className="relative hidden lg:block lg:w-search-desktop"
         >
-          <Input
-            type="text"
+          <SearchInput
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => {
@@ -150,14 +183,64 @@ function TopHeader({ onOpenMenu, menuButtonRef, isMenuOpen }: TopHeaderProps) {
             </ul>
           )}
         </div>
-        <div className="relative">
-          <IconButton ariaLabel={t('header.notifications')}>
+        <div className="relative" ref={notificationsContainerRef}>
+          <IconButton
+            ariaLabel={t('header.notifications')}
+            onClick={() => setNotificationsOpen((open) => !open)}
+          >
             <Bell className="size-4" />
           </IconButton>
-          <span
-            aria-hidden="true"
-            className="absolute right-2 top-2 size-2 rounded-full bg-notification-dot ring-2 ring-surface"
-          />
+          {unreadCount > 0 && (
+            <span
+              aria-hidden="true"
+              className="absolute right-2 top-2 size-2 rounded-full bg-notification-dot ring-2 ring-surface"
+            />
+          )}
+
+          {isNotificationsOpen && (
+            <ul
+              role="listbox"
+              aria-label={t('header.notifications')}
+              className="absolute right-0 z-50 mt-1 max-h-80 w-72 list-none overflow-y-auto rounded-inner border-2 border-default bg-surface p-0 shadow-menu"
+            >
+              {notifications.length === 0 && (
+                <li className="px-3 py-2 text-sm text-muted">
+                  {t('header.noNotifications')}
+                </li>
+              )}
+              {notifications.map((notification) => (
+                <li key={notification.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={false}
+                    onClick={() => {
+                      markNotificationRead(notification.id);
+                      setNotificationsOpen(false);
+                      navigate(`/reports/${notification.reportId}`);
+                    }}
+                    className={mergeClassNames(
+                      'flex w-full items-start gap-2 px-3 py-2 text-left text-sm hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none',
+                      notification.read
+                        ? 'text-muted'
+                        : 'font-medium text-primary'
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={mergeClassNames(
+                        'mt-1.5 size-2 shrink-0 rounded-full',
+                        notification.read ? 'bg-transparent' : 'bg-accent'
+                      )}
+                    />
+                    <span className="whitespace-normal break-words">
+                      {notification.message}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </header>

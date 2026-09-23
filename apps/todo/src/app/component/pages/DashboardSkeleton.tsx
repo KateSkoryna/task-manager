@@ -18,7 +18,7 @@ function PanelSkeleton({ className = '' }: { className?: string }) {
 function DashboardSkeleton() {
   return (
     <div
-      className="flex flex-col gap-6 h-full"
+      className="flex flex-col gap-6 h-full pt-6"
       role="status"
       aria-label="Loading dashboard"
     >

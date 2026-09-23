@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +48,16 @@ function VitalTaskPage() {
     );
   }
 
+  // See TasksPage's identical effect: bring the selected row back into view
+  // in the (possibly long) left list whenever the selection changes.
+  useEffect(() => {
+    if (!selectedTask) return;
+    document
+      .querySelector(`[data-testid="todo-item-${selectedTask.todo.id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTask?.todo.id]);
+
   function handleDeleteSelectedTodo(id: string) {
     handleDeleteTodo(id);
     setSelectedTask(null);
@@ -66,16 +76,15 @@ function VitalTaskPage() {
   }
 
   return (
-    <div className="-m-6 grid min-h-full grid-cols-1 gap-6 md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 pt-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail view replaces it as its own screen there. */}
       <div
         className={mergeClassNames(
-          'flex-col overflow-y-auto p-6 md:pr-0 md:flex',
+          'flex-col overflow-y-auto pl-content-mobile pr-content-mobile pb-content-mobile md:pl-content-tablet md:pr-0 md:pb-content-tablet lg:pl-content-desktop lg:pb-content-desktop md:flex',
           selectedTask ? 'hidden' : 'flex'
         )}
       >
-        <p className="text-muted text-sm mb-4">{t('vitalTask.description')}</p>
         <TodoLists
           todoLists={vitalLists}
           isLoading={isLoading}
@@ -97,7 +106,7 @@ function VitalTaskPage() {
           side-by-side column from tablet up. */}
       <div
         className={mergeClassNames(
-          'flex-col md:flex md:sticky md:top-6 md:self-start md:pt-6',
+          'flex-col pl-content-mobile pr-content-mobile pb-content-mobile md:pl-0 md:pr-content-tablet md:pb-content-tablet lg:pr-content-desktop lg:pb-content-desktop md:flex md:sticky md:top-0 md:self-start',
           selectedTask ? 'flex' : 'hidden'
         )}
       >

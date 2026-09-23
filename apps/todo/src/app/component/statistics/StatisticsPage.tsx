@@ -1,10 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { detectTimezone, inZone, TodoPriority } from '@shared/types';
+import {
+  detectTimezone,
+  inZone,
+  ReportPeriod,
+  TodoPriority,
+} from '@shared/types';
 import Container from '../elements/Container';
 import PeriodSelector from '../elements/PeriodSelector';
-import { useTodoListsQuery, useInboxTodosQuery } from '../../fetchers/api';
+import Button from '../elements/Button';
+import {
+  useTodoListsQuery,
+  useInboxTodosQuery,
+  useGenerateReportMutation,
+} from '../../fetchers/api';
 import { usePreferences } from '../../hooks/usePreferences';
+import { useNotificationStore } from '../../store/notificationStore';
 import {
   resolvePeriod,
   shiftPeriod,
@@ -46,6 +57,12 @@ import PrioritySection from './sections/PrioritySection';
 import UnfinishedSection from './sections/UnfinishedSection';
 import TrendsSection from './sections/TrendsSection';
 
+const REPORT_PERIOD_BY_KIND: Record<PeriodKind, ReportPeriod> = {
+  week: 'weekly',
+  month: 'monthly',
+  year: 'yearly',
+};
+
 export default function StatisticsPage() {
   const { t } = useTranslation();
   const [periodKind, setPeriodKind] = useState<PeriodKind>('month');
@@ -56,6 +73,10 @@ export default function StatisticsPage() {
     useInboxTodosQuery();
   const { preferences } = usePreferences();
   const isLoading = isLoadingTodoLists || isLoadingInboxTodos;
+  const generateReport = useGenerateReportMutation();
+  const addReportReadyNotification = useNotificationStore(
+    (s) => s.addReportReadyNotification
+  );
 
   const zone = preferences?.timezone ?? detectTimezone();
   const now = useMemo(() => new Date(), []);
@@ -84,6 +105,22 @@ export default function StatisticsPage() {
     () => resolvePeriod(periodKind, anchor, zone, now),
     [periodKind, anchor, zone, now]
   );
+
+  const handleGenerateReport = () => {
+    generateReport.mutate(
+      {
+        period: REPORT_PERIOD_BY_KIND[periodKind],
+        referenceDate: currentPeriod.start.toISOString(),
+      },
+      {
+        onSuccess: (report) =>
+          addReportReadyNotification(
+            report.id,
+            t('header.reportReadyNotification', { name: report.name })
+          ),
+      }
+    );
+  };
 
   const nextPeriodStart = useMemo(
     () => shiftPeriod(currentPeriod, 1, now).start,
@@ -238,14 +275,14 @@ export default function StatisticsPage() {
 
   if (isLoading) {
     return (
-      <Container>
+      <Container className="pt-6">
         <p className="text-primary">{t('statistics.loading')}</p>
       </Container>
     );
   }
 
   return (
-    <Container className="space-y-6">
+    <Container className="space-y-6 pt-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <PeriodNavigator
           rangeLabel={rangeLabel}
@@ -255,15 +292,27 @@ export default function StatisticsPage() {
           previousLabel={t('statistics.previousPeriod')}
           nextLabel={t('statistics.nextPeriod')}
         />
-        <PeriodSelector
-          options={[
-            { label: t('statistics.week'), value: 'week' as const },
-            { label: t('statistics.month'), value: 'month' as const },
-            { label: t('statistics.year'), value: 'year' as const },
-          ]}
-          value={periodKind}
-          onChange={handlePeriodChange}
-        />
+        <div className="flex items-center gap-3 flex-wrap">
+          <PeriodSelector
+            options={[
+              { label: t('statistics.week'), value: 'week' as const },
+              { label: t('statistics.month'), value: 'month' as const },
+              { label: t('statistics.year'), value: 'year' as const },
+            ]}
+            value={periodKind}
+            onChange={handlePeriodChange}
+          />
+          <Button
+            variant="secondary"
+            loading={generateReport.isPending}
+            onClick={handleGenerateReport}
+            className={
+              generateReport.isPending ? 'animate-border-pulse' : undefined
+            }
+          >
+            {t('reports.generate')}
+          </Button>
+        </div>
       </div>
 
       <OverviewSection
