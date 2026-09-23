@@ -107,7 +107,7 @@ export default function UnfinishedSection({
             <div className="text-center">
               <p className="text-6xl font-black leading-none text-primary">
                 {summary.averageAgeDays !== null
-                  ? summary.averageAgeDays
+                  ? summary.averageAgeDays.toFixed(1)
                   : t('statistics.dash')}
               </p>
               <p className="text-xs text-muted mt-2 uppercase tracking-wider">

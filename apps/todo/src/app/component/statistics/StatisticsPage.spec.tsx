@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { TodoList, TodoItem } from '@shared/types';
 import StatisticsPage from './StatisticsPage';
+import { useNotificationStore } from '../../store/notificationStore';
 
 const mockTodoLists: TodoList[] = [
   {
@@ -38,10 +40,12 @@ const mockInboxTodos: TodoItem[] = [
 
 const useTodoListsQuery = jest.fn();
 const useInboxTodosQuery = jest.fn();
+const useGenerateReportMutation = jest.fn();
 
 jest.mock('../../fetchers/api', () => ({
   useTodoListsQuery: () => useTodoListsQuery(),
   useInboxTodosQuery: () => useInboxTodosQuery(),
+  useGenerateReportMutation: () => useGenerateReportMutation(),
 }));
 
 jest.mock('../../hooks/usePreferences', () => ({
@@ -59,11 +63,16 @@ describe('StatisticsPage', () => {
       data: mockInboxTodos,
       isLoading: false,
     });
+    useGenerateReportMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    useNotificationStore.setState({ notifications: [] });
   });
 
   it('counts inbox todos in the KPI totals, not just list todos', () => {
@@ -146,5 +155,29 @@ describe('StatisticsPage', () => {
     fireEvent.click(screen.getByText('statistics.week'));
 
     expect(screen.getByText(/Mar 23.*Mar 29, 2026/)).toBeInTheDocument();
+  });
+
+  it('generates a report for the currently displayed period and queues a notification', () => {
+    const mutate = jest.fn((_vars, { onSuccess }) =>
+      onSuccess({ id: 'report-1', name: 'Monthly report — March 2026' })
+    );
+    useGenerateReportMutation.mockReturnValue({ mutate, isPending: false });
+
+    render(
+      <MemoryRouter>
+        <StatisticsPage />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText('reports.generate'));
+
+    expect(mutate).toHaveBeenCalledWith(
+      { period: 'monthly', referenceDate: expect.any(String) },
+      expect.any(Object)
+    );
+    expect(useNotificationStore.getState().notifications[0]).toMatchObject({
+      reportId: 'report-1',
+      read: false,
+    });
   });
 });
