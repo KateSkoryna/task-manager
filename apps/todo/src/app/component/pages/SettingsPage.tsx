@@ -18,7 +18,7 @@ function SettingsPage() {
   } = usePreferences();
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pt-6">
       <AppearanceSection />
       {isLoading && <ContentSkeleton />}
       {!isLoading && isError && (

@@ -4,8 +4,7 @@ function HelpPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-bold text-primary">{t('help.title')}</h1>
+    <div className="space-y-2 pt-6">
       <p className="text-muted">{t('help.comingSoon')}</p>
     </div>
   );
