@@ -4,6 +4,7 @@
     "vitalTasks": "Wichtige Aufgaben",
     "myTasks": "Meine Aufgaben",
     "statistics": "Statistiken",
+    "reports": "Berichte",
     "settings": "Einstellungen",
     "help": "Hilfe",
     "logout": "Abmelden"
@@ -17,7 +18,9 @@
     "searchLoading": "Ihre Aufgaben werden durchsucht...",
     "searchNoResults": "Keine passenden Aufgaben gefunden",
     "searchError": "Suche fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "noNotifications": "Noch keine Benachrichtigungen",
+    "reportReadyNotification": "Bericht bereit: {{name}}"
   },
   "auth": {
     "login": {
@@ -188,9 +191,6 @@
     "emptyNewList": "Neue Liste",
     "emptyAfter": "um zu beginnen!"
   },
-  "vitalTask": {
-    "description": "Anzeige von Listen mit hoher Priorität."
-  },
   "pomodoro": {
     "workPhase": "Fokus",
     "breakPhase": "Pause",
@@ -358,5 +358,41 @@
     "medianDays": "{{days}}T",
     "periodComparison": "Zeitraumvergleich",
     "vsPrevious": "ggü. vorherigem {{period}}"
+  },
+  "reports": {
+    "title": "Berichte",
+    "loading": "Berichte werden geladen…",
+    "weekly": "Wöchentlich",
+    "monthly": "Monatlich",
+    "yearly": "Jährlich",
+    "proactivityScore": "Proaktivitätswert",
+    "completionRatio": "Abschlussrate",
+    "onTimeRate": "Pünktlichkeitsrate",
+    "overdueCount": "Überfällig",
+    "trendTitle": "Verlauf über Zeiträume",
+    "noData": "Noch keine Berichte",
+    "columnName": "Name",
+    "columnDate": "Datum",
+    "columnPeriod": "Zeitraum",
+    "untitled": "Unbenannter Bericht",
+    "backToList": "Zurück zu den Berichten",
+    "preparedFor": "Erstellt für {{name}}",
+    "aiInsightsTitle": "KI-Einblicke",
+    "getInsights": "KI-Einblicke abrufen",
+    "regenerateInsights": "Einblicke neu erstellen",
+    "noInsightsYet": "Erstelle KI-Einblicke mit Tipps und Erkenntnissen zu den Zahlen dieses Berichts.",
+    "insightsError": "Einblicke konnten nicht erstellt werden. Bitte versuche es erneut.",
+    "insightsProblems": "Probleme",
+    "insightsReasoning": "Warum",
+    "insightsTips": "Ausprobieren",
+    "insightsLimitReached": "Du hast alle KI-Einblicke für diesen Bericht bereits genutzt.",
+    "searchPlaceholder": "Berichte nach Namen suchen",
+    "sortNewest": "Neueste zuerst sortieren",
+    "sortOldest": "Älteste zuerst sortieren",
+    "loadMore": "Mehr laden",
+    "generate": "Bericht erstellen",
+    "generated": "Bericht erstellt",
+    "viewReport": "Bericht ansehen",
+    "print": "Drucken / Als PDF speichern"
   }
 }

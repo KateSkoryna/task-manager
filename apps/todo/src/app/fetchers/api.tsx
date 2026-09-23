@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { ref, deleteObject } from 'firebase/storage';
 import {
   createTodoListFetcher,
@@ -16,12 +21,21 @@ import {
   TodoList as TodoListType,
   TodoItem as TodoItemType,
   ParsedTask,
+  PaginatedResult,
+  Report,
+  ReportPeriod,
   UpdateTodoItem,
   UpdateTodoList,
 } from '@shared/types';
 import { useAuthStore } from '../store/authStore';
 import { storage } from '../lib/firebase';
 import { parseTodoFetcher } from './agent';
+import {
+  generateReportFetcher,
+  generateReportNarrativeFetcher,
+  getReportFetcher,
+  getReportsFetcher,
+} from './reports';
 
 export const useTodoListsQuery = () => {
   const user = useAuthStore((s) => s.user);
@@ -42,6 +56,73 @@ export const useInboxTodosQuery = () => {
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
+  });
+};
+
+export const useReportsQuery = (
+  period: ReportPeriod,
+  sort: 'asc' | 'desc' = 'desc'
+) => {
+  const user = useAuthStore((s) => s.user);
+  return useInfiniteQuery<PaginatedResult<Report>, Error>({
+    queryKey: ['reports', user?.id, period, sort],
+    queryFn: ({ pageParam }) =>
+      getReportsFetcher(user!.id, period, {
+        cursor: pageParam as string | null,
+        sort,
+      }),
+    enabled: !!user,
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+};
+
+export const useReportQuery = (reportId: string | undefined) => {
+  const user = useAuthStore((s) => s.user);
+  return useQuery<Report, Error>({
+    queryKey: ['report', user?.id, reportId],
+    queryFn: () => getReportFetcher(user!.id, reportId!),
+    enabled: !!user && !!reportId,
+  });
+};
+
+export const useGenerateReportMutation = () => {
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  return useMutation<
+    Report,
+    Error,
+    { period: ReportPeriod; referenceDate?: string }
+  >({
+    mutationFn: ({ period, referenceDate }) =>
+      generateReportFetcher(user!.id, period, referenceDate),
+    onSuccess: (_, { period }) => {
+      queryClient.invalidateQueries({
+        queryKey: ['reports', user?.id, period],
+      });
+    },
+  });
+};
+
+export const useGenerateReportNarrativeMutation = () => {
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  return useMutation<Report, Error, { reportId: string }>({
+    mutationFn: ({ reportId }) =>
+      generateReportNarrativeFetcher(user!.id, reportId),
+    onSuccess: (report) => {
+      queryClient.setQueryData(['report', user?.id, report.id], report);
+    },
+    // A failed attempt (e.g. Gemini overloaded) still counts against the
+    // report's generation cap server-side - refetch so the UI's remaining-
+    // attempts count doesn't go stale after an error.
+    onError: (_error, { reportId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ['report', user?.id, reportId],
+      });
+    },
   });
 };
 

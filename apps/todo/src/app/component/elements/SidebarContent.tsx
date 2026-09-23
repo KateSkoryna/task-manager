@@ -4,6 +4,7 @@ import {
   Flame,
   ListTodo,
   BarChart2,
+  FileText,
   Settings,
   HelpCircle,
   LogOut,
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
     icon: BarChart2,
     end: false,
   },
+  { to: '/reports', labelKey: 'nav.reports', icon: FileText, end: false },
   { to: '/settings', labelKey: 'nav.settings', icon: Settings, end: false },
   { to: '/help', labelKey: 'nav.help', icon: HelpCircle, end: false },
 ];
@@ -71,9 +73,7 @@ function SidebarContent({
           <p className="truncate text-sm font-semibold text-sidebar-text">
             {user?.displayName}
           </p>
-          <p className="truncate text-xs text-sidebar-muted">
-            {user?.email}
-          </p>
+          <p className="truncate text-xs text-sidebar-muted">{user?.email}</p>
         </div>
       </div>
 

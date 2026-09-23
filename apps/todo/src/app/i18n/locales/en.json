@@ -4,6 +4,7 @@
     "vitalTasks": "Vital Tasks",
     "myTasks": "My Tasks",
     "statistics": "Statistics",
+    "reports": "Reports",
     "settings": "Settings",
     "help": "Help",
     "logout": "Logout"
@@ -17,7 +18,9 @@
     "searchLoading": "Searching your tasks...",
     "searchNoResults": "No matching tasks found",
     "searchError": "Search failed. Please try again.",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "noNotifications": "No notifications yet",
+    "reportReadyNotification": "Report ready: {{name}}"
   },
   "auth": {
     "login": {
@@ -188,9 +191,6 @@
     "emptyNewList": "New List",
     "emptyAfter": "to get started!"
   },
-  "vitalTask": {
-    "description": "Showing high-priority task lists."
-  },
   "pomodoro": {
     "workPhase": "Focus",
     "breakPhase": "Break",
@@ -358,5 +358,41 @@
     "medianDays": "{{days}}d",
     "periodComparison": "Period Comparison",
     "vsPrevious": "vs previous {{period}}"
+  },
+  "reports": {
+    "title": "Reports",
+    "loading": "Loading reports…",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "proactivityScore": "Proactivity Score",
+    "completionRatio": "Completion Rate",
+    "onTimeRate": "On-Time Rate",
+    "overdueCount": "Overdue",
+    "trendTitle": "Trend Across Periods",
+    "noData": "No reports yet",
+    "columnName": "Name",
+    "columnDate": "Date",
+    "columnPeriod": "Period",
+    "untitled": "Untitled report",
+    "backToList": "Back to reports",
+    "preparedFor": "Prepared for {{name}}",
+    "aiInsightsTitle": "AI insights",
+    "getInsights": "Get AI insights",
+    "regenerateInsights": "Regenerate insights",
+    "noInsightsYet": "Generate AI insights for tips and takeaways based on this report's numbers.",
+    "insightsError": "Could not generate insights. Please try again.",
+    "insightsProblems": "Problems",
+    "insightsReasoning": "Why",
+    "insightsTips": "Try",
+    "insightsLimitReached": "You've used all your AI insight generations for this report.",
+    "searchPlaceholder": "Search reports by name",
+    "sortNewest": "Sort newest first",
+    "sortOldest": "Sort oldest first",
+    "loadMore": "Load more",
+    "generate": "Generate Report",
+    "generated": "Report generated",
+    "viewReport": "View report",
+    "print": "Print / Save as PDF"
   }
 }
