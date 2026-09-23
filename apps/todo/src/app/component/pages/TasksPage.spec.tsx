@@ -66,6 +66,34 @@ function NavigationTrigger() {
 }
 
 describe('TasksPage', () => {
+  it('scrolls the selected task back into view in the left list', async () => {
+    // test-setup.ts stubs this globally (jsdom has no real layout/scrolling
+    // to call it for real); spy on that stub to assert the effect fires.
+    const scrollIntoView = jest
+      .spyOn(Element.prototype, 'scrollIntoView')
+      .mockImplementation(() => undefined);
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/tasks']}>
+          <TasksPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await userEvent.click(screen.getByTestId('todo-item-t2'));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'nearest',
+    });
+
+    scrollIntoView.mockRestore();
+  });
+
   it("resets the edit form to the newly selected task instead of keeping the previous one's stale values", async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },

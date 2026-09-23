@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 
 globalThis.matchMedia =
   globalThis.matchMedia ||
-  (() => ({
+  ((() => ({
     matches: false,
     media: '',
     onchange: null,
@@ -11,4 +11,4 @@ globalThis.matchMedia =
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
     dispatchEvent: () => false,
-  })) as typeof globalThis.matchMedia;
+  })) as typeof globalThis.matchMedia);

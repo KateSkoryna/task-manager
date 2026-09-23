@@ -125,6 +125,26 @@ function TasksPage() {
     }
   }, [locationState, location.key, todoLists, inboxTodos]);
 
+  // The selected task's row in the left list can be scrolled out of view —
+  // by a long list, or by the row the user clicked no longer being the
+  // selected one (e.g. arriving here from header search or the chat panel).
+  // Bring it back into view whenever the selection changes. Looked up by
+  // the same `todo-item-{id}` testid every row already renders, rather than
+  // threading a ref through three separate list components (TodoLists,
+  // InboxSection, FlatTaskList) that can render the same row. A no-op on
+  // mobile, where the list is hidden (not just off-screen) once a task is
+  // selected — nothing there for the browser to scroll to.
+  useEffect(() => {
+    if (!selectedTask) return;
+    document
+      .querySelector(`[data-testid="todo-item-${selectedTask.todo.id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Deliberately keyed only on the id: re-scrolling every time an edit
+    // touches some other field of the selected task (e.g. after saving)
+    // would fight the user's own scroll position for no reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTask?.todo.id]);
+
   // Open the create-list form when navigated from another page requesting it
   const createListStateHandled = useRef(false);
   useEffect(() => {

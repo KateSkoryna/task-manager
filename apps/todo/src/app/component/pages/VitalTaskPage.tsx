@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +47,16 @@ function VitalTaskPage() {
       prev?.todo.id === todo.id ? null : { todo, list }
     );
   }
+
+  // See TasksPage's identical effect: bring the selected row back into view
+  // in the (possibly long) left list whenever the selection changes.
+  useEffect(() => {
+    if (!selectedTask) return;
+    document
+      .querySelector(`[data-testid="todo-item-${selectedTask.todo.id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTask?.todo.id]);
 
   function handleDeleteSelectedTodo(id: string) {
     handleDeleteTodo(id);
