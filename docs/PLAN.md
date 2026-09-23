@@ -1675,28 +1675,40 @@ All six are answered directly from the page with no extra clicks, for Week / Mon
 
 **Decided 2026-09-17:** personal reports only — one user's own reports, no team/assignee concept (this app has none today, and inventing one is out of scope). Built after the Statistics redesign (Phase 13) and does not change it; reuses its date helpers and `PeriodSelector`. Sequenced before the performance/refactor lab (Phase 15) so that lab's baselines and any refactor targets already account for the new `reports/` module and endpoints, instead of the lab running against a codebase that changes shape immediately afterward.
 
-**Goal (measurable):** `GET users/:userId/reports?period=weekly|monthly|quarterly|yearly` returns a paginated list of persisted `Report` documents for the authenticated user, generating the current period on demand when it doesn't exist yet; a `/reports` page renders a period selector, a trend chart across past periods, and KPI tiles for the latest period; every metric is computed once server-side and never recomputed differently by the frontend.
+**Decided 2026-09-22 (revision, after Steps 14.1–14.4 shipped):** the first cut auto-generated the current period's report on every `/reports` page view. That was functionally correct but left Reports looking like a near-duplicate of Statistics (both were "KPI tiles + one trend chart" for the current period), which is exactly the confusion that prompted this revision. Reports becomes a library of explicitly generated, named, immutable documents instead:
 
-**Concepts:** MongoDB aggregation pipelines, idempotent upsert-based document generation, timezone-correct calendar period boundaries (ISO weeks, calendar quarters), REST list pagination, deriving a shared enum across a Zod schema/Mongoose schema/NestJS pipe/frontend selector from one source.
+- Generation is an explicit action — a "Generate Report" button on Statistics for the period currently shown, or a schedule (see Step 14.10) — never a side effect of viewing a list. Steps 14.5+ remove the auto-generate-on-`GET` behavior Step 14.3 originally added.
+- A report freezes a lightweight snapshot of the tasks it summarizes at generation time, not just the 7 summary numbers. This means later editing or deleting a task can never retroactively change a past report (the open question "what if I generate a report and then delete the task" is solved by decoupling, not by restricting deletion or adding an archive concept), and it lets the report detail page reuse Phase 13's chart components directly against that frozen array instead of a second charting implementation.
+- The Reports page becomes a searchable, filterable, sortable list of past reports; opening one shows a detail page with the same chart types as Statistics, plus a print/PDF export.
+- `preferences.reportCadence`/`deliveryHour` (already on `User`, previously unused) drive scheduled automatic generation, independent of the manual button.
 
-**Libs/deps:** no new dependency. `dayjs` needs its `quarterOfYear` plugin enabled (already a transitive part of the installed `dayjs` package, just unused) for quarter arithmetic. `recharts` and the shared `component/elements/PeriodSelector.tsx` from Phase 13 cover the frontend.
+Steps 14.1–14.4 (period boundaries, `ReportsService` aggregation, the module/controller, and the page shell) are unchanged prerequisites — everything below builds on them. Step 14.3's original "auto-generate on `GET`" behavior is explicitly superseded by Step 14.5.
 
-**Files:**
+**Goal (measurable):** from Statistics, a user can click "Generate Report" for the period currently shown and see it appear in their Reports list within seconds (synchronous generation, no job queue). The Reports page lists every report the user has generated, searchable by name and filterable/sortable by period type and date. Opening a report renders the same chart types as Statistics, computed entirely from a snapshot frozen at generation time — confirmed by editing or deleting a task after generating its report and observing the report is unchanged. A report can be printed or saved as a PDF from its detail page. Setting a report cadence (weekly/monthly, or off) in Settings causes that report to be generated automatically on schedule with no page visit required.
 
-- `libs/types/src/lib/report.schemas.ts` — extend `REPORT_PERIODS` to `['weekly', 'monthly', 'quarterly', 'yearly']` (drop `daily`, which no phase ever used).
-- `libs/types/src/lib/datetime.ts` — add `startOfQuarterInZone`/`endOfQuarterInZone`. The week, month, and year helpers already exist from Step 13.3.
-- `apps/todo-be/src/reports/reports.module.ts`, `reports.controller.ts`, `reports.service.ts`, `report-period.pipe.ts` — new module, following `apps/todo-be/src/user/` exactly.
-- `apps/todo-be/src/app/models/report.model.ts` — no schema change, just consumed.
-- `apps/todo/src/app/fetchers/api.tsx` — add `useReportsQuery`.
-- `apps/todo/src/app/component/pages/ReportsPage.tsx` + `ReportsPageSkeleton.tsx`, wired into `PAGE_SKELETONS` and the `/reports` route in `main.tsx`, plus an entry in the app's nav.
-- i18n: `reports.*` keys alongside the existing `statistics.*` keys.
+**Concepts:** MongoDB aggregation pipelines, idempotent upsert-based document generation, timezone-correct calendar period boundaries (ISO weeks, calendar quarters), REST list pagination, deriving a shared enum across a Zod schema/Mongoose schema/NestJS pipe/frontend selector from one source, denormalized/embedded historical snapshots vs. live joins (and why a "report" as a concept requires the former), explicit-trigger vs. auto-generate-on-read API design, scheduled background jobs, print stylesheets.
+
+**Libs/deps:** Steps 14.1–14.4 needed no new dependency. Step 14.10's scheduler needs a cron-style library (e.g. `node-cron`) — a new dependency, confirm before adding rather than picking one unilaterally. Step 14.9's PDF export starts with the browser's native `window.print()` plus a `@media print` stylesheet — zero new dependencies; a later one-click "Download PDF" (a real file, not the print dialog) would need `jsPDF`/`html2canvas` — flag that as a separate dependency decision if wanted, don't add it speculatively.
+
+**Files (Steps 14.5+):**
+
+- `libs/types/src/lib/report.schemas.ts` — add `name: z.string()`, `taskSnapshot: reportTaskSnapshotSchema[]` to `reportSchema`; new `reportTaskSnapshotSchema` (id, name, status, category, priority, dueDate, completedAt, createdAt — the subset Phase 13's chart functions actually read).
+- `libs/types/src/lib/user-preferences.schemas.ts` — narrow `REPORT_CADENCES` to `['weekly', 'monthly', 'off']` (drop `daily`, which has no corresponding report period — the same kind of unused-value cleanup Step 14.1 already did for `REPORT_PERIODS`).
+- `apps/todo-be/src/app/models/report.model.ts` — add `name` and `taskSnapshot` fields to the Mongoose schema (this is the schema change Step 14.2's original note said wasn't needed yet).
+- `apps/todo-be/src/reports/reports.service.ts` — `generate(userId, period, referenceDate)` (explicit-trigger, captures the snapshot alongside the existing metrics aggregation), `findById(userId, id)`; `getOrGenerate` stays for Step 14.10's scheduler to call internally.
+- `apps/todo-be/src/reports/reports.controller.ts` — add `POST` (generate) and `GET :id` (detail); remove the implicit `getOrGenerate` call from the list `GET`.
+- `apps/todo/src/app/component/statistics/StatisticsPage.tsx` — add the "Generate Report" button and success toast.
+- `apps/todo/src/app/component/pages/ReportsPage.tsx` — rebuilt as a list/search/filter/sort view instead of a period-selector KPI view.
+- `apps/todo/src/app/component/pages/ReportDetailPage.tsx` (new) — chart reuse from Phase 13 against `taskSnapshot`, plus print/export.
+- i18n: extend `reports.*` for the list/detail/generate copy.
 
 **Acceptance checks:**
 
 - Report boundaries are computed in the user's `preferences.timezone`, not server UTC — verified across a DST transition, matching the existing `shared-datetime.spec.ts` pattern.
 - Regenerating a report for a period that already has one document upserts in place rather than erroring or duplicating (the unique index on `{userId, period, periodStart}` is exercised, not bypassed).
 - `FirebaseAuthGuard`'s existing `params.userId === profile.id` check applies unchanged; no new auth pattern introduced.
-- Every number shown on the Reports page traces to a `ReportMetrics` field computed once in `ReportsService`; the frontend does no independent counting.
+- Every number and chart on a report traces to data captured once at generation time; editing or deleting the underlying tasks afterward never changes an already-generated report.
+- The Reports list never generates a report as a side effect of being viewed.
 
 ### Step 14.1 — Period boundaries and the widened period enum
 
@@ -1754,11 +1766,87 @@ All six are answered directly from the page with no extra clicks, for Week / Mon
 
 **Done when.** `npm run test:unit:fe` exits zero with a `ReportsPage.spec.tsx` (renders KPI tiles from a mocked query response, period selector switches the query param), `npm run typecheck` exits zero, the page manually verified in the browser across all four periods, prettier run.
 
-### Step 14.5 — Report generation on a schedule (optional follow-up)
+### Step 14.5 — Freeze a task snapshot; explicit generation endpoint
 
-**What to do.** Only after Steps 14.1–14.4 are reviewed and merged: revisit whether reports should also generate proactively (e.g., a completed period gets its `Report` written once, right after it ends, rather than only on next page view) using `preferences.reportCadence`/`deliveryHour`, which already exist on `User` for this purpose. This is speculative scheduling infrastructure — do not start it without confirming there's a real trigger (e.g., the stretch-roadmap "AI productivity insights" narrative wants to read a settled report) rather than building it because the fields happen to already exist.
+**What to do.** Add `name` and `taskSnapshot` (array of `reportTaskSnapshotSchema`) to `reportSchema` in `libs/types/src/lib/report.schemas.ts`, and the matching fields to the Mongoose schema in `report.model.ts`. In `reports.service.ts`, add `generate(userId, period, referenceDate)`: reuses Step 14.2's period-boundary and metrics logic, additionally projects the matched `Todo` documents (due, created, or completed in the period) down to the snapshot shape, and writes both `metrics` and `taskSnapshot` in the same `findOneAndUpdate`. Auto-derive `name` (e.g. `"Weekly report — Mar 16–22, 2026"` from `periodStart`/`periodEnd` in the user's zone) unless a name is passed in. Add `POST users/:userId/reports` to `reports.controller.ts` (body: `{ period, referenceDate? }`) calling `generate`. Remove the implicit `getOrGenerate` call from the list `GET` handler added in Step 14.3 — listing must never generate.
 
-**Not in this step unless confirmed:** any narrative/AI text generation — that's the separate stretch-roadmap item, and this phase's `narrative` field can stay `''` indefinitely without weakening the reporting feature itself.
+**Why.** A report that only stores 7 numbers can't render Statistics-style charts without re-querying live `Todo` data, and re-querying live data is exactly what makes a "report" mean nothing — if a task is deleted or re-categorized afterward, the report silently changes with it. Freezing the fields those charts actually read makes the report a true historical record and sidesteps the entire "what happens if the user deletes a task" question rather than solving it with a deletion restriction.
+
+**What to expect.** Keep the snapshot lightweight — only the fields Phase 13's `lib/` functions read (id, name, status, category, priority, dueDate, completedAt, createdAt), not full `TodoItem` objects. Category lives on the todo's list, not the todo itself, so the snapshot step needs a `Todolist` lookup (or a `$lookup` in the aggregation) to resolve it at freeze time, same as `categoryByListId` does client-side today.
+
+**What to learn.** Denormalization as a deliberate reporting-correctness tool, not just a performance shortcut — and why "explicit trigger" and "auto-generate-on-read" are different API contracts with different idempotency expectations.
+
+**Not in this step.** No list UI changes, no detail page, no button on Statistics.
+
+**Done when.** `npm run test:unit:be` exits zero with updated `reports.service.spec.ts` cases (a generated report's snapshot is unaffected by later deleting or editing the source task) and `reports.controller.spec.ts` cases (`POST` generates, a second `POST` for the same period upserts in place, `GET` no longer generates), prettier run.
+
+### Step 14.6 — Reports list: search, filter, sort, pagination
+
+**What to do.** Rebuild `ReportsPage.tsx` as a list view: each row shows the report's `name`, period type, date range, and generation date. Add a name search input, a period-type filter, and date sort (newest/oldest first). Wire the `before`-cursor pagination Step 14.2's `list()` already supports (a "Load more" control) rather than only ever fetching the first page. Clicking a row navigates to `/reports/:id` (Step 14.8).
+
+**Why.** This is the actual shape of "a list of reports for the user" — the redesign that resolves the original Statistics-vs-Reports confusion by making Reports look and behave like a document library, not a second analytics dashboard.
+
+**What to expect.** Name search can be client-side filtering over the already-fetched page for a first cut; only add a server-side `?q=` param if client-side filtering proves insufficient once pagination is real (don't build both preemptively).
+
+**What to learn.** Where "good enough" client-side filtering ends and a real server-side search parameter becomes necessary — a judgment call, not a default.
+
+**Not in this step.** No detail page, no generate button, no PDF export.
+
+**Done when.** `npm run test:unit:fe` exits zero with `ReportsPage.spec.tsx` cases (search narrows the list, period filter narrows the list, sort reorders, "load more" fetches the next page), `npm run typecheck` exits zero, prettier run.
+
+### Step 14.7 — "Generate Report" button on Statistics
+
+**What to do.** Add a button to `StatisticsPage.tsx` that calls the Step 14.5 `POST` endpoint using the currently selected `periodKind`/`anchor` as `period`/`referenceDate`. On success, show a toast (reuse whatever toast/notification mechanism already exists in the app; if none exists, a small transient banner is enough — do not build a notification system for this). Offer a link to the new report from the toast.
+
+**Why.** This is the actual trigger the plan originally lacked: report generation was a silent side effect of navigation, not a deliberate user action tied to the period they were just looking at.
+
+**What to expect.** Generation is a single aggregation query and finishes in well under a second — no loading spinner choreography or optimistic UI is warranted; a disabled-while-pending button state is enough.
+
+**What to learn.** Recognizing when an operation is fast enough that synchronous request/response is the right design, instead of reaching for a job-queue/polling pattern by default.
+
+**Not in this step.** No scheduled generation (Step 14.10), no job status tracking.
+
+**Done when.** `npm run test:unit:fe` exits zero with a test asserting the button calls the generate endpoint with the currently displayed period and shows a success state, `npm run typecheck` exits zero, prettier run.
+
+### Step 14.8 — Report detail page: charts reused from Statistics
+
+**What to do.** Add `GET users/:userId/reports/:id` to `reports.controller.ts`/`reports.service.ts` (owner-scoped, 404 if missing or not owned). Add `ReportDetailPage.tsx` at `/reports/:id`: convert the stored `taskSnapshot` into the shape Phase 13's `lib/` functions expect, then render a subset of Statistics' section components (at minimum category breakdown and priority distribution) against it, plus KPI tiles from the stored `metrics`.
+
+**Why.** The snapshot exists specifically so this step can be literal reuse of Phase 13's chart logic rather than a second implementation — if this step finds itself reimplementing a chart calculation, that's a sign the snapshot shape from Step 14.5 is missing a field, not a reason to duplicate the math.
+
+**What to expect.** Not every Statistics section necessarily makes sense for a frozen single period (e.g. period-over-period trend comparisons need more than one report) — pick the sections that read sensibly from a single snapshot and say which ones you skipped and why.
+
+**What to learn.** Designing a data shape (the snapshot) specifically so a later step can reuse existing code instead of writing new code — planning for reuse rather than discovering it's needed after the fact.
+
+**Not in this step.** No print/PDF export (Step 14.9).
+
+**Done when.** `npm run test:unit:fe` exits zero with `ReportDetailPage.spec.tsx` (renders KPI tiles and at least one chart from a mocked report response), `npm run typecheck` exits zero, the page manually verified in the browser, prettier run.
+
+### Step 14.9 — Print / PDF export
+
+**What to do.** Add a `@media print` stylesheet to the report detail page (hide nav/chrome, keep charts and KPI tiles) and a "Print / Save as PDF" button calling `window.print()`. Every modern browser's print dialog offers "Save as PDF" natively, so this alone satisfies "download as PDF" without a new dependency.
+
+**Why.** The browser already does this for free; reaching for a PDF-generation library before confirming the native path is insufficient would be adding a dependency the reuse ladder says to skip.
+
+**What to expect.** Recharts' SVG output prints fine by default in most browsers, but verify chart colors remain legible against a white print background (the app's CSS custom properties may need a `@media print` override if it defaults to a dark palette).
+
+**What to learn.** Checking whether the platform already solves a stated requirement before reaching for a library.
+
+**Not in this step unless the native print path proves insufficient:** a one-click "Download PDF" file via `jsPDF`/`html2canvas` — stop and confirm this dependency addition first rather than adding it preemptively.
+
+**Done when.** Manually verified: the print dialog shows a clean, readable layout with charts and no app chrome, and "Save as PDF" produces a usable file.
+
+### Step 14.10 — Scheduled generation from `preferences.reportCadence`
+
+**What to do.** Narrow `REPORT_CADENCES` to `['weekly', 'monthly', 'off']` in `libs/types/src/lib/user-preferences.schemas.ts` (existing stored `'daily'` values should be treated as `'off'` at read time, not migrated in the database). Add a scheduled job (library choice to confirm first — e.g. `node-cron`) that, on a regular tick, finds users whose `preferences.reportCadence !== 'off'` and whose local hour (via `hourInZone`) matches `preferences.deliveryHour`, and calls `ReportsService.getOrGenerate` for their just-completed period.
+
+**Why.** This is the actual point of `reportCadence`/`deliveryHour` existing on `User` already — automatic generation on the user's own schedule, independent of whether they ever click the manual button.
+
+**What to expect.** `getOrGenerate`'s existing idempotency guarantee is what makes "tick every N minutes and check every user" safe — a user whose report already exists for the current period is a no-op, not a duplicate or an error.
+
+**What to learn.** Reusing an idempotent operation as the safety net for a polling/scheduling design, instead of building separate "has this already run" bookkeeping.
+
+**Not in this step.** Emailing or otherwise delivering the generated report — that's the separate narrative/delivery stretch item already noted in this phase's original scope; `deliveredAt` can stay `null` here.
 
 ---
 
