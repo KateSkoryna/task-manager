@@ -1,14 +1,43 @@
 import { Schema, model, models, Document, Model, Types } from 'mongoose';
-import { REPORT_PERIODS, ReportMetrics, ReportPeriod } from '@shared/types';
+import {
+  MAX_NARRATIVE_ITEMS,
+  REPORT_PERIODS,
+  ReportMetrics,
+  ReportNarrative,
+  ReportPeriod,
+  TodoListCategory,
+  TodoPriority,
+  TodoStatus,
+} from '@shared/types';
+
+/**
+ * The embedded snapshot's dates are real `Date`s at the document layer,
+ * unlike `ReportTaskSnapshot` (its `@shared/types` counterpart), whose dates
+ * are ISO strings for the wire format - `ReportsService` converts between
+ * the two.
+ */
+export interface IReportTaskSnapshot {
+  id: string;
+  name: string;
+  status: TodoStatus;
+  category: TodoListCategory | null;
+  priority: TodoPriority;
+  dueDate: Date | null;
+  completedAt: Date | null;
+  createdAt: Date;
+}
 
 export interface IReportDocument extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
+  name: string;
   period: ReportPeriod;
   periodStart: Date;
   periodEnd: Date;
   metrics: ReportMetrics;
-  narrative: string;
+  taskSnapshot: IReportTaskSnapshot[];
+  narrative: ReportNarrative | null;
+  narrativeAttempts: number;
   deliveredAt: Date | null;
 }
 
@@ -25,10 +54,66 @@ const metricsSchema = new Schema<ReportMetrics>(
   { _id: false }
 );
 
+const taskSnapshotSchema = new Schema<IReportTaskSnapshot>(
+  {
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ['pending', 'successful', 'failed'],
+      required: true,
+    },
+    category: {
+      type: String,
+      // `null` must be listed explicitly - Mongoose's enum validator
+      // rejects it otherwise, even with `default: null`. This only ever
+      // surfaced via `doc.save()` (full validation runs there), never via
+      // `findOneAndUpdate`'s upsert in `generate()` (skips validators by
+      // default) - so an uncategorized task in the snapshot silently
+      // inserted fine but crashed the first `.save()` afterward, e.g. when
+      // writing the AI narrative onto an already-generated report.
+      enum: ['home', 'education', 'work', 'family', 'health', null],
+      default: null,
+    },
+    priority: {
+      type: String,
+      enum: ['low', 'medium', 'high'],
+      required: true,
+    },
+    dueDate: { type: Date, default: null },
+    completedAt: { type: Date, default: null },
+    createdAt: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
+const reportNarrativeSchema = new Schema<ReportNarrative>(
+  {
+    summary: { type: String, required: true },
+    problems: {
+      type: [String],
+      default: [],
+      validate: (v: string[]) => v.length <= MAX_NARRATIVE_ITEMS,
+    },
+    reasoning: {
+      type: [String],
+      default: [],
+      validate: (v: string[]) => v.length <= MAX_NARRATIVE_ITEMS,
+    },
+    tips: {
+      type: [String],
+      default: [],
+      validate: (v: string[]) => v.length <= MAX_NARRATIVE_ITEMS,
+    },
+  },
+  { _id: false }
+);
+
 export const REPORT_MODEL_NAME = 'Report';
 export const reportSchema = new Schema<IReportDocument>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, required: true },
     period: {
       type: String,
       enum: REPORT_PERIODS as unknown as string[],
@@ -37,7 +122,9 @@ export const reportSchema = new Schema<IReportDocument>(
     periodStart: { type: Date, required: true },
     periodEnd: { type: Date, required: true },
     metrics: { type: metricsSchema, required: true },
-    narrative: { type: String, default: '' },
+    taskSnapshot: { type: [taskSnapshotSchema], default: [] },
+    narrative: { type: reportNarrativeSchema, default: null },
+    narrativeAttempts: { type: Number, required: true, default: 0, min: 0 },
     deliveredAt: { type: Date, default: null },
   },
   { timestamps: true }

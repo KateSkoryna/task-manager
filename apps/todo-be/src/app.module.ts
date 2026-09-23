@@ -13,6 +13,7 @@ import {
   DEFAULT_THROTTLE_TTL_MS,
 } from './common/config/throttle.config';
 import { HealthModule } from './health/health.module';
+import { ReportsModule } from './reports/reports.module';
 import { TodoModule } from './todo/todo.module';
 import { TodolistModule } from './todolist/todolist.module';
 import { UserModule } from './user/user.module';
@@ -74,6 +75,7 @@ const REQUEST_ID_PATTERN = /^[\w-]{1,100}$/;
     UserModule,
     HealthModule,
     AgentModule,
+    ReportsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

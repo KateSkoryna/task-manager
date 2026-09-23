@@ -129,7 +129,8 @@ describe('Report model', () => {
 
     await Report.create({
       userId,
-      period: 'daily',
+      name: 'Test report',
+      period: 'weekly',
       periodStart,
       periodEnd: new Date('2026-08-20T23:59:59.999Z'),
       metrics,
@@ -138,7 +139,8 @@ describe('Report model', () => {
     await expect(
       Report.create({
         userId,
-        period: 'daily',
+        name: 'Test report',
+        period: 'weekly',
         periodStart,
         periodEnd: new Date('2026-08-20T23:59:59.999Z'),
         metrics,
@@ -153,7 +155,8 @@ describe('Report model', () => {
 
     await Report.create({
       userId,
-      period: 'daily',
+      name: 'Test report',
+      period: 'weekly',
       periodStart,
       periodEnd: periodStart,
       metrics,
@@ -162,7 +165,8 @@ describe('Report model', () => {
     await expect(
       Report.create({
         userId,
-        period: 'weekly',
+        name: 'Test report',
+        period: 'monthly',
         periodStart,
         periodEnd: periodStart,
         metrics,
@@ -173,6 +177,7 @@ describe('Report model', () => {
   it('starts undelivered', async () => {
     const report = await Report.create({
       userId: new Types.ObjectId(),
+      name: 'Test report',
       period: 'monthly',
       periodStart: new Date('2026-08-01T00:00:00.000Z'),
       periodEnd: new Date('2026-08-31T23:59:59.999Z'),
