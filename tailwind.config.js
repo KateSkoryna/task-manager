@@ -178,6 +178,17 @@ module.exports = {
         'ring-sm': tokens.size.progressRingSmall,
         'ring-lg': tokens.size.progressRingLarge,
       },
+      // Color-only animation for a busy control whose label doesn't change —
+      // no size/position properties, so it never causes layout shift.
+      keyframes: {
+        'border-pulse': {
+          '0%, 100%': { borderColor: 'rgb(var(--color-accent))' },
+          '50%': { borderColor: 'rgb(var(--color-default))' },
+        },
+      },
+      animation: {
+        'border-pulse': 'border-pulse 1.2s ease-in-out infinite',
+      },
     },
   },
   plugins: [themeVariablesPlugin],
