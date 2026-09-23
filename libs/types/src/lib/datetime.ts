@@ -2,10 +2,12 @@ import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import isoWeek from 'dayjs/plugin/isoWeek';
+import quarterOfYear from 'dayjs/plugin/quarterOfYear';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isoWeek);
+dayjs.extend(quarterOfYear);
 
 // The workspace TS lib target predates ES2022.Intl; `Intl.supportedValuesOf`
 // is a real, widely-supported runtime API (Node 18+, all evergreen browsers).
@@ -72,6 +74,12 @@ export const startOfMonthInZone = (value: DateInput, zone: string): Date =>
 
 export const endOfMonthInZone = (value: DateInput, zone: string): Date =>
   inZone(value, zone).endOf('month').toDate();
+
+export const startOfQuarterInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).startOf('quarter').toDate();
+
+export const endOfQuarterInZone = (value: DateInput, zone: string): Date =>
+  inZone(value, zone).endOf('quarter').toDate();
 
 export const startOfYearInZone = (value: DateInput, zone: string): Date =>
   inZone(value, zone).startOf('year').toDate();

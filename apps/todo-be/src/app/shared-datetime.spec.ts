@@ -3,6 +3,7 @@ import {
   dayKeyInZone,
   endOfDayInZone,
   endOfMonthInZone,
+  endOfQuarterInZone,
   endOfWeekInZone,
   endOfYearInZone,
   hourInZone,
@@ -10,6 +11,7 @@ import {
   isValidTimezone,
   startOfDayInZone,
   startOfMonthInZone,
+  startOfQuarterInZone,
   startOfWeekInZone,
   startOfYearInZone,
 } from '@shared/types';
@@ -117,6 +119,29 @@ describe('week/month/year boundaries', () => {
     const hours = (end.getTime() - start.getTime() + 1) / 3_600_000;
 
     expect(hours).toBe(31 * 24 + 1);
+  });
+
+  it('resolves calendar quarter boundaries in the requested zone', () => {
+    const start = startOfQuarterInZone(
+      '2026-05-15T10:00:00.000Z',
+      'Asia/Tokyo'
+    );
+    const end = endOfQuarterInZone('2026-05-15T10:00:00.000Z', 'Asia/Tokyo');
+
+    expect(start.toISOString()).toBe('2026-03-31T15:00:00.000Z');
+    expect(end.toISOString()).toBe('2026-06-30T14:59:59.999Z');
+  });
+
+  it('spans a shorter quarter across the spring DST transition in Berlin', () => {
+    // Q1 2026 (Jan-Mar) contains the 29 March Berlin DST jump.
+    const start = startOfQuarterInZone(
+      '2026-02-15T10:00:00.000Z',
+      'Europe/Berlin'
+    );
+    const end = endOfQuarterInZone('2026-02-15T10:00:00.000Z', 'Europe/Berlin');
+    const hours = (end.getTime() - start.getTime() + 1) / 3_600_000;
+
+    expect(hours).toBe(90 * 24 - 1);
   });
 
   it('resolves calendar year boundaries in the requested zone', () => {
