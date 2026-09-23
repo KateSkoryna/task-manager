@@ -12,7 +12,7 @@ function Footer({ className }: FooterProps) {
   return (
     <footer
       className={mergeClassNames(
-        'shrink-0 bg-app px-content-mobile pt-2 pb-3 md:px-content-tablet md:pt-1 md:pb-2 lg:px-content-desktop',
+        'shrink-0 bg-app px-content-mobile pt-4 pb-4 md:px-content-tablet md:pt-3 md:pb-3 lg:px-content-desktop',
         className
       )}
     >
