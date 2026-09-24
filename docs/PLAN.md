@@ -303,7 +303,7 @@ against the running dev stack.
 user: type a free-text line into the Inbox quick-capture input (`QuickCaptureInput`), submit, and
 assert the parsed task appears in `InboxSection` (`data-testid="inbox-section"`). Cover the notice/undo
 affordance (`noticeTestId`/`undoTestId` in `QuickCaptureInput.tsx`) by capturing right after submit and
-clicking undo, asserting the task is removed. Cover moving a captured task out of the inbox into a
+clicking undo, asserting the task's name reverts to the original raw text. Cover moving a captured task out of the inbox into a
 list via `MoveToListSelect`.
 
 **Why.** Inbox capture is the app's primary "fast add" path (it's what feeds `parseTodoFetcher`/
