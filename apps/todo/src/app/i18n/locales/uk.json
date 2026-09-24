@@ -28,6 +28,7 @@
       "emailPlaceholder": "Введіть Email",
       "passwordPlaceholder": "Введіть пароль",
       "rememberMe": "Запам'ятати мене",
+      "forgotPassword": "Забули пароль?",
       "button": "Увійти",
       "signingIn": "Вхід...",
       "continueWithGoogle": "Продовжити з Google",

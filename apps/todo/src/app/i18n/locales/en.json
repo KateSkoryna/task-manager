@@ -28,6 +28,7 @@
       "emailPlaceholder": "Enter Email",
       "passwordPlaceholder": "Enter Password",
       "rememberMe": "Remember Me",
+      "forgotPassword": "Forgot password?",
       "button": "Login",
       "signingIn": "Signing in\u2026",
       "continueWithGoogle": "Continue with Google",

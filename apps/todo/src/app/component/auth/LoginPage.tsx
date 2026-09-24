@@ -174,12 +174,20 @@ function LoginPage() {
             )}
           </div>
 
-          <Checkbox
-            id="rememberMe"
-            checked={rememberMe}
-            onChange={setRememberMe}
-            label={t('auth.login.rememberMe')}
-          />
+          <div className="flex items-center justify-between">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={setRememberMe}
+              label={t('auth.login.rememberMe')}
+            />
+            <Link
+              to="/forgot-password"
+              className="text-sm text-primary font-semibold hover:underline"
+            >
+              {t('auth.login.forgotPassword')}
+            </Link>
+          </div>
 
           {error && <p className="text-danger text-sm">{error}</p>}
 
