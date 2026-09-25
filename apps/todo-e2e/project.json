@@ -26,7 +26,16 @@
         "cypressConfig": "apps/todo-e2e/cypress.config.ts",
         "testingType": "e2e",
         "baseUrl": "http://localhost:4200",
-        "spec": "apps/todo-e2e/src/e2e/authenticated-smoke.cy.ts"
+        "spec": "apps/todo-e2e/src/e2e/authenticated-smoke.cy.ts,apps/todo-e2e/src/e2e/auth-session.cy.ts,apps/todo-e2e/src/e2e/inbox-quick-capture.cy.ts,apps/todo-e2e/src/e2e/settings-preferences.cy.ts"
+      }
+    },
+    "e2e-agent": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/todo-e2e/cypress.config.ts",
+        "testingType": "e2e",
+        "baseUrl": "http://localhost:4200",
+        "spec": "apps/todo-e2e/src/e2e/agent-chat.cy.ts,apps/todo-e2e/src/e2e/inbox-quick-capture-enrichment.cy.ts"
       }
     },
     "lint": {

@@ -143,7 +143,12 @@ jobs:
         run: until curl -sf http://localhost:4200; do sleep 1; done
         timeout-minutes: 3
 
-      - name: Authenticated Cypress smoke flow
+      # AI-dependent specs (agent-chat.cy.ts and
+      # inbox-quick-capture-enrichment.cy.ts) are excluded here — this job
+      # has no GEMINI_API_KEY configured. Run those locally via `npm run
+      # test:e2e:agent`, or add Gemini credentials to this job's env to
+      # include them.
+      - name: Cypress E2E suite
         run: npx nx e2e-ci todo-e2e
 
       - name: Upload service logs on failure

@@ -1,45 +1,4 @@
 describe('AI chat agent', () => {
-  let createdUser: { userId: string; firebaseUid: string } | undefined;
-
-  afterEach(() => {
-    if (createdUser) {
-      cy.task('cleanupAuthenticatedSmoke', createdUser);
-      createdUser = undefined;
-    }
-  });
-
-  /**
-   * Registers a throwaway user and enables AI consent through the real
-   * Settings UI — the agent endpoint 403s without it.
-   */
-  const registerUserWithAiConsent = (uniqueId: number) => {
-    cy.intercept('POST', '**/api/auth/provision').as('provisionUser');
-    cy.visit('/register');
-
-    cy.get('input[name="firstName"]').type('Agent');
-    cy.get('input[name="lastName"]').type('Chat');
-    cy.get('input[name="username"]').type(`agent-chat-${uniqueId}`);
-    cy.get('input[name="email"]').type(`agent-chat-${uniqueId}@example.com`);
-    cy.get('input[name="password"]').type('Baseline123!');
-    cy.get('input[name="confirmPassword"]').type('Baseline123!');
-    cy.get('#agreeToTerms').check();
-    cy.contains('button', 'Register').click();
-
-    cy.wait('@provisionUser').then(({ response }) => {
-      expect(response?.statusCode).to.eq(201);
-      createdUser = {
-        userId: response?.body.id,
-        firebaseUid: response?.body.firebaseUid,
-      };
-    });
-    cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
-
-    cy.contains('a', 'Settings').click();
-    cy.get('#settings-ai-consent').check();
-    cy.get('[data-testid="settings-save-button"]').click();
-    cy.get('[data-testid="settings-saved-message"]').should('be.visible');
-  };
-
   const openChatPanel = () => {
     cy.get('[data-testid="chat-panel-launcher"]').click();
     cy.get('[data-testid="chat-panel"]').should('be.visible');
@@ -68,10 +27,9 @@ describe('AI chat agent', () => {
   };
 
   it('creates a task through a chat message', () => {
-    const uniqueId = Date.now();
-    const taskName = `Chat created task ${uniqueId}`;
+    const taskName = `Chat created task ${Date.now()}`;
 
-    registerUserWithAiConsent(uniqueId);
+    cy.registerTestUser({ namePrefix: 'agent-create', aiConsent: true });
     openChatPanel();
     sendChatMessage(`Add a task called ${taskName}`);
 
@@ -90,10 +48,9 @@ describe('AI chat agent', () => {
   });
 
   it('proposes a delete and does not execute it until confirmed', () => {
-    const uniqueId = Date.now();
-    const taskName = `Kept task ${uniqueId}`;
+    const taskName = `Kept task ${Date.now()}`;
 
-    registerUserWithAiConsent(uniqueId);
+    cy.registerTestUser({ namePrefix: 'agent-cancel', aiConsent: true });
     cy.contains('a', 'My Tasks').click();
     cy.url().should('include', '/tasks');
     seedInboxTask(taskName);
@@ -118,10 +75,9 @@ describe('AI chat agent', () => {
   });
 
   it('deletes a task once the proposal is confirmed', () => {
-    const uniqueId = Date.now();
-    const taskName = `Deleted task ${uniqueId}`;
+    const taskName = `Deleted task ${Date.now()}`;
 
-    registerUserWithAiConsent(uniqueId);
+    cy.registerTestUser({ namePrefix: 'agent-confirm', aiConsent: true });
     cy.contains('a', 'My Tasks').click();
     cy.url().should('include', '/tasks');
     seedInboxTask(taskName);

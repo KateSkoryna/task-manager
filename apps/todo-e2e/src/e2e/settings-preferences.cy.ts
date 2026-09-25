@@ -1,37 +1,6 @@
 describe('Settings and preferences', () => {
-  let createdUser: { userId: string; firebaseUid: string } | undefined;
-
-  afterEach(() => {
-    if (createdUser) {
-      cy.task('cleanupAuthenticatedSmoke', createdUser);
-      createdUser = undefined;
-    }
-  });
-
   it('persists theme, AI consent, timezone, and report cadence across a reload', () => {
-    const uniqueId = Date.now();
-    const email = `settings-prefs-${uniqueId}@example.com`;
-
-    cy.intercept('POST', '**/api/auth/provision').as('provisionUser');
-    cy.visit('/register');
-
-    cy.get('input[name="firstName"]').type('Settings');
-    cy.get('input[name="lastName"]').type('Prefs');
-    cy.get('input[name="username"]').type(`settings-prefs-${uniqueId}`);
-    cy.get('input[name="email"]').type(email);
-    cy.get('input[name="password"]').type('Baseline123!');
-    cy.get('input[name="confirmPassword"]').type('Baseline123!');
-    cy.get('#agreeToTerms').check();
-    cy.contains('button', 'Register').click();
-
-    cy.wait('@provisionUser').then(({ response }) => {
-      expect(response?.statusCode).to.eq(201);
-      createdUser = {
-        userId: response?.body.id,
-        firebaseUid: response?.body.firebaseUid,
-      };
-    });
-    cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
+    cy.registerTestUser({ namePrefix: 'settings-prefs' });
 
     cy.contains('a', 'Settings').click();
     cy.url().should('include', '/settings');

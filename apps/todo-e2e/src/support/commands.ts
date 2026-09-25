@@ -1,33 +1,76 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare namespace Cypress {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface Chainable<Subject> {
-    login(email: string, password: string): void;
+  interface Chainable<_Subject> {
+    /**
+     * Registers a throwaway user through the real registration UI and
+     * lands on the authenticated shell. When `aiConsent` is set, also
+     * enables AI assistance in Settings — several flows (quick-capture
+     * enrichment, the chat agent) 403 without it. Yields `{ email,
+     * password, uniqueId }` so callers that need to log back in (or want a
+     * unique suffix for further naming) can use them.
+     *
+     * The registered user is tracked automatically and cleaned up by a
+     * single global `afterEach` in `support/e2e.ts` — specs using this
+     * command don't need their own `let createdUser` / cleanup boilerplate.
+     */
+    registerTestUser(options?: {
+      namePrefix?: string;
+      aiConsent?: boolean;
+    }): Chainable<{ email: string; password: string; uniqueId: number }>;
   }
 }
-//
-// -- This is a parent command --
-Cypress.Commands.add('login', (email, password) => {
-  console.log('Custom command example: Login', email, password);
-});
-//
-// -- This is a child command --
-// Cypress.Commands.add("drag", { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add("dismiss", { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+
+export interface RegisteredTestUser {
+  userId: string;
+  firebaseUid: string;
+}
+
+/**
+ * Users registered via `cy.registerTestUser` in the currently running
+ * test, drained and cleaned up by the global `afterEach` in
+ * `support/e2e.ts`.
+ */
+export const registeredTestUsers: RegisteredTestUser[] = [];
+
+const TEST_PASSWORD = 'Baseline123!';
+
+Cypress.Commands.add(
+  'registerTestUser',
+  ({ namePrefix = 'test-user', aiConsent = false } = {}) => {
+    const uniqueId = Date.now();
+    const email = `${namePrefix}-${uniqueId}@example.com`;
+
+    cy.intercept('POST', '**/api/auth/provision').as('provisionUser');
+    cy.visit('/register');
+
+    cy.get('input[name="firstName"]').type('Test');
+    cy.get('input[name="lastName"]').type('User');
+    cy.get('input[name="username"]').type(`${namePrefix}-${uniqueId}`);
+    cy.get('input[name="email"]').type(email);
+    cy.get('input[name="password"]').type(TEST_PASSWORD);
+    cy.get('input[name="confirmPassword"]').type(TEST_PASSWORD);
+    cy.get('#agreeToTerms').check();
+    cy.contains('button', 'Register').click();
+
+    cy.wait('@provisionUser').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      registeredTestUsers.push({
+        userId: response?.body.id,
+        firebaseUid: response?.body.firebaseUid,
+      });
+    });
+    cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
+
+    if (aiConsent) {
+      cy.contains('a', 'Settings').click();
+      cy.get('#settings-ai-consent').check();
+      cy.get('[data-testid="settings-save-button"]').click();
+      cy.get('[data-testid="settings-saved-message"]').should('be.visible');
+    }
+
+    return cy.wrap(
+      { email, password: TEST_PASSWORD, uniqueId },
+      { log: false }
+    );
+  }
+);
