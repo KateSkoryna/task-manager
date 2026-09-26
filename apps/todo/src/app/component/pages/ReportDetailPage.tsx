@@ -230,7 +230,10 @@ export default function ReportDetailPage() {
             <ArrowLeft className="size-4" />
           </IconButton>
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-primary truncate">
+            <h1
+              data-testid="report-detail-name"
+              className="text-xl font-semibold text-primary truncate"
+            >
               {report.name}
             </h1>
             {userName && (
@@ -244,6 +247,7 @@ export default function ReportDetailPage() {
           variant="secondary"
           onClick={() => window.print()}
           className="print:hidden"
+          dataTestId="report-print-button"
         >
           <Download className="size-4" />
           {t('reports.print')}
@@ -260,6 +264,7 @@ export default function ReportDetailPage() {
           }
         />
         <KpiCard
+          dataTestId="report-completion-ratio"
           label={t('reports.completionRatio')}
           value={asPercent(report.metrics.completionRatio)}
         />

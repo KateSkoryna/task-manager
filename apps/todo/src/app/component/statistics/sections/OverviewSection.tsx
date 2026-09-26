@@ -39,6 +39,7 @@ export default function OverviewSection({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <KpiCard
+        dataTestId="stat-completion-rate"
         label={t('statistics.completionRateLabel')}
         value={
           completionRate.rate !== null

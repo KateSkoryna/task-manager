@@ -84,6 +84,7 @@ export default function ReportsPage() {
               <li key={report.id}>
                 <Link
                   to={`/reports/${report.id}`}
+                  data-testid={`report-row-${report.id}`}
                   className="grid grid-cols-[1fr_auto_auto] items-center gap-3 bg-surface px-4 py-3 hover:bg-surface-subtle transition-colors"
                 >
                   <span className="text-sm font-semibold text-primary truncate">
