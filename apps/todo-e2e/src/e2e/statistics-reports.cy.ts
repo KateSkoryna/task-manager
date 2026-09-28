@@ -23,8 +23,12 @@ describe('Statistics and reports', () => {
     // Statistics counts tasks by due date, not creation date, so each
     // seeded task needs today's date set via the date picker for the
     // current period's completion rate to be non-zero.
+    // "Add Task" is only rendered as visible text in the list's empty
+    // state — once it holds a task, the same action is an icon-only
+    // button with the same aria-label, so use that selector throughout
+    // to work in both states.
     cy.get('@createdList').within(() => {
-      cy.contains('button', 'Add Task').click();
+      cy.get('button[aria-label="Add Task"]').click();
       cy.get('[data-testid="todo-form-input"]').type(doneTaskName);
       cy.get('[data-testid="todo-form-toggle-extra"]').click();
       cy.get('#new-todo-due-date').click();
@@ -32,7 +36,10 @@ describe('Statistics and reports', () => {
     cy.contains('button', String(new Date().getDate())).click();
     cy.get('@createdList').within(() => {
       cy.get('[data-testid="todo-form-submit-button"]').click();
-      cy.contains('button', 'Add Task').click();
+      cy.contains('div[data-testid^="todo-item-"]', doneTaskName).should(
+        'be.visible'
+      );
+      cy.get('button[aria-label="Add Task"]').click();
       cy.get('[data-testid="todo-form-input"]').type(pendingTaskName);
       cy.get('[data-testid="todo-form-toggle-extra"]').click();
       cy.get('#new-todo-due-date').click();
@@ -40,6 +47,9 @@ describe('Statistics and reports', () => {
     cy.contains('button', String(new Date().getDate())).click();
     cy.get('@createdList').within(() => {
       cy.get('[data-testid="todo-form-submit-button"]').click();
+      cy.contains('div[data-testid^="todo-item-"]', pendingTaskName).should(
+        'be.visible'
+      );
     });
 
     cy.get('@createdList')
