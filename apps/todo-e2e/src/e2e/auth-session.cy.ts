@@ -9,7 +9,7 @@ describe('Authenticated session flows', () => {
         cy.get('input[name="password"]').type(password);
         cy.contains('button', 'Login').click();
 
-        cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
+        cy.location('pathname').should('eq', '/');
         cy.contains('a', 'My Tasks').should('be.visible');
       }
     );

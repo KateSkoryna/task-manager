@@ -59,7 +59,7 @@ Cypress.Commands.add(
         firebaseUid: response?.body.firebaseUid,
       });
     });
-    cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
+    cy.location('pathname').should('eq', '/');
 
     if (aiConsent) {
       cy.contains('a', 'Settings').click();
