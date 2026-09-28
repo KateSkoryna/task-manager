@@ -129,6 +129,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
                   return [
                     <span
                       key={`${message.id}-tool-${index}`}
+                      data-testid={`chat-tool-badge-${toolCall.name}`}
                       className="inline-flex items-center rounded-pill border border-default bg-surface px-badge-x py-badge-y text-metadata font-medium text-muted"
                     >
                       {label}

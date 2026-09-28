@@ -1,17 +1,23 @@
 // ***********************************************************
-// This example support/index.js is processed and
-// loaded automatically before your test files.
+// This support file is processed and loaded automatically
+// before your test files.
 //
 // This is a great place to put global configuration and
 // behavior that modifies Cypress.
-//
-// You can change the location of this file or turn off
-// automatically serving support files with the
-// 'supportFile' configuration option.
 //
 // You can read more here:
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.js using ES2015 syntax:
 import './commands';
+import { registeredTestUsers } from './commands';
+
+// Cleans up every user `cy.registerTestUser` registered during the test,
+// so individual specs don't need their own `let createdUser` / afterEach
+// boilerplate.
+afterEach(() => {
+  while (registeredTestUsers.length) {
+    const user = registeredTestUsers.pop();
+    if (user) cy.task('cleanupAuthenticatedSmoke', user);
+  }
+});

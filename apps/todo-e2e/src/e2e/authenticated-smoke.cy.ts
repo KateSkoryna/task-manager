@@ -1,40 +1,13 @@
 describe('Authenticated todo smoke flow', () => {
-  let createdUser: { userId: string; firebaseUid: string } | undefined;
-
-  afterEach(() => {
-    if (createdUser) {
-      cy.task('cleanupAuthenticatedSmoke', createdUser);
-    }
-  });
-
   it('registers and completes the primary todo CRUD path', () => {
-    const uniqueId = Date.now();
-    const email = `phase-zero-${uniqueId}@example.com`;
-    const listName = `Smoke List ${uniqueId}`;
-    const todoName = `Smoke Todo ${uniqueId}`;
+    const listName = `Smoke List ${Date.now()}`;
+    const todoName = `Smoke Todo ${Date.now()}`;
 
-    cy.intercept('POST', '**/api/auth/provision').as('provisionUser');
     cy.visit('/login');
     cy.contains('a', 'Create One').click();
+    cy.url().should('include', '/register');
+    cy.registerTestUser({ namePrefix: 'phase-zero' });
 
-    cy.get('input[name="firstName"]').type('Phase');
-    cy.get('input[name="lastName"]').type('Zero');
-    cy.get('input[name="username"]').type(`phase-zero-${uniqueId}`);
-    cy.get('input[name="email"]').type(email);
-    cy.get('input[name="password"]').type('Baseline123!');
-    cy.get('input[name="confirmPassword"]').type('Baseline123!');
-    cy.get('#agreeToTerms').check();
-    cy.contains('button', 'Register').click();
-
-    cy.wait('@provisionUser').then(({ response }) => {
-      expect(response?.statusCode).to.eq(201);
-      createdUser = {
-        userId: response?.body.id,
-        firebaseUid: response?.body.firebaseUid,
-      };
-    });
-
-    cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
     cy.contains('a', 'My Tasks').click();
     cy.url().should('include', '/tasks');
 

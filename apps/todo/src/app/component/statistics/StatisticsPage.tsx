@@ -309,6 +309,7 @@ export default function StatisticsPage() {
             className={
               generateReport.isPending ? 'animate-border-pulse' : undefined
             }
+            dataTestId="generate-report-button"
           >
             {t('reports.generate')}
           </Button>

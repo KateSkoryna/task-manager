@@ -4,6 +4,7 @@ interface KpiCardProps {
   sublabel?: string;
   /** e.g. "+8 pp vs previous week" — omitted entirely when there isn't enough data to compare. */
   comparisonLabel?: string;
+  dataTestId?: string;
 }
 
 export default function KpiCard({
@@ -11,9 +12,13 @@ export default function KpiCard({
   value,
   sublabel,
   comparisonLabel,
+  dataTestId,
 }: KpiCardProps) {
   return (
-    <div className="bg-surface rounded-2xl border border-default p-5 shadow-card flex flex-col items-center justify-center text-center">
+    <div
+      data-testid={dataTestId}
+      className="bg-surface rounded-2xl border border-default p-5 shadow-card flex flex-col items-center justify-center text-center"
+    >
       <span className="text-3xl font-bold leading-none text-primary">
         {value}
       </span>
