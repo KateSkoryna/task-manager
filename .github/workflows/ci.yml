@@ -97,6 +97,11 @@ jobs:
       NX_FIREBASE_STORAGE_BUCKET: todo-app-97286.firebasestorage.app
       NX_FIREBASE_MESSAGING_SENDER_ID: '0'
       NX_FIREBASE_APP_ID: '1:0:web:0'
+      # The default auth-endpoint rate limit (10/60s per IP) is tuned for a
+      # real client, not five specs registering a user and re-checking
+      # /api/auth/user on every navigation back-to-back from the same
+      # runner IP — raised here so the suite doesn't flake on 429s.
+      AUTH_THROTTLE_LIMIT: '60'
     steps:
       - uses: actions/checkout@v7
 
