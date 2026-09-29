@@ -25,8 +25,8 @@
   "auth": {
     "login": {
       "title": "Anmelden",
-      "emailPlaceholder": "E-Mail eingeben",
-      "passwordPlaceholder": "Passwort eingeben",
+      "emailPlaceholder": "E-Mail",
+      "passwordPlaceholder": "Passwort",
       "rememberMe": "Angemeldet bleiben",
       "forgotPassword": "Passwort vergessen?",
       "button": "Anmelden",
@@ -39,11 +39,11 @@
     },
     "register": {
       "title": "Registrieren",
-      "firstNamePlaceholder": "Vorname eingeben",
-      "lastNamePlaceholder": "Nachname eingeben",
-      "usernamePlaceholder": "Benutzername eingeben",
-      "emailPlaceholder": "E-Mail eingeben",
-      "passwordPlaceholder": "Passwort eingeben",
+      "firstNamePlaceholder": "Vorname",
+      "lastNamePlaceholder": "Nachname",
+      "usernamePlaceholder": "Benutzername",
+      "emailPlaceholder": "E-Mail",
+      "passwordPlaceholder": "Passwort",
       "confirmPasswordPlaceholder": "Passwort bestätigen",
       "agreeToTerms": "Ich stimme allen Geschäftsbedingungen zu",
       "button": "Registrieren",

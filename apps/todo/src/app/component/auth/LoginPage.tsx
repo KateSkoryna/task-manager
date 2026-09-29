@@ -126,7 +126,7 @@ function LoginPage() {
 
   return (
     <AuthLayout illustration={illustration} illustrationSide="right">
-      <div className="w-full md:w-1/2 p-10 flex flex-col justify-center bg-surface">
+      <div className="w-full md:w-1/2 p-10 flex flex-col justify-start md:justify-center bg-surface">
         <h1 className="text-3xl font-bold text-primary mb-8">
           {t('auth.login.title')}
         </h1>

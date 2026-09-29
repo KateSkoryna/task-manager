@@ -7,7 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "docker:mongodb": "docker-compose -f tools/mongodb/docker-compose.yml up",
+    "docker:mongodb": "docker compose up -d mongo",
     "serve:fe": "nx serve todo",
     "serve:be": "nx serve todo-be",
     "build": "nx build",
@@ -23,7 +23,7 @@
     "typecheck": "tsc --build apps/todo apps/todo-be libs/types",
     "eval:agent": "ts-node -r tsconfig-paths/register --project apps/todo-be/tsconfig.app.json apps/todo-be/src/agent/evals/run-eval.ts",
     "emulator": "firebase emulators:start",
-    "all": "npm run docker:mongodb & npm run emulator & npm run serve:be & npm run serve:fe"
+    "all": "npm run docker:mongodb && (npm run emulator & MONGODB_URI='mongodb://root:password@localhost:27017/todo?authSource=admin' npm run serve:be & npm run serve:fe)"
   },
   "private": true,
   "dependencies": {

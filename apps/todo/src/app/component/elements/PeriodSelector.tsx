@@ -11,6 +11,7 @@ interface PeriodSelectorProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   ariaLabel?: string;
+  className?: string;
 }
 
 export default function PeriodSelector<T extends string>({
@@ -18,6 +19,7 @@ export default function PeriodSelector<T extends string>({
   value,
   onChange,
   ariaLabel,
+  className = '',
 }: PeriodSelectorProps<T>) {
   const activeIndex = options.findIndex((option) => option.value === value);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -40,7 +42,7 @@ export default function PeriodSelector<T extends string>({
     <div
       role="group"
       aria-label={ariaLabel}
-      className="relative flex bg-surface border border-default rounded-lg p-1"
+      className={`relative flex bg-surface border border-default rounded-lg p-1 ${className}`}
     >
       <span
         className="absolute top-1 bottom-1 rounded-md bg-accent transition-all duration-300 ease-in-out"

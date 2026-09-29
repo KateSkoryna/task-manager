@@ -283,16 +283,18 @@ export default function StatisticsPage() {
 
   return (
     <Container className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <PeriodNavigator
-          rangeLabel={rangeLabel}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          nextDisabled={nextDisabled}
-          previousLabel={t('statistics.previousPeriod')}
-          nextLabel={t('statistics.nextPeriod')}
-        />
-        <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex justify-center sm:justify-start">
+          <PeriodNavigator
+            rangeLabel={rangeLabel}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+            nextDisabled={nextDisabled}
+            previousLabel={t('statistics.previousPeriod')}
+            nextLabel={t('statistics.nextPeriod')}
+          />
+        </div>
+        <div className="flex w-full flex-nowrap items-center gap-2 sm:w-auto sm:gap-3">
           <PeriodSelector
             options={[
               { label: t('statistics.week'), value: 'week' as const },
@@ -301,13 +303,16 @@ export default function StatisticsPage() {
             ]}
             value={periodKind}
             onChange={handlePeriodChange}
+            className="min-w-0 flex-1 sm:flex-none"
           />
           <Button
             variant="secondary"
             loading={generateReport.isPending}
             onClick={handleGenerateReport}
             className={
-              generateReport.isPending ? 'animate-border-pulse' : undefined
+              generateReport.isPending
+                ? 'animate-border-pulse shrink-0 whitespace-nowrap'
+                : 'shrink-0 whitespace-nowrap'
             }
             dataTestId="generate-report-button"
           >

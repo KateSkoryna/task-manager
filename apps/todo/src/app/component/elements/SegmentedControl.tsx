@@ -25,7 +25,7 @@ function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={mergeClassNames(
-        'inline-flex items-center gap-1 rounded-control border border-default bg-surface-subtle p-1',
+        'flex w-full items-center gap-1 rounded-control border border-default bg-surface-subtle p-1',
         className
       )}
     >
@@ -38,7 +38,7 @@ function SegmentedControl<T extends string>({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(option.value)}
-            className={`rounded-inner px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            className={`flex-1 rounded-inner px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
               selected
                 ? 'bg-accent text-on-accent'
                 : 'text-muted hover:text-primary'

@@ -25,8 +25,8 @@
   "auth": {
     "login": {
       "title": "Sign In",
-      "emailPlaceholder": "Enter Email",
-      "passwordPlaceholder": "Enter Password",
+      "emailPlaceholder": "Email",
+      "passwordPlaceholder": "Password",
       "rememberMe": "Remember Me",
       "forgotPassword": "Forgot password?",
       "button": "Login",
@@ -39,11 +39,11 @@
     },
     "register": {
       "title": "Sign Up",
-      "firstNamePlaceholder": "Enter First Name",
-      "lastNamePlaceholder": "Enter Last Name",
-      "usernamePlaceholder": "Enter Username",
-      "emailPlaceholder": "Enter Email",
-      "passwordPlaceholder": "Enter Password",
+      "firstNamePlaceholder": "First Name",
+      "lastNamePlaceholder": "Last Name",
+      "usernamePlaceholder": "Username",
+      "emailPlaceholder": "Email",
+      "passwordPlaceholder": "Password",
       "confirmPasswordPlaceholder": "Confirm Password",
       "agreeToTerms": "I agree to all terms and conditions",
       "button": "Register",
