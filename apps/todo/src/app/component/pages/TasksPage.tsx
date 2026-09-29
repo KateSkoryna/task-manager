@@ -339,7 +339,12 @@ function TasksPage() {
           selectedTask ? 'flex' : 'hidden'
         )}
       >
-        <div className="flex flex-col rounded-card border border-default bg-surface shadow-card overflow-hidden md:sticky md:top-0">
+        <div
+          className={mergeClassNames(
+            'flex flex-col rounded-card border border-default bg-surface shadow-card overflow-hidden md:sticky md:top-0',
+            isEditing && 'md:min-h-[36rem]'
+          )}
+        >
           {selectedTask && (
             <div className="border-b border-default p-3 md:hidden">
               <IconButton

@@ -22,34 +22,36 @@ function AppearanceSection() {
         {t('settings.appearance.title')}
       </h2>
 
-      <div className="flex flex-col gap-1">
-        <span className="text-primary font-medium">
-          {t('settings.appearance.theme')}
-        </span>
-        <SegmentedControl<Theme>
-          ariaLabel={t('settings.appearance.theme')}
-          value={theme}
-          onChange={setTheme}
-          options={[
-            { value: 'light', label: t('settings.appearance.themeLight') },
-            { value: 'dark', label: t('settings.appearance.themeDark') },
-          ]}
-        />
-      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-primary font-medium">
+            {t('settings.appearance.theme')}
+          </span>
+          <SegmentedControl<Theme>
+            ariaLabel={t('settings.appearance.theme')}
+            value={theme}
+            onChange={setTheme}
+            options={[
+              { value: 'light', label: t('settings.appearance.themeLight') },
+              { value: 'dark', label: t('settings.appearance.themeDark') },
+            ]}
+          />
+        </div>
 
-      <div className="flex flex-col gap-1">
-        <span className="text-primary font-medium">
-          {t('settings.appearance.language')}
-        </span>
-        <SegmentedControl
-          ariaLabel={t('settings.appearance.language')}
-          value={currentLanguage}
-          onChange={(code) => i18n.changeLanguage(code)}
-          options={LANGUAGES.map(({ code, label }) => ({
-            value: code,
-            label,
-          }))}
-        />
+        <div className="flex flex-col gap-1">
+          <span className="text-primary font-medium">
+            {t('settings.appearance.language')}
+          </span>
+          <SegmentedControl
+            ariaLabel={t('settings.appearance.language')}
+            value={currentLanguage}
+            onChange={(code) => i18n.changeLanguage(code)}
+            options={LANGUAGES.map(({ code, label }) => ({
+              value: code,
+              label,
+            }))}
+          />
+        </div>
       </div>
     </div>
   );
