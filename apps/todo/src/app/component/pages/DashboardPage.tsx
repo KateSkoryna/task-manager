@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { PieChart, Pie, Cell } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import {
   ClipboardList,
   Check,
@@ -101,23 +101,25 @@ function DonutChart({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative w-28 h-28">
-        <PieChart width={112} height={112}>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={36}
-            outerRadius={50}
-            startAngle={90}
-            endAngle={-270}
-            dataKey="value"
-            strokeWidth={0}
-          >
-            <Cell fill={color} />
-            <Cell fill="rgb(var(--color-default))" />
-          </Pie>
-        </PieChart>
+      <div className="relative h-32 w-32 sm:h-28 sm:w-28">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius="64%"
+              outerRadius="89%"
+              startAngle={90}
+              endAngle={-270}
+              dataKey="value"
+              strokeWidth={0}
+            >
+              <Cell fill={color} />
+              <Cell fill="rgb(var(--color-default))" />
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
         <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-primary">
           {pct}%
         </span>
@@ -329,31 +331,33 @@ function TaskStatusPanel({
           </button>
         </div>
       </div>
-      <div className="mb-3">
-        <WeekStrip selectedDate={selectedDate} weekOffset={weekOffset} />
-      </div>
-      <div className="flex justify-around">
-        <DonutChart
-          value={successful}
-          total={total}
-          color="rgb(var(--color-status-complete))"
-          dotColor="rgb(var(--color-status-complete))"
-          label={t('dashboard.completed')}
-        />
-        <DonutChart
-          value={pending}
-          total={total}
-          color="rgb(var(--color-status-progress))"
-          dotColor="rgb(var(--color-status-progress))"
-          label={t('dashboard.inProgress')}
-        />
-        <DonutChart
-          value={failed}
-          total={total}
-          color="rgb(var(--color-status-open))"
-          dotColor="rgb(var(--color-status-open))"
-          label={t('dashboard.notStarted')}
-        />
+      <div className="grid grid-cols-2 items-center gap-3 sm:block">
+        <div className="sm:mb-3">
+          <WeekStrip selectedDate={selectedDate} weekOffset={weekOffset} />
+        </div>
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-around">
+          <DonutChart
+            value={successful}
+            total={total}
+            color="rgb(var(--color-status-complete))"
+            dotColor="rgb(var(--color-status-complete))"
+            label={t('dashboard.completed')}
+          />
+          <DonutChart
+            value={pending}
+            total={total}
+            color="rgb(var(--color-status-progress))"
+            dotColor="rgb(var(--color-status-progress))"
+            label={t('dashboard.inProgress')}
+          />
+          <DonutChart
+            value={failed}
+            total={total}
+            color="rgb(var(--color-status-open))"
+            dotColor="rgb(var(--color-status-open))"
+            label={t('dashboard.notStarted')}
+          />
+        </div>
       </div>
     </div>
   );
@@ -437,7 +441,7 @@ function WeekStrip({
     <div
       role="tablist"
       aria-label={t('dashboard.weekStrip')}
-      className="flex w-full items-center justify-center gap-1.5 sm:gap-2"
+      className="flex w-full flex-col items-start justify-center gap-1.5 sm:flex-row sm:items-center sm:gap-2"
     >
       {days.map((day) => {
         const selected = day.isSame(selectedDate, 'day');
@@ -453,7 +457,7 @@ function WeekStrip({
               day: 'numeric',
             })}
             onClick={() => setSelectedDate(day)}
-            className={`flex w-11 shrink-0 flex-col items-center justify-center h-11 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+            className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent sm:h-11 sm:w-11 ${
               selected
                 ? 'bg-accent border-accent text-on-accent'
                 : 'bg-surface border-default text-primary hover:border-accent'

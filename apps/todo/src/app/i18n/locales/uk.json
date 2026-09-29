@@ -25,8 +25,8 @@
   "auth": {
     "login": {
       "title": "Вхід",
-      "emailPlaceholder": "Введіть Email",
-      "passwordPlaceholder": "Введіть пароль",
+      "emailPlaceholder": "Електронна пошта",
+      "passwordPlaceholder": "Пароль",
       "rememberMe": "Запам'ятати мене",
       "forgotPassword": "Забули пароль?",
       "button": "Увійти",
@@ -39,11 +39,11 @@
     },
     "register": {
       "title": "Реєстрація",
-      "firstNamePlaceholder": "Введіть ім'я",
-      "lastNamePlaceholder": "Введіть прізвище",
-      "usernamePlaceholder": "Введіть ім'я користувача",
-      "emailPlaceholder": "Введіть Email",
-      "passwordPlaceholder": "Введіть пароль",
+      "firstNamePlaceholder": "Ім'я",
+      "lastNamePlaceholder": "Прізвище",
+      "usernamePlaceholder": "Ім'я користувача",
+      "emailPlaceholder": "Електронна пошта",
+      "passwordPlaceholder": "Пароль",
       "confirmPasswordPlaceholder": "Підтвердьте пароль",
       "agreeToTerms": "Я погоджуюся з усіма умовами та правилами",
       "button": "Зареєструватися",

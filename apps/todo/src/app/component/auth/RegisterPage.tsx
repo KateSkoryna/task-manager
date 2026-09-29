@@ -151,13 +151,13 @@ function RegisterPage() {
 
   return (
     <AuthLayout illustration={illustration}>
-      <div className="w-full md:w-1/2 p-10 flex flex-col justify-center bg-surface">
+      <div className="w-full md:w-1/2 p-10 flex flex-col justify-start md:justify-center bg-surface">
         <h1 className="text-3xl font-bold text-primary mb-6">
           {t('auth.register.title')}
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />

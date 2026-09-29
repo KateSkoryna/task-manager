@@ -35,27 +35,31 @@ export default function ReportsPage() {
 
   return (
     <Container className="space-y-6">
-      <div className="flex items-center gap-3 flex-wrap">
-        <SearchInput
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('reports.searchPlaceholder')}
-          ariaLabel={t('reports.searchPlaceholder')}
-          className="flex-1 max-w-md"
-        />
-        <IconButton
-          ariaLabel={
-            sort === 'desc' ? t('reports.sortOldest') : t('reports.sortNewest')
-          }
-          onClick={() => setSort((s) => (s === 'desc' ? 'asc' : 'desc'))}
-        >
-          {sort === 'desc' ? (
-            <ArrowDownAZ size={18} />
-          ) : (
-            <ArrowUpAZ size={18} />
-          )}
-        </IconButton>
-        <div className="ml-auto">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex w-full min-w-0 items-center gap-3 sm:flex-1">
+          <SearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('reports.searchPlaceholder')}
+            ariaLabel={t('reports.searchPlaceholder')}
+            className="w-full min-w-0 flex-1 sm:max-w-md"
+          />
+          <IconButton
+            ariaLabel={
+              sort === 'desc'
+                ? t('reports.sortOldest')
+                : t('reports.sortNewest')
+            }
+            onClick={() => setSort((s) => (s === 'desc' ? 'asc' : 'desc'))}
+          >
+            {sort === 'desc' ? (
+              <ArrowDownAZ size={18} />
+            ) : (
+              <ArrowUpAZ size={18} />
+            )}
+          </IconButton>
+        </div>
+        <div className="flex w-full sm:ml-auto sm:w-auto">
           <PeriodSelector
             options={PERIOD_OPTIONS.map((value) => ({
               label: t(`reports.${value}`),
@@ -64,6 +68,7 @@ export default function ReportsPage() {
             value={period}
             onChange={setPeriod}
             ariaLabel={t('reports.title')}
+            className="w-full sm:w-auto"
           />
         </div>
       </div>

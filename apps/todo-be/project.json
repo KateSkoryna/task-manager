@@ -34,7 +34,8 @@
     "serve": {
       "executor": "@nx/js:node",
       "options": {
-        "buildTarget": "todo-be:build"
+        "buildTarget": "todo-be:build",
+        "inspect": false
       },
       "configurations": {
         "production": {
