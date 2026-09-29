@@ -1,8 +1,10 @@
-# Todo List Application
+# AI-Powered Task Assistant
 
-A full-stack task-management application built in an Nx workspace with React, NestJS, MongoDB, Firebase Authentication, and Firebase Storage.
+A modern full-stack productivity app that helps people plan, prioritize, and complete their work. Its conversational AI assistant understands natural-language requests to create, update, complete, and find tasks, while quick capture turns free text into structured tasks with inferred dates and priorities.
 
-The app supports authenticated, user-scoped task management; rich todo and list metadata; dashboard and statistics views; periodic, printable reports with optional AI-generated insights; image attachments; and English, German, and Ukrainian UI translations.
+The product combines a responsive React interface with a NestJS API, MongoDB, and Firebase authentication and storage. It includes an analytics dashboard, immutable period reports with optional AI-generated insights, image attachments, and English, German, and Ukrainian localization. The AI agent uses validated application tools, user-scoped authorization, explicit consent, and confirmation for destructive actions.
+
+This project demonstrates end-to-end product engineering: a feature-rich client, secure API boundaries, third-party AI integration, automated tests and CI, and deployment configuration for Render and Vercel. The stack includes React, TypeScript, NestJS, MongoDB, Firebase, Gemini, Nx, Jest, and Cypress.
 
 ## Install and run
 
