@@ -34,7 +34,7 @@ export default function ReportsPage() {
   }, [reports, search]);
 
   return (
-    <Container className="space-y-6 pt-6">
+    <Container className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
         <SearchInput
           value={search}

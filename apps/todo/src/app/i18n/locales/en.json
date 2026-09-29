@@ -217,6 +217,9 @@
       "themeDark": "Dark",
       "language": "Language"
     },
+    "preferences": {
+      "title": "Preferences"
+    },
     "timezone": "Timezone",
     "timezonePlaceholder": "Search for a timezone…",
     "timezoneInvalid": "Enter a valid timezone.",

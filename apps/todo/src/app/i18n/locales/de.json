@@ -217,6 +217,9 @@
       "themeDark": "Dunkel",
       "language": "Sprache"
     },
+    "preferences": {
+      "title": "Einstellungen"
+    },
     "timezone": "Zeitzone",
     "timezonePlaceholder": "Zeitzone suchen…",
     "timezoneInvalid": "Bitte eine gültige Zeitzone eingeben.",

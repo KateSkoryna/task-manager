@@ -88,150 +88,155 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6 max-w-xl"
+      className="w-full space-y-4 rounded-card border border-default bg-surface p-5"
       noValidate
     >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="settings-timezone" className="text-primary font-medium">
-          {t('settings.timezone')}
-        </label>
-        <Controller
-          name="timezone"
-          control={control}
-          render={({ field }) => (
-            <TimezoneField
-              id="settings-timezone"
-              value={field.value ?? ''}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              placeholder={t('settings.timezonePlaceholder')}
-              invalid={!!errors.timezone}
-              data-testid="settings-timezone"
-            />
+      <h2 className="text-lg font-bold text-primary">
+        {t('settings.preferences.title')}
+      </h2>
+      <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="settings-timezone" className="text-primary font-medium">
+            {t('settings.timezone')}
+          </label>
+          <Controller
+            name="timezone"
+            control={control}
+            render={({ field }) => (
+              <TimezoneField
+                id="settings-timezone"
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                placeholder={t('settings.timezonePlaceholder')}
+                invalid={!!errors.timezone}
+                data-testid="settings-timezone"
+              />
+            )}
+          />
+          {errors.timezone && (
+            <p
+              className="text-danger text-sm"
+              data-testid="settings-timezone-error"
+            >
+              {t('settings.timezoneInvalid')}
+            </p>
           )}
-        />
-        {errors.timezone && (
-          <p
-            className="text-danger text-sm"
-            data-testid="settings-timezone-error"
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="settings-cadence" className="text-primary font-medium">
+            {t('settings.reportCadence')}
+          </label>
+          <Controller
+            name="reportCadence"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                id="settings-cadence"
+                ariaLabel={t('settings.reportCadence')}
+                value={field.value ?? 'off'}
+                onChange={(value) => field.onChange(value ?? 'off')}
+                options={cadenceOptions}
+                placeholder={t('settings.reportCadence')}
+                data-testid="settings-cadence"
+              />
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="settings-delivery-hour"
+            className="text-primary font-medium"
           >
-            {t('settings.timezoneInvalid')}
+            {t('settings.deliveryHour')}
+          </label>
+          <Controller
+            name="deliveryHour"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                id="settings-delivery-hour"
+                ariaLabel={t('settings.deliveryHour')}
+                value={String(field.value ?? MIN_DELIVERY_HOUR)}
+                onChange={(value) =>
+                  field.onChange(
+                    value !== null ? Number(value) : MIN_DELIVERY_HOUR
+                  )
+                }
+                options={hourOptions}
+                placeholder={t('settings.deliveryHour')}
+                disabled={cadenceOff}
+                data-testid="settings-delivery-hour"
+              />
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="settings-tone" className="text-primary font-medium">
+            {t('settings.tone')}
+          </label>
+          <Controller
+            name="tone"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                id="settings-tone"
+                ariaLabel={t('settings.tone')}
+                value={field.value ?? 'neutral'}
+                onChange={(value) => field.onChange(value ?? 'neutral')}
+                options={toneOptions}
+                placeholder={t('settings.tone')}
+                data-testid="settings-tone"
+              />
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 md:col-span-2">
+          <Controller
+            name="aiConsent"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="settings-ai-consent"
+                checked={field.value ?? false}
+                onChange={field.onChange}
+                label={t('settings.aiConsent')}
+              />
+            )}
+          />
+          <p className="text-sm text-muted">
+            {t('settings.aiConsentDescription')}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 md:col-span-2">
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isSaving}
+            dataTestId="settings-save-button"
+          >
+            {isSaving ? t('settings.saving') : t('settings.save')}
+          </Button>
+          {saved && !isSaving && (
+            <span
+              className="text-sm text-muted"
+              data-testid="settings-saved-message"
+            >
+              {t('settings.saved')}
+            </span>
+          )}
+        </div>
+        {saveError && (
+          <p className="text-danger text-sm md:col-span-2" data-testid="settings-save-error">
+            {t('settings.saveError')}
           </p>
         )}
       </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="settings-cadence" className="text-primary font-medium">
-          {t('settings.reportCadence')}
-        </label>
-        <Controller
-          name="reportCadence"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              id="settings-cadence"
-              ariaLabel={t('settings.reportCadence')}
-              value={field.value ?? 'off'}
-              onChange={(value) => field.onChange(value ?? 'off')}
-              options={cadenceOptions}
-              placeholder={t('settings.reportCadence')}
-              data-testid="settings-cadence"
-            />
-          )}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="settings-delivery-hour"
-          className="text-primary font-medium"
-        >
-          {t('settings.deliveryHour')}
-        </label>
-        <Controller
-          name="deliveryHour"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              id="settings-delivery-hour"
-              ariaLabel={t('settings.deliveryHour')}
-              value={String(field.value ?? MIN_DELIVERY_HOUR)}
-              onChange={(value) =>
-                field.onChange(
-                  value !== null ? Number(value) : MIN_DELIVERY_HOUR
-                )
-              }
-              options={hourOptions}
-              placeholder={t('settings.deliveryHour')}
-              disabled={cadenceOff}
-              data-testid="settings-delivery-hour"
-            />
-          )}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="settings-tone" className="text-primary font-medium">
-          {t('settings.tone')}
-        </label>
-        <Controller
-          name="tone"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              id="settings-tone"
-              ariaLabel={t('settings.tone')}
-              value={field.value ?? 'neutral'}
-              onChange={(value) => field.onChange(value ?? 'neutral')}
-              options={toneOptions}
-              placeholder={t('settings.tone')}
-              data-testid="settings-tone"
-            />
-          )}
-        />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <Controller
-          name="aiConsent"
-          control={control}
-          render={({ field }) => (
-            <Checkbox
-              id="settings-ai-consent"
-              checked={field.value ?? false}
-              onChange={field.onChange}
-              label={t('settings.aiConsent')}
-            />
-          )}
-        />
-        <p className="text-sm text-muted">
-          {t('settings.aiConsentDescription')}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={isSaving}
-          dataTestId="settings-save-button"
-        >
-          {isSaving ? t('settings.saving') : t('settings.save')}
-        </Button>
-        {saved && !isSaving && (
-          <span
-            className="text-sm text-muted"
-            data-testid="settings-saved-message"
-          >
-            {t('settings.saved')}
-          </span>
-        )}
-      </div>
-      {saveError && (
-        <p className="text-danger text-sm" data-testid="settings-save-error">
-          {t('settings.saveError')}
-        </p>
-      )}
     </form>
   );
 }

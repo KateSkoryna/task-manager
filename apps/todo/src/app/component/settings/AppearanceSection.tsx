@@ -17,7 +17,7 @@ function AppearanceSection() {
       ?.code ?? 'en';
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="w-full space-y-4 rounded-card border border-default bg-surface p-5">
       <h2 className="text-lg font-bold text-primary">
         {t('settings.appearance.title')}
       </h2>
