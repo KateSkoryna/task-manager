@@ -188,7 +188,7 @@ export default function ReportDetailPage() {
 
   if (isLoading) {
     return (
-      <Container className="pt-6">
+      <Container>
         <p className="text-primary">{t('reports.loading')}</p>
       </Container>
     );
@@ -196,7 +196,7 @@ export default function ReportDetailPage() {
 
   if (!report) {
     return (
-      <Container className="pt-6">
+      <Container>
         <p className="text-sm text-muted">{t('reports.noData')}</p>
       </Container>
     );
@@ -219,7 +219,7 @@ export default function ReportDetailPage() {
     generateNarrative.mutate({ reportId: report.id });
 
   return (
-    <Container className="space-y-6 pt-6 print:space-y-4">
+    <Container className="space-y-6 print:space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3 print:block">
         <div className="flex items-center gap-3 min-w-0">
           <IconButton

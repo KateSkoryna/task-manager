@@ -275,14 +275,14 @@ export default function StatisticsPage() {
 
   if (isLoading) {
     return (
-      <Container className="pt-6">
+      <Container>
         <p className="text-primary">{t('statistics.loading')}</p>
       </Container>
     );
   }
 
   return (
-    <Container className="space-y-6 pt-6">
+    <Container className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <PeriodNavigator
           rangeLabel={rangeLabel}

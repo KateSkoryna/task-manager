@@ -217,6 +217,9 @@
       "themeDark": "Темна",
       "language": "Мова"
     },
+    "preferences": {
+      "title": "Налаштування"
+    },
     "timezone": "Часовий пояс",
     "timezonePlaceholder": "Пошук часового поясу…",
     "timezoneInvalid": "Введіть дійсний часовий пояс.",

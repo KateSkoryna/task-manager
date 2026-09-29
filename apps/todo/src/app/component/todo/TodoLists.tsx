@@ -99,7 +99,7 @@ function TodoLists({
   }
 
   return (
-    <div className="space-y-4 mt-2">
+    <div className="space-y-4">
       {lists.map((list) => (
         <TodoList
           key={list.id}

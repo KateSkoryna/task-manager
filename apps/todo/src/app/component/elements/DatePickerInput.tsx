@@ -62,7 +62,7 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
       </button>
 
       {open && (
-        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 flex flex-col items-center rounded-inner border border-default bg-surface py-3 px-4 shadow-menu">
+        <div className="absolute left-0 top-full mt-2 z-50 flex flex-col items-center rounded-inner border border-default bg-surface py-3 px-4 shadow-menu">
           <DayPicker
             mode="single"
             selected={selected}

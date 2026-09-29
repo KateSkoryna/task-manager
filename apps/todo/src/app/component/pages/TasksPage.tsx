@@ -240,7 +240,7 @@ function TasksPage() {
   }
 
   return (
-    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 pt-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail/edit view replaces it as its own screen there. */}
       <div
@@ -339,7 +339,12 @@ function TasksPage() {
           selectedTask ? 'flex' : 'hidden'
         )}
       >
-        <div className="flex flex-col rounded-card border border-default bg-surface shadow-card overflow-hidden md:sticky md:top-0">
+        <div
+          className={mergeClassNames(
+            'flex flex-col rounded-card border border-default bg-surface shadow-card overflow-hidden md:sticky md:top-0',
+            isEditing && 'md:min-h-[36rem]'
+          )}
+        >
           {selectedTask && (
             <div className="border-b border-default p-3 md:hidden">
               <IconButton

@@ -18,7 +18,7 @@ export function TodoListCardSkeleton() {
 function TodoListsSkeleton() {
   return (
     <div
-      className="space-y-4 mt-2"
+      className="space-y-4"
       role="status"
       aria-label="Loading todo lists"
     >

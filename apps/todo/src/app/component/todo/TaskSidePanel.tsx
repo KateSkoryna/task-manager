@@ -178,13 +178,13 @@ export function TodoEditPanel({
   return (
     <form
       onSubmit={handleSubmit(onFormSubmit)}
-      className="flex flex-col h-full p-6"
+      className="flex flex-col h-full p-8"
     >
       <h2 className="text-xl font-bold text-primary mb-5">
         {t('tasks.editTask')}
       </h2>
 
-      <div className="flex-1 space-y-3 overflow-y-auto">
+      <div className="flex-1 space-y-4 overflow-y-auto">
         <div className="flex items-center gap-2">
           <label className={labelClass}>{t('tasks.name')}</label>
           <input

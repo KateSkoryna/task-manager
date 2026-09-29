@@ -17,39 +17,41 @@ function AppearanceSection() {
       ?.code ?? 'en';
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="w-full space-y-4 rounded-card border border-default bg-surface p-5">
       <h2 className="text-lg font-bold text-primary">
         {t('settings.appearance.title')}
       </h2>
 
-      <div className="flex flex-col gap-1">
-        <span className="text-primary font-medium">
-          {t('settings.appearance.theme')}
-        </span>
-        <SegmentedControl<Theme>
-          ariaLabel={t('settings.appearance.theme')}
-          value={theme}
-          onChange={setTheme}
-          options={[
-            { value: 'light', label: t('settings.appearance.themeLight') },
-            { value: 'dark', label: t('settings.appearance.themeDark') },
-          ]}
-        />
-      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-primary font-medium">
+            {t('settings.appearance.theme')}
+          </span>
+          <SegmentedControl<Theme>
+            ariaLabel={t('settings.appearance.theme')}
+            value={theme}
+            onChange={setTheme}
+            options={[
+              { value: 'light', label: t('settings.appearance.themeLight') },
+              { value: 'dark', label: t('settings.appearance.themeDark') },
+            ]}
+          />
+        </div>
 
-      <div className="flex flex-col gap-1">
-        <span className="text-primary font-medium">
-          {t('settings.appearance.language')}
-        </span>
-        <SegmentedControl
-          ariaLabel={t('settings.appearance.language')}
-          value={currentLanguage}
-          onChange={(code) => i18n.changeLanguage(code)}
-          options={LANGUAGES.map(({ code, label }) => ({
-            value: code,
-            label,
-          }))}
-        />
+        <div className="flex flex-col gap-1">
+          <span className="text-primary font-medium">
+            {t('settings.appearance.language')}
+          </span>
+          <SegmentedControl
+            ariaLabel={t('settings.appearance.language')}
+            value={currentLanguage}
+            onChange={(code) => i18n.changeLanguage(code)}
+            options={LANGUAGES.map(({ code, label }) => ({
+              value: code,
+              label,
+            }))}
+          />
+        </div>
       </div>
     </div>
   );

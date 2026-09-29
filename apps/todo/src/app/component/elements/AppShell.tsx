@@ -26,7 +26,7 @@ function AppShell() {
           triggerRef={menuButtonRef}
         />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden print:block print:overflow-visible">
-          <main className="flex-1 overflow-y-auto pt-3 px-content-mobile pb-content-mobile md:px-content-tablet md:pb-content-tablet lg:px-content-desktop lg:pb-content-desktop print:overflow-visible print:p-0">
+          <main className="flex-1 overflow-y-auto pt-6 px-content-mobile pb-content-mobile md:px-content-tablet md:pb-content-tablet lg:px-content-desktop lg:pb-content-desktop print:overflow-visible print:p-0">
             <Outlet />
           </main>
           <Footer className="print:hidden" />

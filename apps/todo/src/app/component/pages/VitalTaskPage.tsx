@@ -76,7 +76,7 @@ function VitalTaskPage() {
   }
 
   return (
-    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 pt-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail view replaces it as its own screen there. */}
       <div
