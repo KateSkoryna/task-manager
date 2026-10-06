@@ -3,13 +3,20 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '@shared/types';
 import { IUserDocument, USER_MODEL_NAME } from '../app/models/user.model';
+import {
+  ITodolistDocument,
+  TODOLIST_MODEL_NAME,
+} from '../app/models/todoList.model';
+import { DEFAULT_LISTS } from '../common/default-lists';
 import { executeOperation } from '../common/utils/execute-operation';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(USER_MODEL_NAME)
-    private readonly userModel: Model<IUserDocument>
+    private readonly userModel: Model<IUserDocument>,
+    @InjectModel(TODOLIST_MODEL_NAME)
+    private readonly todolistModel: Model<ITodolistDocument>
   ) {}
 
   async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
@@ -48,6 +55,13 @@ export class AuthService {
           username: input.username || fallback,
           displayName: `${firstName} ${lastName}`.trim() || fallback,
         });
+        await this.todolistModel.insertMany(
+          DEFAULT_LISTS.map((list) => ({
+            ...list,
+            isDefault: true,
+            userId: doc?._id,
+          }))
+        );
       }
       return doc.toJSON() as User;
     });

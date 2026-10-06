@@ -138,6 +138,36 @@ describe('TodoEditPanel dropdowns', () => {
   }, 15000);
 });
 
+describe('TodoEditPanel default lists', () => {
+  test('locks the list name for a default list but keeps it for others', () => {
+    const { rerender } = render(
+      <TodoEditPanel
+        todo={todo}
+        list={{ ...list, isDefault: true }}
+        onSave={jest.fn()}
+        onCancel={jest.fn()}
+      />
+    );
+    expect(screen.getByDisplayValue(list.name)).toHaveAttribute('readonly');
+    expect(
+      screen.getByTestId('edit-todo-default-list-note')
+    ).toBeInTheDocument();
+
+    rerender(
+      <TodoEditPanel
+        todo={todo}
+        list={list}
+        onSave={jest.fn()}
+        onCancel={jest.fn()}
+      />
+    );
+    expect(screen.getByDisplayValue(list.name)).not.toHaveAttribute('readonly');
+    expect(
+      screen.queryByTestId('edit-todo-default-list-note')
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe('TaskDetailPanel', () => {
   test('shows task priority, list metadata rows, and calls edit/delete', () => {
     const onDelete = jest.fn();

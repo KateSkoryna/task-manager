@@ -135,14 +135,16 @@ function TodoList({
                 <Pencil className="w-3.5 h-3.5" />
               </button>
             )}
-            <button
-              onClick={() => onDeleteList(todoList.id)}
-              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-danger hover:border-danger transition-colors shrink-0"
-              aria-label="Delete list"
-              data-testid="todolist-item-delete-button"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {!todoList.isDefault && (
+              <button
+                onClick={() => onDeleteList(todoList.id)}
+                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-md transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
+                aria-label="Delete list"
+                data-testid="todolist-item-delete-button"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 

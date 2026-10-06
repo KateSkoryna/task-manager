@@ -58,6 +58,33 @@ export class TodolistService {
     });
   }
 
+  /** True when the list is one of the user's default lists. */
+  isDefaultList(id: string, userId: string): Promise<boolean> {
+    return executeOperation('Error checking todolist', async () => {
+      const doc = await this.todolistModel
+        .findOne({ _id: id, userId })
+        .select('isDefault');
+      return Boolean(doc?.isDefault);
+    });
+  }
+
+  /**
+   * True when `name` would rename one of the user's default lists. Default
+   * lists keep their name; every other field on them stays editable.
+   */
+  isRenamingDefaultList(
+    id: string,
+    userId: string,
+    name: string
+  ): Promise<boolean> {
+    return executeOperation('Error checking todolist', async () => {
+      const doc = await this.todolistModel
+        .findOne({ _id: id, userId })
+        .select('name isDefault');
+      return Boolean(doc?.isDefault && doc.name !== name);
+    });
+  }
+
   create(userId: string, input: TodolistCreateInput): Promise<TodoList> {
     return executeOperation('Error creating todolist', async () => {
       const doc = await this.todolistModel.create({ ...input, userId });

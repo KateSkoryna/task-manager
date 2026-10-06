@@ -297,9 +297,18 @@ export function TodoEditPanel({
               <input
                 {...register('listName')}
                 type="text"
-                className={inputClass}
+                readOnly={list.isDefault}
+                className={`${inputClass} read-only:cursor-not-allowed read-only:opacity-60`}
               />
             </div>
+            {list.isDefault && (
+              <p
+                className="text-xs text-muted"
+                data-testid="edit-todo-default-list-note"
+              >
+                {t('todoListForm.defaultNameLocked')}
+              </p>
+            )}
 
             <div className="flex items-center gap-2">
               <label

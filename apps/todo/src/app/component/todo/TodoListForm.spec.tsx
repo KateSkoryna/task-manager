@@ -67,3 +67,51 @@ describe('TodoListForm dropdowns', () => {
     );
   });
 });
+
+describe('TodoListForm default lists', () => {
+  const defaultList = {
+    id: 'l1',
+    name: 'Work',
+    userId: 'u1',
+    todos: [],
+    category: 'work' as const,
+    isDefault: true,
+  };
+
+  test('locks the name of a default list and says why', () => {
+    render(
+      <TodoListForm
+        todoList={defaultList}
+        onSubmit={jest.fn()}
+        isSubmitting={false}
+      />
+    );
+    expect(screen.getByTestId('todolist-form-input')).toHaveAttribute(
+      'readonly'
+    );
+    expect(
+      screen.getByTestId('todolist-form-default-note')
+    ).toBeInTheDocument();
+  });
+
+  test('keeps the name editable for an ordinary list and for a new list', () => {
+    const { rerender } = render(
+      <TodoListForm
+        todoList={{ ...defaultList, isDefault: false }}
+        onSubmit={jest.fn()}
+        isSubmitting={false}
+      />
+    );
+    expect(screen.getByTestId('todolist-form-input')).not.toHaveAttribute(
+      'readonly'
+    );
+
+    rerender(<TodoListForm onSubmit={jest.fn()} isSubmitting={false} />);
+    expect(screen.getByTestId('todolist-form-input')).not.toHaveAttribute(
+      'readonly'
+    );
+    expect(
+      screen.queryByTestId('todolist-form-default-note')
+    ).not.toBeInTheDocument();
+  });
+});
