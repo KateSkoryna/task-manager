@@ -4,6 +4,7 @@ import { Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '../../store/notificationStore';
 import { mergeClassNames } from '../../lib/classNames';
+import { moveOptionFocus } from '../../lib/listboxKeys';
 import AppLogo from './AppLogo';
 import IconButton from './IconButton';
 import TaskSearch from './TaskSearch';
@@ -123,9 +124,23 @@ function TopHeader({
           inputTestId="header-search"
           className="hidden lg:block lg:w-search-desktop"
         />
-        <div className="relative" ref={notificationsContainerRef}>
+        <div
+          className="relative"
+          ref={notificationsContainerRef}
+          onKeyDown={(event) => {
+            if (!isNotificationsOpen) return;
+            moveOptionFocus(event);
+            if (event.key === 'Escape') {
+              setNotificationsOpen(false);
+              notificationsContainerRef.current
+                ?.querySelector('button')
+                ?.focus();
+            }
+          }}
+        >
           <IconButton
             ariaLabel={t('header.notifications')}
+            ariaExpanded={isNotificationsOpen}
             onClick={() => setNotificationsOpen((open) => !open)}
           >
             <Bell className="size-4" />
