@@ -80,11 +80,11 @@ function TodoList({
 
   return (
     <div
-      className="bg-surface rounded-card border border-default overflow-hidden"
+      className="bg-default rounded-card border border-default overflow-hidden"
       data-testid={dataTestId}
     >
       {/* List header */}
-      <div className="px-4 py-3 bg-surface-subtle border-b border-default">
+      <div className="px-4 py-3 bg-default border-b border-surface">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsExpanded((v) => !v)}
@@ -122,7 +122,7 @@ function TodoList({
                 setShowAddForm((v) => !v);
               }}
               aria-label={t('todoList.addTask')}
-              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
+              className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-md transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -130,7 +130,7 @@ function TodoList({
               <button
                 onClick={() => setShowEditForm((v) => !v)}
                 aria-label={t('todoListForm.editList')}
-                className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
+                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-md transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
@@ -178,7 +178,7 @@ function TodoList({
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="p-4 space-y-3 bg-surface">
+        <div className="p-4 space-y-3 bg-default">
           {showAddForm && (
             <Card variant="nested">
               <TodoForm onAddTodo={handleAddTodo} />
