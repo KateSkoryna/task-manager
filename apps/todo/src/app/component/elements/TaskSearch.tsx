@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHeaderTaskSearch } from '../../hooks/useHeaderTaskSearch';
 import { mergeClassNames } from '../../lib/classNames';
+import { moveOptionFocus } from '../../lib/listboxKeys';
 import SearchInput from './SearchInput';
 
 type TaskSearchProps = {
@@ -36,13 +37,20 @@ function TaskSearch({ inputTestId, className }: TaskSearchProps) {
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className={mergeClassNames('relative', className)}>
+    <div
+      ref={containerRef}
+      className={mergeClassNames('relative', className)}
+      onKeyDown={(event) => {
+        moveOptionFocus(event);
+        if (event.key === 'Escape') {
+          clear();
+          containerRef.current?.querySelector('input')?.focus();
+        }
+      }}
+    >
       <SearchInput
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') clear();
-        }}
         placeholder={t('header.searchPlaceholder')}
         ariaLabel={t('header.search')}
         inputTestId={inputTestId}
