@@ -343,6 +343,56 @@ describe('Nest API parity', () => {
     expect(removed.text).toBe('');
   });
 
+  it('archives and restores a todo, which stays in the lists and inbox responses', async () => {
+    const listTodo = await Todo.create({
+      name: 'Done long ago',
+      todolistId: listAId,
+      userId: userAId,
+    });
+    const inboxTodo = await Todo.create({
+      name: 'Forgotten inbox task',
+      todolistId: null,
+      userId: userAId,
+    });
+    expect(listTodo.toJSON().archivedAt).toBeNull();
+
+    const archivedAt = new Date().toISOString();
+    const archived = await request(app.getHttpServer())
+      .put(`/api/users/${userAId}/todos/${listTodo._id}`)
+      .set(auth())
+      .send({ archivedAt });
+    expect(archived.status).toBe(200);
+    expect(archived.body.archivedAt).toBe(archivedAt);
+    await request(app.getHttpServer())
+      .put(`/api/users/${userAId}/todos/${inboxTodo._id}`)
+      .set(auth())
+      .send({ archivedAt });
+
+    // The pages filter archived tasks out; statistics still need them.
+    const lists = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todolists`)
+      .set(auth());
+    const inList = lists.body.items
+      .find((list: { id: string }) => list.id === listAId)
+      .todos.find((todo: { name: string }) => todo.name === 'Done long ago');
+    expect(inList.archivedAt).toBe(archivedAt);
+    expect(inList.todolistId).toBe(listAId);
+    const inbox = await request(app.getHttpServer())
+      .get(`/api/users/${userAId}/todos/inbox`)
+      .set(auth());
+    expect(
+      inbox.body.find(
+        (todo: { name: string }) => todo.name === 'Forgotten inbox task'
+      ).archivedAt
+    ).toBe(archivedAt);
+
+    const restored = await request(app.getHttpServer())
+      .put(`/api/users/${userAId}/todos/${listTodo._id}`)
+      .set(auth())
+      .send({ archivedAt: null });
+    expect(restored.body.archivedAt).toBeNull();
+  });
+
   it('includes createdAt on todos returned from the lists and inbox endpoints', async () => {
     await Todo.create({
       name: 'Nested with timestamp',
