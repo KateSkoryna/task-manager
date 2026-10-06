@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import TopHeader from './TopHeader';
+import TopHeader, { formatHeaderDate } from './TopHeader';
 
 // TopHeader pulls in MobileDrawer -> SidebarContent -> authStore, which
 // imports firebase/auth. jsdom's Jest environment resolves that to
@@ -93,5 +93,18 @@ describe('TopHeader search', () => {
     render(<TopHeader />);
     expect(screen.getByRole('listbox')).toBeInTheDocument();
     expect(screen.queryByRole('option')).not.toBeInTheDocument();
+  });
+});
+
+describe('formatHeaderDate', () => {
+  const date = new Date(2026, 9, 6);
+
+  it('shows day, full month and year in English', () => {
+    expect(formatHeaderDate(date, 'en-US')).toBe('Tuesday, 06 October 2026');
+  });
+
+  it('keeps the same order in German and Ukrainian', () => {
+    expect(formatHeaderDate(date, 'de-DE')).toBe('Dienstag, 06 Oktober 2026');
+    expect(formatHeaderDate(date, 'uk-UA')).toBe('вівторок, 06 жовтня 2026');
   });
 });
