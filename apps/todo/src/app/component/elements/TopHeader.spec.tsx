@@ -96,6 +96,22 @@ describe('TopHeader search', () => {
   });
 });
 
+describe('TopHeader on small screens', () => {
+  beforeEach(() => {
+    mockSearchState = { query: '', status: 'idle', matches: [] };
+  });
+
+  it('keeps the search box for desktop only and has no search icon button', () => {
+    render(<TopHeader />);
+    expect(
+      screen.getByTestId('header-search').closest('.hidden.lg\\:block')
+    ).not.toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'header.search' })
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe('TopHeader brand', () => {
   beforeEach(() => {
     mockSearchState = { query: '', status: 'idle', matches: [] };
