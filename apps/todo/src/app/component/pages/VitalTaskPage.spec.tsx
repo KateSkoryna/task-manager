@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import VitalTaskPage from './VitalTaskPage';
 import type { TodoList } from '@shared/types';
@@ -37,6 +38,7 @@ const vitalList: TodoList = {
 };
 
 const useTodoListsData = jest.fn();
+const mockHandleAddInboxTodo = jest.fn();
 
 jest.mock('../../hooks/useTodoListsData', () => ({
   useTodoListsData: () => useTodoListsData(),
@@ -52,6 +54,7 @@ describe('VitalTaskPage', () => {
       refetch: jest.fn(),
       handleDeleteList: jest.fn(),
       handleAddTodo: jest.fn(),
+      handleAddInboxTodo: mockHandleAddInboxTodo,
       handleDeleteTodo: jest.fn(),
       handleToggleTodo: jest.fn(),
     });
@@ -75,5 +78,35 @@ describe('VitalTaskPage', () => {
     );
     expect(screen.getByText('Buy milk')).toBeInTheDocument();
     expect(screen.queryByText('Buy bread')).not.toBeInTheDocument();
+  });
+
+  test('adds a task to the inbox from the header add-task form', async () => {
+    render(
+      <MemoryRouter>
+        <VitalTaskPage />
+      </MemoryRouter>
+    );
+    expect(screen.queryByTestId('todo-form-input')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('add-task-button'));
+    await userEvent.type(screen.getByTestId('todo-form-input'), 'Water plants');
+    await userEvent.click(screen.getByTestId('todo-form-submit-button'));
+
+    expect(mockHandleAddInboxTodo).toHaveBeenCalledWith(
+      'Water plants',
+      undefined
+    );
+    expect(screen.queryByTestId('todo-form-input')).not.toBeInTheDocument();
+  });
+
+  test('opens the add-task form when another page asks for it', () => {
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: '/vital', state: { openAddTask: true } }]}
+      >
+        <VitalTaskPage />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
   });
 });
