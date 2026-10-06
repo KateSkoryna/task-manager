@@ -21,10 +21,12 @@ describe('TodoListForm dropdowns', () => {
 
     await userEvent.click(priority);
     await userEvent.click(
-      screen.getByRole('button', { name: 'tasks.priority_high' })
+      await screen.findByRole('button', { name: 'tasks.priority_high' })
     );
     await userEvent.click(category);
-    const work = screen.getByRole('button', { name: 'tasks.category_work' });
+    const work = await screen.findByRole('button', {
+      name: 'tasks.category_work',
+    });
     work.focus();
     await userEvent.keyboard('{Enter}');
     await userEvent.click(screen.getByTestId('todolist-form-submit-button'));
@@ -49,11 +51,11 @@ describe('TodoListForm dropdowns', () => {
     const priority = screen.getByLabelText('todoListForm.priority');
     await userEvent.click(priority);
     await userEvent.click(
-      screen.getByRole('button', { name: 'tasks.priority_low' })
+      await screen.findByRole('button', { name: 'tasks.priority_low' })
     );
     await userEvent.click(priority);
     await userEvent.click(
-      screen.getByRole('button', { name: 'todoListForm.noPriority' })
+      await screen.findByRole('button', { name: 'todoListForm.noPriority' })
     );
     await userEvent.click(screen.getByTestId('todolist-form-submit-button'));
 

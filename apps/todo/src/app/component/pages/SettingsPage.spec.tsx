@@ -108,7 +108,7 @@ describe('SettingsPage', () => {
 
     await userEvent.click(screen.getByLabelText('settings.tone'));
     await userEvent.click(
-      screen.getByRole('button', { name: 'settings.tone_direct' })
+      await screen.findByRole('button', { name: 'settings.tone_direct' })
     );
     await userEvent.click(screen.getByTestId('settings-save-button'));
 
@@ -129,7 +129,7 @@ describe('SettingsPage', () => {
 
     await userEvent.click(screen.getByLabelText('settings.tone'));
     await userEvent.click(
-      screen.getByRole('button', { name: 'settings.tone_direct' })
+      await screen.findByRole('button', { name: 'settings.tone_direct' })
     );
     await userEvent.click(screen.getByTestId('settings-save-button'));
 
