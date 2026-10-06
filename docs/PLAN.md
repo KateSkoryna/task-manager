@@ -436,6 +436,315 @@ runs.
 
 ---
 
+## Phase 17 — Agent hardening: close the known gaps
+
+**Why:** four weaknesses in the agent are known and documented but still open — a repeated
+create request duplicates tasks, the "ask when ambiguous" rule for updates is only a prompt
+instruction, the session `version` counter is incremented but never checked, and the eval
+pass rate (81.8%, 18 of 22, last recorded run) is under the 90% target. Each one is a question
+an interviewer reading the code will ask. Close them one at a time, each with a test that
+fails before the change.
+
+**Concepts:** idempotency keys, structural gates versus prompt instructions, optimistic
+concurrency, eval-driven prompt changes.
+
+### Step 17.1 — Idempotency key for agent messages
+
+**What to do.** Add an optional `messageId` (client-generated UUID) to `agentMessageInputSchema`.
+The chat hook generates one per `send` call and reuses it if the same message is retried. On the
+server, record the `messageId` of each handled message on the `AgentSession`; when a request
+arrives with a `messageId` already recorded, do not run the tool loop again — reply with the
+stored assistant turn for that message.
+
+**Why.** `createTasks` has no duplicate protection: the same create request delivered twice
+(a network retry, a double submit from two tabs) creates the tasks twice. Today only the
+one-stream-at-a-time UI and the per-user throttle stand in the way, and neither is a guarantee.
+
+**What to expect.** The record-and-check must be one atomic write (`findOneAndUpdate` with the
+`messageId` absent in the filter), the same pattern `consumeConfirmation` already uses —
+a read followed by a write would reintroduce the race it is meant to close.
+
+**What to learn.** An idempotency key turns "at least once" delivery into "effectively once":
+the client may send twice, the server acts once.
+
+**Files.** `libs/types/src/lib/agent.schemas.ts`, `apps/todo-be/src/app/models/agent-session.model.ts`,
+`apps/todo-be/src/agent/agent-session.service.ts`, `apps/todo-be/src/agent/agent.controller.ts`,
+`apps/todo/src/app/hooks/useAgentChat.ts`, `apps/todo/src/app/fetchers/agent.ts`, and their specs.
+
+**Not in this step.** Idempotency for the plain REST `POST /todos` endpoint or for `parse-todo`.
+
+**Done when.** A new integration test sends the same create message twice with one `messageId`
+and asserts the tasks exist once; the existing agent specs still pass.
+
+### Step 17.2 — Structural ambiguity gate for `update_task` and `complete_task`
+
+**What to do.** Make "more than one plausible match" a server-side outcome instead of a prompt
+rule. When the model calls `update_task` or `complete_task` on a task it located through
+`find_tasks` in the same request, and that search left several close candidates, return
+`{ ok: false, reason: 'clarification_required', candidates }` instead of executing. Confirm the
+candidate-matching rule with Kate before coding it — it must be deterministic (for example,
+case-insensitive name overlap), not another model call.
+
+**Why.** `docs/AGENT-ARCHITECTURE.md` already records that the prompt instruction "does not
+reliably hold" for updates (eval case `ambiguous-update-target`). Delete is safe only because its
+confirmation gate re-asks regardless; update and complete have no such gate.
+
+**What to expect.** The session model already has a `pendingClarifications` field that nothing
+writes yet — check whether it fits before adding a new one.
+
+**What to learn.** A rule the model is asked to follow is a request; a rule the server enforces
+is a guarantee. Move a rule from the prompt into code when a wrong action costs the user data.
+
+**Files.** `apps/todo-be/src/agent/agent-tools.service.ts`, `apps/todo-be/src/agent/agent.service.ts`,
+`apps/todo-be/src/agent/agent.tools.ts`, `apps/todo-be/src/agent/agent.prompt.ts` (bump
+`PROMPT_VERSION`), and their specs; update the "What the confirmation gate does not cover"
+section of `docs/AGENT-ARCHITECTURE.md`.
+
+**Not in this step.** Semantic or vector matching (Phase 10), and any change to `delete_task`.
+
+**Done when.** A unit test shows an update against two similarly named tasks returns
+`clarification_required` and writes nothing; eval cases 13 and 14 pass.
+
+### Step 17.3 — Use the session `version` counter, or remove it
+
+**What to do.** `AgentSession.version` is incremented on every write, and its doc comment says
+it exists "so interleaved messages cannot clobber state", but no query ever filters on it.
+Either make `appendTurns` conditional on the `version` read at the start of the request (and
+decide what a conflict does — retry the append against the fresh document, since turns are
+append-only), or delete the field and its comment. Decide with Kate which before starting.
+
+**Why.** Two tabs on the same chat can each read the turn window, run a request, and append —
+the stored history then interleaves in an order neither tab saw. A counter that is written but
+never read claims a protection the code does not provide.
+
+**What to expect.** `$push` itself is atomic, so turns are not lost — the risk is ordering and a
+request that ran against stale context, not corruption.
+
+**What to learn.** Optimistic concurrency: read a version, write only if it is unchanged, and
+handle the conflict explicitly.
+
+**Files.** `apps/todo-be/src/agent/agent-session.service.ts`,
+`apps/todo-be/src/app/models/agent-session.model.ts`, `apps/todo-be/src/agent/agent.controller.ts`,
+and their specs.
+
+**Not in this step.** Cross-tab UI synchronisation on the frontend.
+
+**Done when.** Either a test proves a stale-version append is detected and handled, or the
+field, its `$inc` calls and its comment are gone and all specs pass.
+
+### Step 17.4 — Raise the eval pass rate to the 90% target
+
+**What to do.** Run `npm run eval:agent` and record which of the 22 cases fail, with the model
+and `PROMPT_VERSION`. Fix the failures one cause at a time — after Steps 17.1–17.2, since the
+ambiguity gate should turn cases 13 and 14 from prompt-dependent into structural. Re-run after
+each prompt change and keep the per-case results.
+
+**Why.** The README states the 81.8% pass rate against a 90% target and points to "PLAN.md
+Phase 9", which has since been trimmed from this document. This step is where that open item
+now lives.
+
+**What to expect.** The production model's free tier allows 20 requests a day, so a full run
+uses most of a day's quota; local runs use `gemini-3.1-flash-lite`. Record which model each
+result came from.
+
+**What to learn.** Change one thing, re-measure, keep the evidence — a pass rate is only
+meaningful next to the prompt version and model that produced it.
+
+**Files.** `apps/todo-be/src/agent/agent.prompt.ts`, `apps/todo-be/src/agent/evals/cases/*`
+(only to add cases, never to weaken an expectation), `README.md` (the pass-rate line and the
+"Phase 9" pointer), `docs/AGENT-ARCHITECTURE.md`.
+
+**Not in this step.** Switching model or provider to gain points.
+
+**Done when.** A recorded run shows at least 20 of 22 cases passing, and the README's pass rate,
+prompt version and phase pointer match that run.
+
+---
+
+## Phase 18 — Inbox and add-task bug fixes — **Status: URGENT**
+
+**Why:** a real user added a task on the dashboard and could not find it. It had gone to the
+Inbox, which the dashboard did not make visible, and nothing told her whether lists are required.
+Her words: "I add it and it doesn't show up, and it isn't intuitive that it's in Inbox... or are
+lists an optional extra?" This is a bug in what the app shows after an action, so it comes
+before the onboarding tour (Phase 19) and before the remaining polish and stretch work.
+
+**Decisions (Kate, 2026-10-06):**
+
+- The dashboard shows statistics only. Tasks are added on the Tasks page only, through one
+  "Add task" button.
+- Lists are optional. A task without a list goes to the Inbox, and the Inbox is the default.
+- Whatever the user adds must be visible straight away: the page scrolls to it and selects it.
+- The Inbox appears on the dashboard as a clear, separate section (read-only there).
+- New tasks start as "Not Started", not "In Progress". Second user report: "a task added outside
+  a list is marked as in progress". The stored status values are renamed so the code says what
+  the user sees (Step 18.4).
+
+**Concepts:** feedback after an action, sensible defaults, one job per page, naming that matches
+behaviour, data migrations.
+
+### Step 18.1 — Remove task creation from the dashboard
+
+**What to do.** Remove `QuickAddInbox` and its `QuickCaptureInput` from `DashboardPage`. Keep the
+Inbox count, and turn the Inbox into its own labelled section that lists Inbox tasks and links to
+the Tasks page. Add one "Add task" button on the Tasks page and remove any second add entry point,
+so there is exactly one.
+
+**Why.** Adding a task on a page that does not show tasks is the root of the confusion.
+
+**What to expect.** `QuickCaptureInput` is also used elsewhere; remove only the dashboard usage.
+Check that Inbox tasks are counted in the statistics, so the numbers match what the user added.
+
+**What to learn.** A page with one job is easier to understand than a page with two.
+
+**Files.** `apps/todo/src/app/component/pages/DashboardPage.tsx`, `DashboardPage.spec.tsx`,
+`apps/todo/src/app/component/pages/TasksPage.tsx`, `TasksPage.spec.tsx`, and the three locale
+files in `apps/todo/src/app/i18n/locales/`.
+
+**Not in this step.** Onboarding, scrolling, or changes to how the Inbox stores tasks.
+
+**Done when.** A test asserts the dashboard renders no task input and does render an Inbox
+section; a test asserts the Tasks page has exactly one add-task control; `pnpm nx test todo` passes.
+
+### Step 18.2 — Inbox as the visible default when adding a task
+
+**What to do.** In the add-task form, show the target list explicitly, with "Inbox" selected by
+default and a short hint such as "No list needed — tasks without a list go to Inbox."
+
+**Why.** It answers "are lists optional?" at the moment the user is deciding.
+
+**What to learn.** Show the default instead of explaining it later.
+
+**Files.** `apps/todo/src/app/component/todo/` (the add-task form and `MoveToListSelect.tsx`
+if it fits), `apps/todo/src/app/component/pages/TasksPage.tsx`, locale files, and their specs.
+
+**Not in this step.** Changing the data model or the Inbox API.
+
+**Done when.** A test shows the form defaults to Inbox and a task added without choosing a list
+lands in the Inbox.
+
+### Step 18.3 — Scroll to and select the task that was just added
+
+**What to do.** After a task is added, scroll the list or Inbox containing it into view and mark
+the new task as selected. Do this for both an Inbox task and a task added to a list. Respect
+`prefers-reduced-motion` (jump instead of smooth scroll).
+
+**Why.** The user must see the result of the action. This is the feedback the original report
+was missing.
+
+**What to expect.** `TasksPage` already has `selectedTask` state and a `useRef`; reuse them
+before adding new state. Make sure an active list filter or collapsed section cannot hide the new
+task.
+
+**What to learn.** Feedback after an action: the interface confirms what happened and where.
+
+**Files.** `apps/todo/src/app/component/pages/TasksPage.tsx`,
+`apps/todo/src/app/component/todo/InboxSection.tsx`, `apps/todo/src/app/component/todo/TodoLists.tsx`,
+and their specs.
+
+**Not in this step.** Toasts, onboarding, or any change on the dashboard.
+
+**Done when.** Tests show that adding to the Inbox and adding to a list each select the new task
+and call `scrollIntoView` on it.
+
+### Step 18.4 — Rename task statuses and default new tasks to Not Started
+
+**What to do.** Replace the stored `TodoStatus` values: `failed` → `not_started`,
+`pending` → `in_progress`, `successful` → `completed`. Make `not_started` the default for every
+new task, whether it is created in a list, in the Inbox, through quick capture, or through the
+agent. Then:
+
+1. Change the type, Zod schemas, Mongoose enums and default in `libs/types` and
+   `apps/todo-be/src/app/models/`, including the report model if it stores these values.
+2. Update every reader and writer of the old values: the backend services, the agent tools,
+   prompt and eval cases, the dashboard and statistics code, the task components, and the
+   translation keys (`tasks.status_*`), so keys and values share the same names.
+3. Add `apps/todo-be/src/migrations/003-rename-statuses.ts`, in the style of `002-indexes.ts`:
+   idempotent, with `--database` and `--dry-run`, mapping the old values to the new ones in
+   `todos` (and in `reports` if they store statuses), and printing the counts it would change.
+4. Update the unit, integration and Cypress tests that use the old values.
+
+**Why.** Today `failed` is shown as "Not Started" and `pending` as "In Progress", so a new task
+(default `pending`) looks started and the code contradicts the UI. Statuses named after what the
+user sees are testable and stop the next reader guessing.
+
+**What to expect.** This is the largest step in the phase (about 60 files match the old values;
+many matches are tests). It cannot be split without leaving the app broken between sessions,
+because the frontend and backend must agree on the values. Not every match is a task status:
+check each one, since words like `pending` also appear for confirmations and the Pomodoro timer.
+Existing tasks keep their meaning through the mapping, so tasks that are "In Progress" only
+because it used to be the default stay as they are; they cannot be told apart from tasks the user
+really started.
+
+**Production data — Kate runs this, not Claude.** The migration must never be run against
+production by the executor; hand Kate the dry-run and real commands. Decide with Kate the rollout
+order. Old code does not understand the new values and new code does not understand the old, so
+there is a short window between the deploy and the migration. For a solo app, deploy and run the
+migration back to back.
+
+**What to learn.** A data migration is a deliberate, reversible, auditable step, and a name that
+disagrees with the UI is a bug waiting to happen.
+
+**Files.** `libs/types/src/lib/todo.types.ts`, `todo.schemas.ts`, `report.schemas.ts`;
+`apps/todo-be/src/app/models/todo.model.ts`, `report.model.ts`; the backend, agent, report and
+user services that match the old values; the frontend files that match them (search the three
+old values, and `status_pending` / `status_successful` / `status_failed`); the three locale
+files; `apps/todo-be/src/migrations/003-rename-statuses.ts` and its spec; the E2E specs in
+`apps/todo-e2e/src/e2e/`; and `docs/AGENT-ARCHITECTURE.md` if it names the values.
+
+**Not in this step.** Adding new statuses, changing what each status means, or editing
+conversation text already stored in agent sessions.
+
+**Done when.** `grep` finds no remaining `'pending'`, `'successful'` or `'failed'` used as a task
+status in `apps` or `libs`; a test shows a task created with no status is `not_started` through
+the REST API, quick capture and the agent; the migration spec shows the mapping, a second run
+changing nothing, and `--dry-run` writing nothing; lint, typecheck, `pnpm nx test` for the
+affected projects and the production builds pass.
+
+---
+
+## Phase 19 — Guided onboarding tour
+
+**Why:** the app does not say what to do first. A new user lands on an empty dashboard with
+nothing pointing to the Tasks page or explaining the Inbox. Phase 18 fixes the confusing
+behaviour; this phase adds the guidance. It starts after Phase 18 is done, because the tour
+points at the dashboard Inbox section, the single "Add task" button and the Inbox default.
+
+**Concepts:** empty states, progressive disclosure, first-run flows.
+
+### Step 19.1 — Guided onboarding tour
+
+**What to do.** Add a first-run tour with notes and arrows: "This is your dashboard", "This is
+where your tasks live", "Create your first task". Show it once to a new user, store that it was
+seen, and add a way to replay it from Help or Settings. A user with no tasks also sees an
+empty-state "Add your first task" button on the dashboard that opens the Tasks page.
+
+**Why.** The app needs to say what to do first. Kate chose a guided tour over a static
+instruction block.
+
+**What to expect.** **Decided (Kate, 2026-10-06): use `driver.js`** (MIT, about 5 KB gzipped,
+framework-free). Load it with a dynamic `import('driver.js')` only when the tour is about to
+show, so users who have seen the tour never download it. Style its popover through custom class
+names using Tailwind theme tokens; do not add colors outside `tailwind.config.js`. Check the
+production build output and record the size added. Where the "seen" flag is stored (a
+`preferences` field on the server, or local storage) still needs Kate's decision. The tour must
+be keyboard-accessible and skippable, and must work on mobile layouts.
+
+**What to learn.** First-run experience design, and when a server-side flag is worth more than
+local storage.
+
+**Files.** To be fixed after the storage decision. Add `driver.js` to `package.json`. Expect new files in
+`apps/todo/src/app/component/onboarding/`, `DashboardPage.tsx`, `TasksPage.tsx`, `HelpPage.tsx`,
+locale files, and a `libs/types` change if the flag is stored on the server.
+
+**Not in this step.** Per-feature tooltips beyond the three tour stops.
+
+**Done when.** A test shows the tour appears for a new user, can be skipped, does not reappear
+after being seen, and can be replayed; the Cypress journey in Step 16.2 is updated if the tour
+changes its first screen.
+
+---
+
 ## Stretch roadmap — only after the core plan
 
 Semantic search is covered in full by Phase 10 above, not repeated here. AI-generated
