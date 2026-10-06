@@ -96,6 +96,20 @@ describe('TopHeader search', () => {
   });
 });
 
+describe('TopHeader brand', () => {
+  beforeEach(() => {
+    mockSearchState = { query: '', status: 'idle', matches: [] };
+  });
+
+  it('shows the app name instead of the current page title', () => {
+    render(<TopHeader />);
+    expect(
+      screen.getByRole('heading', { name: 'TaskPal' })
+    ).toBeInTheDocument();
+    expect(screen.queryByText('nav.dashboard')).not.toBeInTheDocument();
+  });
+});
+
 describe('formatHeaderDate', () => {
   const date = new Date(2026, 9, 6);
 

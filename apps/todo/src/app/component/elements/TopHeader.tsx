@@ -1,22 +1,27 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { CSSProperties, RefObject, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Loader2, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHeaderTaskSearch } from '../../hooks/useHeaderTaskSearch';
 import { useNotificationStore } from '../../store/notificationStore';
 import { mergeClassNames } from '../../lib/classNames';
+import AppLogo from './AppLogo';
 import IconButton from './IconButton';
 import SearchInput from './SearchInput';
 import { MOBILE_DRAWER_ID } from './MobileDrawer';
+import bgImage from '../../../assets/bg.webp';
 
-const ROUTE_TITLE_KEYS: Record<string, string> = {
-  '/': 'nav.dashboard',
-  '/vital': 'nav.vitalTasks',
-  '/tasks': 'nav.myTasks',
-  '/statistics': 'nav.statistics',
-  '/reports': 'nav.reports',
-  '/settings': 'nav.settings',
-  '/help': 'nav.help',
+const APP_NAME = 'TaskPal';
+
+// The same pattern the login and register pages use as their page
+// background. The image is light grey line art on white, so it is multiplied
+// with the header's own surface colour: the white drops out and only the
+// lines remain, in the light and the dark theme alike.
+const HEADER_PATTERN_STYLE: CSSProperties = {
+  backgroundImage: `url(${bgImage})`,
+  backgroundRepeat: 'repeat',
+  backgroundSize: '800px',
+  backgroundBlendMode: 'multiply',
 };
 
 const LOCALE_MAP: Record<string, string> = {
@@ -57,12 +62,7 @@ function TopHeader({
   className,
 }: TopHeaderProps) {
   const { t, i18n } = useTranslation();
-  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const titleKey = pathname.startsWith('/reports/')
-    ? 'nav.reports'
-    : ROUTE_TITLE_KEYS[pathname] ?? 'nav.dashboard';
-  const title = t(titleKey);
 
   const { query, setQuery, status, matches, clear } = useHeaderTaskSearch();
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -109,6 +109,7 @@ function TopHeader({
         'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5',
         className
       )}
+      style={HEADER_PATTERN_STYLE}
     >
       {onOpenMenu && (
         <IconButton
@@ -124,9 +125,10 @@ function TopHeader({
         </IconButton>
       )}
 
+      <AppLogo className="size-10" />
       <div className="min-w-0">
         <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">
-          {title}
+          {APP_NAME}
         </h2>
         <p className="truncate font-mono text-small text-muted">{headerDate}</p>
       </div>
