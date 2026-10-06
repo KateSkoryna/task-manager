@@ -96,6 +96,87 @@ describe('TopHeader search', () => {
   });
 });
 
+describe('TopHeader keyboard', () => {
+  beforeEach(() => {
+    mockClear.mockReset();
+    mockSearchState = {
+      query: 't-shirt',
+      status: 'success',
+      matches: [
+        { id: 'todo-1', name: 'do laundry', todolistId: null },
+        { id: 'todo-2', name: 'buy t-shirt', todolistId: null },
+      ],
+    };
+  });
+
+  it('moves through search results with the arrow keys', () => {
+    render(<TopHeader />);
+    const input = screen.getByTestId('header-search');
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(screen.getByText('do laundry')).toHaveFocus();
+
+    fireEvent.keyDown(screen.getByText('do laundry'), { key: 'ArrowDown' });
+    expect(screen.getByText('buy t-shirt')).toHaveFocus();
+
+    fireEvent.keyDown(screen.getByText('buy t-shirt'), { key: 'ArrowDown' });
+    expect(screen.getByText('do laundry')).toHaveFocus();
+  });
+
+  it('closes the search results with Escape and returns to the input', () => {
+    render(<TopHeader />);
+    const option = screen.getByText('do laundry');
+    option.focus();
+    fireEvent.keyDown(option, { key: 'Escape' });
+    expect(mockClear).toHaveBeenCalled();
+    expect(screen.getByTestId('header-search')).toHaveFocus();
+  });
+
+  it('closes the notifications menu with Escape and returns to the bell', () => {
+    mockSearchState = { query: '', status: 'idle', matches: [] };
+    render(<TopHeader />);
+    const bell = screen.getByRole('button', { name: 'header.notifications' });
+    fireEvent.click(bell);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(bell).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(bell).toHaveFocus();
+  });
+});
+
+describe('TopHeader on small screens', () => {
+  beforeEach(() => {
+    mockSearchState = { query: '', status: 'idle', matches: [] };
+  });
+
+  it('keeps the search box for desktop only and has no search icon button', () => {
+    render(<TopHeader />);
+    expect(
+      screen.getByTestId('header-search').closest('.hidden.lg\\:block')
+    ).not.toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'header.search' })
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('TopHeader brand', () => {
+  beforeEach(() => {
+    mockSearchState = { query: '', status: 'idle', matches: [] };
+  });
+
+  it('shows the app name instead of the current page title', () => {
+    render(<TopHeader />);
+    expect(
+      screen.getByRole('heading', { name: 'TaskPal' })
+    ).toBeInTheDocument();
+    expect(screen.queryByText('nav.dashboard')).not.toBeInTheDocument();
+  });
+});
+
 describe('formatHeaderDate', () => {
   const date = new Date(2026, 9, 6);
 

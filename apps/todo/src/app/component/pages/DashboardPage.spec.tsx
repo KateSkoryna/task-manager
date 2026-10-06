@@ -40,6 +40,16 @@ jest.mock('../../fetchers/api', () => ({
   useToggleTodoMutation: () => ({ mutate: mockToggle }),
 }));
 
+jest.mock('../../hooks/useHeaderTaskSearch', () => ({
+  useHeaderTaskSearch: () => ({
+    query: '',
+    setQuery: jest.fn(),
+    status: 'idle',
+    matches: [],
+    clear: jest.fn(),
+  }),
+}));
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -91,10 +101,20 @@ describe('DashboardPage', () => {
     jest.clearAllMocks();
   });
 
-  test('is titled Today and renders no task input', () => {
+  test('is titled Today and renders no input for adding a task', () => {
     renderPage();
     expect(screen.getByText('dashboard.todayTitle')).toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    // The only text field on the page is the task search.
+    expect(screen.getAllByRole('textbox')).toEqual([
+      screen.getByTestId('dashboard-search'),
+    ]);
+  });
+
+  test('shows the task search for screens where the header has none', () => {
+    renderPage();
+    expect(
+      screen.getByTestId('dashboard-search').closest('.lg\\:hidden')
+    ).not.toBeNull();
   });
 
   test('shows an overdue task under Overdue and not under Due today', () => {

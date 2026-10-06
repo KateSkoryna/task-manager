@@ -54,8 +54,14 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     // flipping to a flat solid or a stark white square.
     const toneClasses =
       tone === 'sidebar'
-        ? 'border-sidebar-border bg-sidebar-text/10 text-sidebar-text backdrop-blur-sm hover:bg-sidebar-text/20'
-        : 'border-default bg-surface text-muted hover:bg-surface-subtle';
+        ? 'border-sidebar-border bg-sidebar-text/10 text-sidebar-text backdrop-blur-sm hover:bg-sidebar-text/20 focus-visible:bg-sidebar-text/20'
+        : 'border-default bg-surface text-muted hover:bg-surface-subtle focus-visible:bg-surface-subtle';
+    // The accent outline disappears on a light surface, so it is kept for
+    // the dark sidebar only.
+    const focusOutline =
+      tone === 'sidebar'
+        ? 'focus-visible:outline-accent'
+        : 'focus-visible:outline-priority-high-bg';
 
     return (
       <button
@@ -69,7 +75,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         disabled={disabled}
         data-testid={dataTestId}
         className={mergeClassNames(
-          "relative inline-flex shrink-0 items-center justify-center rounded-control border transition-colors before:absolute before:inset-touch-target-inset before:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50",
+          "relative inline-flex shrink-0 items-center justify-center rounded-control border transition-colors before:absolute before:inset-touch-target-inset before:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          focusOutline,
           size === 'menu' ? 'size-menu-button' : 'size-header-action',
           active ? 'border-accent bg-accent text-on-accent' : toneClasses,
           className

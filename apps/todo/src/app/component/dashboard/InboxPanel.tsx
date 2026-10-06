@@ -39,7 +39,7 @@ function InboxPanel({ items, onViewAll, onOpen }: InboxPanelProps) {
           <button
             type="button"
             onClick={onViewAll}
-            className="text-sm text-muted underline transition-colors hover:text-primary"
+            className="rounded-sm text-sm text-muted underline transition-colors hover:text-priority-high-bg focus-visible:text-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
           >
             {t('dashboard.inboxViewAll')}
           </button>
