@@ -24,6 +24,7 @@ import TopPriorityPanel from '../dashboard/TopPriorityPanel';
 import TodayStatusPanel from '../dashboard/TodayStatusPanel';
 import InboxPanel from '../dashboard/InboxPanel';
 import ErrorFallback from '../elements/ErrorFallback';
+import TaskSearch from '../elements/TaskSearch';
 import DashboardSkeleton from './DashboardSkeleton';
 
 // Both task blocks page instead of growing, so the page does not scroll.
@@ -122,6 +123,7 @@ function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4 lg:h-full">
+      <TaskSearch inputTestId="dashboard-search" className="lg:hidden" />
       <TodayHeader
         done={statusCounts.completed}
         total={todayItems.length}
