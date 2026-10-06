@@ -16,7 +16,7 @@ interface NotificationState {
 }
 
 /**
- * Session-only (not persisted) — mirrors `authStore`/`dateStore`, which
+ * Session-only (not persisted) — mirrors `authStore`, which
  * don't persist either. A page refresh clears notifications same as it
  * would clear an in-memory toast queue.
  */
