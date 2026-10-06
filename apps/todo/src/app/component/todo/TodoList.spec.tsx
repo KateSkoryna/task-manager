@@ -53,6 +53,18 @@ describe('TodoList', () => {
     fireEvent.click(screen.getByTestId('todolist-item-delete-button'));
     expect(del).toHaveBeenCalledWith('list-1');
   });
+  test('has no delete button for a default list', () => {
+    render(
+      <TodoList
+        todoList={{ ...base, isDefault: true }}
+        onAddTodo={jest.fn()}
+        onDeleteList={jest.fn()}
+      />
+    );
+    expect(
+      screen.queryByTestId('todolist-item-delete-button')
+    ).not.toBeInTheDocument();
+  });
   test('opens add form from header', () => {
     render(
       <TodoList

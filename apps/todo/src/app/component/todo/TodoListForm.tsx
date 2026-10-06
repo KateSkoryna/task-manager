@@ -121,9 +121,19 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
             type="text"
             placeholder={t('todoListForm.listNamePlaceholder')}
             invalid={!!errors.name}
+            readOnly={todoList?.isDefault}
             inputTestId="todolist-form-input"
             id="todolist-form-input"
           />
+          {todoList?.isDefault && (
+            <Text
+              as="p"
+              className="mt-1 text-xs text-muted"
+              dataTestId="todolist-form-default-note"
+            >
+              {t('todoListForm.defaultNameLocked')}
+            </Text>
+          )}
         </div>
         <Button
           type="button"

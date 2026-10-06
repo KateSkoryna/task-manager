@@ -17,12 +17,14 @@ type InputProps = {
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   invalid?: boolean;
   ariaLabel?: string;
+  /** Unlike `disabled`, the value is still submitted with the form. */
+  readOnly?: boolean;
 };
 
 // Used only when a caller omits className; callers supplying their own
 // className keep full control, unchanged from before.
 const DEFAULT_INPUT_CLASSES =
-  'w-full rounded-inner border border-default bg-surface-subtle px-3 py-2 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60';
+  'w-full rounded-inner border border-default bg-surface-subtle px-3 py-2 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-not-allowed read-only:opacity-60';
 const INVALID_INPUT_CLASSES =
   'border-danger focus:border-danger focus:ring-danger';
 
@@ -44,6 +46,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onKeyDown,
       invalid = false,
       ariaLabel,
+      readOnly,
     },
     ref
   ) => {
@@ -77,6 +80,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           onKeyDown={onKeyDown}
           aria-invalid={invalid || undefined}
           aria-label={ariaLabel}
+          readOnly={readOnly}
         />
       </>
     );
