@@ -11,10 +11,15 @@ import {
   UpdateTodoList,
 } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
+import { useListSortOptions } from '../../hooks/useListSortOptions';
+import { useListViewStore } from '../../store/listViewStore';
 import { computeReorder } from '../../lib/reorder';
+import { FlatSort, sortFlatEntries, sortLists } from '../../lib/sortTasks';
 import { mergeClassNames } from '../../lib/classNames';
 import TodoListForm from '../todo/TodoListForm';
 import TodoLists from '../todo/TodoLists';
+import SortMenu from '../todo/SortMenu';
+import CollapseAllButton from '../todo/CollapseAllButton';
 import InboxSection from '../todo/InboxSection';
 import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
@@ -42,8 +47,6 @@ type LocationState = {
   openCreateList?: boolean;
 } | null;
 
-type ViewMode = 'grouped' | 'flat';
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function TasksPage() {
@@ -70,7 +73,14 @@ function TasksPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('grouped');
+  const viewMode = useListViewStore((state) => state.tasksViewMode);
+  const setViewMode = useListViewStore((state) => state.setTasksViewMode);
+  // Each view keeps its own sort choice, remembered across page switches.
+  const flatSort = useListViewStore((state) => state.tasksFlatSort);
+  const setFlatSort = useListViewStore((state) => state.setTasksFlatSort);
+  const listSort = useListViewStore((state) => state.tasksListSort);
+  const setListSort = useListViewStore((state) => state.setTasksListSort);
+  const listSortOptions = useListSortOptions();
 
   const availableLists = useMemo(
     () => (todoLists ?? []).map((list) => ({ id: list.id, name: list.name })),
@@ -82,17 +92,18 @@ function TasksPage() {
       list.todos.map((todo) => ({ todo, listId: list.id }))
     );
     const inboxEntries = inboxTodos.map((todo) => ({ todo, listId: null }));
-    return [...listEntries, ...inboxEntries].sort((a, b) => {
-      const dueA = a.todo.dueDate;
-      const dueB = b.todo.dueDate;
-      if (dueA !== dueB) {
-        if (!dueA) return 1;
-        if (!dueB) return -1;
-        return dueA.localeCompare(dueB);
-      }
-      return a.todo.name.localeCompare(b.todo.name);
-    });
-  }, [todoLists, inboxTodos]);
+    const listNames = new Map(availableLists.map((l) => [l.id, l.name]));
+    return sortFlatEntries(
+      [...listEntries, ...inboxEntries],
+      flatSort,
+      listNames
+    );
+  }, [todoLists, inboxTodos, availableLists, flatSort]);
+
+  const sortedLists = useMemo(
+    () => (todoLists ? sortLists(todoLists, listSort) : todoLists),
+    [todoLists, listSort]
+  );
 
   // Auto-select + open edit when navigated from another page with state.
   // Tracks the last *navigation* handled (by history key), not just the last
@@ -238,6 +249,14 @@ function TasksPage() {
     setIsEditing(false);
   }
 
+  const flatSortOptions: { value: FlatSort; label: string }[] = [
+    { value: 'dueDate', label: t('tasks.sortDueDate') },
+    { value: 'name', label: t('tasks.sortName') },
+    { value: 'listName', label: t('tasks.sortListName') },
+    { value: 'priority', label: t('tasks.sortPriority') },
+    { value: 'status', label: t('tasks.sortStatus') },
+  ];
+
   if (isLoading) {
     return <TasksPageSkeleton />;
   }
@@ -253,7 +272,7 @@ function TasksPage() {
         )}
       >
         <div className="pb-4">
-          <div className="flex items-center justify-between mb-1 gap-2">
+          <div className="flex flex-wrap items-center justify-between mb-1 gap-2">
             <PeriodSelector
               ariaLabel={t('tasks.viewMode')}
               options={[
@@ -272,6 +291,23 @@ function TasksPage() {
               onChange={setViewMode}
             />
             <div className="flex items-center gap-2">
+              {viewMode === 'flat' && (
+                <SortMenu
+                  value={flatSort}
+                  onChange={setFlatSort}
+                  options={flatSortOptions}
+                />
+              )}
+              {viewMode === 'grouped' && (
+                <>
+                  <SortMenu
+                    value={listSort}
+                    onChange={setListSort}
+                    options={listSortOptions}
+                  />
+                  <CollapseAllButton lists={sortedLists ?? []} />
+                </>
+              )}
               <Button variant="primary" onClick={toggleCreateForm}>
                 <Plus className="w-4 h-4" />
                 {t('tasks.newList')}
@@ -302,7 +338,7 @@ function TasksPage() {
                 onMoveTodo={handleMoveTodo}
               />
               <TodoLists
-                todoLists={todoLists}
+                todoLists={sortedLists}
                 isLoading={isLoading}
                 isError={isError}
                 error={error}

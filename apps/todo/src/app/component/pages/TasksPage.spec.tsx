@@ -3,6 +3,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TodoItem } from '@shared/types';
+import {
+  initialListViewState,
+  useListViewStore,
+} from '../../store/listViewStore';
 import TasksPage from './TasksPage';
 
 jest.mock('../../lib/firebase', () => ({ auth: {} }));
@@ -78,6 +82,7 @@ function renderTasksPage() {
 }
 
 describe('TasksPage', () => {
+  beforeEach(() => useListViewStore.setState(initialListViewState));
   it('has no add-task control; tasks are added from Vital Tasks and each list', () => {
     renderTasksPage();
     expect(screen.queryByTestId('add-task-button')).not.toBeInTheDocument();
@@ -86,6 +91,70 @@ describe('TasksPage', () => {
         name: /add task/i,
       })
     ).not.toBeInTheDocument();
+  });
+
+  it('offers task sorts in the flat view and list sorts in the grouped view', async () => {
+    renderTasksPage();
+
+    await userEvent.click(screen.getByLabelText('tasks.sortBy'));
+    expect(
+      await screen.findByRole('button', { name: 'tasks.sortListDueDate' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'tasks.sortStatus' })
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'tasks.flatView' })
+    );
+    await userEvent.click(screen.getByLabelText('tasks.sortBy'));
+    expect(
+      await screen.findByRole('button', { name: 'tasks.sortStatus' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'tasks.sortListDueDate' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the collapse-all button in the grouped view only', async () => {
+    renderTasksPage();
+    expect(screen.getByTestId('toggle-all-lists')).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'tasks.flatView' })
+    );
+    expect(screen.queryByTestId('toggle-all-lists')).not.toBeInTheDocument();
+  });
+
+  it('remembers the chosen view when the page is shown again', async () => {
+    const { unmount } = renderTasksPage();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'tasks.flatView' })
+    );
+    unmount();
+
+    renderTasksPage();
+    expect(screen.getByTestId('flat-task-list')).toBeInTheDocument();
+  });
+
+  it('re-sorts the flat view when a sort is chosen', async () => {
+    renderTasksPage();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'tasks.flatView' })
+    );
+
+    const order = () =>
+      within(screen.getByTestId('flat-task-list'))
+        .getAllByTestId(/^todo-item-/)
+        .map((el) => el.getAttribute('data-testid'));
+    // Default: due date, ties broken by name.
+    expect(order()).toEqual(['todo-item-t1', 'todo-item-t2']);
+
+    await userEvent.click(screen.getByLabelText('tasks.sortBy'));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'tasks.sortPriority' })
+    );
+    expect(order()).toEqual(['todo-item-t2', 'todo-item-t1']);
   });
 
   it('scrolls the selected task back into view in the left list', async () => {

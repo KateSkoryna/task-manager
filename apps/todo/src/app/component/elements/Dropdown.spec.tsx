@@ -143,4 +143,25 @@ describe('Dropdown', () => {
       })
     );
   });
+
+  test('renders only the icon as the trigger when triggerIcon is given', async () => {
+    render(
+      <Dropdown
+        ariaLabel="Sort"
+        value={'low' as const}
+        onChange={jest.fn()}
+        options={options}
+        placeholder="Sort"
+        triggerIcon={<svg data-testid="trigger-icon" />}
+      />
+    );
+    const summary = screen.getByLabelText('Sort');
+    expect(summary).toContainElement(screen.getByTestId('trigger-icon'));
+    expect(summary).not.toHaveTextContent('Low');
+
+    await userEvent.click(summary);
+    expect(
+      await screen.findByRole('button', { name: 'High' })
+    ).toBeInTheDocument();
+  });
 });

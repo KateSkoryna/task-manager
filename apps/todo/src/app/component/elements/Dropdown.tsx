@@ -17,6 +17,8 @@ type DropdownProps<T extends string> = AccessibleName & {
   onChange: (value: T | null) => void;
   options: DropdownOption<T>[];
   placeholder: string;
+  /** Renders the trigger as just this icon (the menu still lists `options`). */
+  triggerIcon?: React.ReactNode;
   nullOption?: { label: string; icon?: React.ReactNode };
   className?: string;
   menuClassName?: string;
@@ -32,6 +34,7 @@ function Dropdown<T extends string>({
   onChange,
   options,
   placeholder,
+  triggerIcon,
   ariaLabel,
   ariaLabelledby,
   nullOption,
@@ -122,15 +125,19 @@ function Dropdown<T extends string>({
           disabled ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
         }`}
       >
-        <span
-          className={`flex min-w-0 items-center gap-1.5 truncate ${
-            selected ? 'text-primary' : 'text-muted'
-          }`}
-        >
-          {selected?.icon}
-          {selected?.label ?? placeholder}
-        </span>
-        <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+        {triggerIcon ?? (
+          <>
+            <span
+              className={`flex min-w-0 items-center gap-1.5 truncate ${
+                selected ? 'text-primary' : 'text-muted'
+              }`}
+            >
+              {selected?.icon}
+              {selected?.label ?? placeholder}
+            </span>
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
+          </>
+        )}
       </summary>
 
       {open && (
