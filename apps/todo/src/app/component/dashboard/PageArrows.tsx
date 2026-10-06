@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 // `border-default` and `text-muted` nearly vanish on the dark surface, more
 // so when disabled, so the arrows use the stronger border and text colours.
 const BUTTON_CLASSES =
-  'flex items-center justify-center rounded-md border border-muted p-1 text-primary transition-colors hover:border-primary disabled:pointer-events-none disabled:opacity-50';
+  'flex items-center justify-center rounded-md border border-muted p-1 text-primary transition-colors hover:border-priority-high-bg hover:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg disabled:pointer-events-none disabled:opacity-50';
 
 interface PageArrowsProps {
   page: number;

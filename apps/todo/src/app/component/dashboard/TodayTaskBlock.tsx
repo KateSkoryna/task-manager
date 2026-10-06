@@ -63,8 +63,11 @@ function TodayTaskRow<T extends TodoItem>({
   return (
     <li
       ref={rowRef}
+      // A row has two controls. Focus on the name lights up the whole row,
+      // like hover; focus on the checkbox shows only the checkbox's own ring,
+      // so a keyboard user can tell which of the two Enter will act on.
       className={mergeClassNames(
-        'flex items-center gap-3 rounded-inner border border-l-4 border-transparent bg-surface-subtle px-3 py-2 transition hover:border-priority-high-bg motion-safe:hover:scale-[1.01]',
+        'flex items-center gap-3 rounded-inner border border-l-4 border-transparent bg-surface-subtle px-3 py-2 transition hover:border-priority-high-bg has-[[data-row-open]:focus-visible]:border-priority-high-bg motion-safe:hover:scale-[1.01] motion-safe:has-[[data-row-open]:focus-visible]:scale-[1.01]',
         PRIORITY_BORDER[item.priority]
       )}
       data-testid={`today-task-${item.id}`}
@@ -79,7 +82,7 @@ function TodayTaskRow<T extends TodoItem>({
         )}
         onClick={() => onToggle(item)}
         className={mergeClassNames(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg',
           completed
             ? 'border-status-complete bg-status-complete'
             : 'border-muted hover:border-primary'
@@ -91,9 +94,10 @@ function TodayTaskRow<T extends TodoItem>({
       </button>
       <button
         type="button"
+        data-row-open
         onClick={() => onOpen(item)}
         className={mergeClassNames(
-          'min-w-0 flex-1 truncate text-left text-sm font-semibold hover:underline',
+          'min-w-0 flex-1 truncate text-left text-sm font-semibold focus-visible:outline-none',
           completed ? 'text-muted line-through' : 'text-primary'
         )}
       >
