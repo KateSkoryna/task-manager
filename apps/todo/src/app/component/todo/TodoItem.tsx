@@ -28,13 +28,13 @@ interface TodoItemProps {
 // `todo.status` values map onto the redesign's status roles: 'pending' is
 // shown to users as "in progress", 'successful' as "completed", and
 // 'failed' as "not started" — see tasks.status_* translation strings.
-const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
+export const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
   pending: 'tasks.status_pending',
   successful: 'tasks.status_successful',
   failed: 'tasks.status_failed',
 };
 
-const STATUS_TEXT: Record<TodoStatus, string> = {
+export const STATUS_TEXT: Record<TodoStatus, string> = {
   pending: 'text-status-progress',
   successful: 'text-status-complete',
   failed: 'text-status-open',

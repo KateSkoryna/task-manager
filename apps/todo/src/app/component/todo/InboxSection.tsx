@@ -1,24 +1,14 @@
-import { useState } from 'react';
-import { Plus, Inbox as InboxIcon } from 'lucide-react';
+import { Inbox as InboxIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType } from '@shared/types';
 import TodoItem from './TodoItem';
 import { AvailableList } from './MoveToListSelect';
-import TodoForm from './TodoForm';
 import QuickCaptureInput from './QuickCaptureInput';
 import Text from '../elements/Text';
-import Card from '../elements/Card';
 import { sortByOrder } from '../../lib/reorder';
-
-type NewTodoOpts = {
-  dueDate?: string;
-  location?: string;
-  notes?: string;
-};
 
 interface InboxSectionProps {
   todos: TodoItemType[];
-  onAddTodo: (name: string, opts?: NewTodoOpts) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItemType) => void;
   onEditTodo?: (todo: TodoItemType) => void;
@@ -30,7 +20,6 @@ interface InboxSectionProps {
 
 function InboxSection({
   todos,
-  onAddTodo,
   selectedTodoId,
   onSelectTodo,
   onEditTodo,
@@ -40,13 +29,7 @@ function InboxSection({
   onMoveTodo,
 }: InboxSectionProps) {
   const { t } = useTranslation();
-  const [showAddForm, setShowAddForm] = useState(false);
   const sortedTodos = sortByOrder(todos);
-
-  function handleAddTodo(name: string, opts?: NewTodoOpts) {
-    onAddTodo(name, opts);
-    setShowAddForm(false);
-  }
 
   return (
     <div
@@ -59,13 +42,6 @@ function InboxSection({
           {t('tasks.inbox')}
         </h3>
         <span className="text-muted text-xs shrink-0">{todos.length}</span>
-        <button
-          onClick={() => setShowAddForm((v) => !v)}
-          aria-label={t('todoList.addTask')}
-          className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
       </div>
 
       <div className="p-4 space-y-3 bg-surface">
@@ -76,13 +52,7 @@ function InboxSection({
           undoTestId="inbox-enrichment-undo"
         />
 
-        {showAddForm && (
-          <Card variant="nested">
-            <TodoForm onAddTodo={handleAddTodo} />
-          </Card>
-        )}
-
-        {todos.length === 0 && !showAddForm ? (
+        {todos.length === 0 ? (
           <Text
             as="p"
             className="text-center text-muted py-6 text-sm"

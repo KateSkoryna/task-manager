@@ -16,6 +16,7 @@ import {
   TodoListPriority,
   TodoListCategory,
 } from '@shared/types';
+import { toggledCompletion } from '../lib/todayTasks';
 
 export const useTodoListsData = () => {
   const {
@@ -86,12 +87,7 @@ export const useTodoListsData = () => {
   const handleToggleTodo = (id: string) => {
     const todo = findTodo(id);
     if (todo) {
-      const status = todo.status === 'successful' ? 'pending' : 'successful';
-      toggleTodoMutation.mutate({
-        id,
-        status,
-        completedAt: status === 'successful' ? new Date().toISOString() : null,
-      });
+      toggleTodoMutation.mutate({ id, ...toggledCompletion(todo) });
     }
   };
 

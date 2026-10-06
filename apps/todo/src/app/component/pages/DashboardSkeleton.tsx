@@ -18,22 +18,21 @@ function PanelSkeleton({ className = '' }: { className?: string }) {
 function DashboardSkeleton() {
   return (
     <div
-      className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto"
+      className="flex flex-col gap-4"
       role="status"
       aria-label="Loading dashboard"
     >
-      <div className="bg-surface rounded-xl border border-default p-3 flex items-center gap-4">
-        <Skeleton className="h-10 flex-1" />
+      <div className="bg-surface rounded-xl border border-default p-5">
+        <Skeleton className="h-6 w-24 mb-3" />
+        <Skeleton className="h-2 w-full" />
       </div>
 
-      <PanelSkeleton />
-
-      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-5 gap-3 flex-1">
-        <div className="flex min-h-0 flex-col gap-3 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <PanelSkeleton className="lg:col-span-3" />
+        <div className="flex flex-col gap-4 lg:col-span-2">
           <PanelSkeleton />
-          <PanelSkeleton className="min-h-0 flex-1" />
+          <PanelSkeleton />
         </div>
-        <PanelSkeleton className="min-h-0 h-full lg:col-span-3" />
       </div>
     </div>
   );

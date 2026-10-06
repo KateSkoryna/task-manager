@@ -65,31 +65,31 @@
     }
   },
   "dashboard": {
-    "todo": "Today's Tasks",
-    "noTasksForDay": "No tasks for this day.",
-    "taskStatus": "Task Status",
     "completed": "Completed",
     "inProgress": "In Progress",
     "notStarted": "Not Started",
-    "completedTask": "Completed Task",
-    "noCompletedTasks": "No completed tasks yet.",
-    "status": "Status:",
-    "relativeToday": "Today",
     "relativeDayAgo": "1 day ago",
     "relativeDaysAgo": "{{count}} days ago",
-    "weekStrip": "Select a day",
-    "todayCompletion": "Today's Completion",
-    "todayTasksTotal": "{{count}} tasks today",
-    "todayTasksPending": "{{count}} pending",
+    "status": "Status:",
     "topPriority": "Top Priority Today",
     "noTopPriority": "No high-priority tasks due today.",
     "previousTasks": "Previous tasks",
     "nextTasks": "Next tasks",
-    "previousWeek": "Previous week",
-    "nextWeek": "Next week",
-    "inboxCount": "{{count}} in Inbox",
-    "quickAddPlaceholder": "Quick add to Inbox…",
-    "quickAdd": "Add"
+    "inboxTitle": "Inbox",
+    "inboxEmpty": "No tasks in Inbox.",
+    "inboxViewAll": "View all in Tasks",
+    "todayTitle": "Today",
+    "progressLine": "{{done}} of {{total}} done today",
+    "moodOverdue": "Overdue: {{count}}. Start there.",
+    "moodProgress": "Left for today: {{count}}.",
+    "moodDone": "All done for today.",
+    "moodEmpty": "Nothing due today.",
+    "overdueTitle": "Overdue",
+    "dueTodayTitle": "Due today",
+    "todayStatus": "Today's status",
+    "inboxHint": "Unfinished tasks without a list.",
+    "markCompleted": "Mark \"{{name}}\" as completed",
+    "markNotCompleted": "Mark \"{{name}}\" as not completed"
   },
   "tasks": {
     "myTasks": "My Tasks",
@@ -253,7 +253,7 @@
     "loading": "Loading\u2026"
   },
   "footer": {
-    "rights": "\u00a9 {{year}} Kateryna Skoryna. All rights reserved."
+    "rights": "© {{year}} Kateryna Skoryna. All rights reserved."
   },
   "agent": {
     "name": "TaskPal",

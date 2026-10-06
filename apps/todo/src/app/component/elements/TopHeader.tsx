@@ -25,6 +25,24 @@ const LOCALE_MAP: Record<string, string> = {
   uk: 'uk-UA',
 };
 
+/**
+ * "Tuesday, 06 October 2026". Assembled from parts rather than taken from
+ * the locale's own long format so the order stays day, month, year in every
+ * language (en-US would put the month first) while the month name keeps the
+ * grammatical form it has next to a day number (Ukrainian "жовтня").
+ */
+export function formatHeaderDate(date: Date, locale: string): string {
+  const parts = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? '';
+  return `${part('weekday')}, ${part('day')} ${part('month')} ${part('year')}`;
+}
+
 type TopHeaderProps = {
   onOpenMenu?: () => void;
   menuButtonRef?: RefObject<HTMLButtonElement>;
@@ -83,12 +101,7 @@ function TopHeader({
     LOCALE_MAP[i18n.language] ??
     LOCALE_MAP[i18n.language.split('-')[0]] ??
     'en-US';
-  const today = new Date();
-  const dayName = today.toLocaleDateString(locale, { weekday: 'long' });
-  const day = String(today.getDate()).padStart(2, '0');
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const year = today.getFullYear();
-  const dateStr = `${day}/${month}/${year}`;
+  const headerDate = formatHeaderDate(new Date(), locale);
 
   return (
     <header
@@ -115,9 +128,7 @@ function TopHeader({
         <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">
           {title}
         </h2>
-        <p className="truncate font-mono text-small text-muted">
-          {dayName}, {dateStr}
-        </p>
+        <p className="truncate font-mono text-small text-muted">{headerDate}</p>
       </div>
 
       <div className="ml-auto flex items-center gap-2">
