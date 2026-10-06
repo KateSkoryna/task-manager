@@ -97,7 +97,7 @@ function TodayTaskRow<T extends TodoItem>({
         data-row-open
         onClick={() => onOpen(item)}
         className={mergeClassNames(
-          'min-w-0 flex-1 truncate text-left text-sm font-semibold hover:underline focus-visible:outline-none',
+          'min-w-0 flex-1 truncate text-left text-sm font-semibold focus-visible:outline-none',
           completed ? 'text-muted line-through' : 'text-primary'
         )}
       >
