@@ -96,6 +96,23 @@ describe('Nest API parity', () => {
     });
   });
 
+  it('seeds the default lists when provisioning a new user', async () => {
+    const provisioned = await request(app.getHttpServer())
+      .post('/api/auth/provision')
+      .set(auth('token-new'))
+      .send({ firstName: 'New', lastName: 'User' });
+
+    const lists = await Todolist.find({ userId: provisioned.body.id });
+    expect(lists.every((l) => l.isDefault)).toBe(true);
+    expect(lists.map((l) => l.category).sort()).toEqual([
+      'education',
+      'family',
+      'health',
+      'home',
+      'work',
+    ]);
+  });
+
   it('enforces path identity and user-scoped list reads and mutations', async () => {
     const mismatch = await request(app.getHttpServer())
       .get(`/api/users/${userBId}/todolists`)
@@ -125,6 +142,69 @@ describe('Nest API parity', () => {
       requestId: expect.any(String),
     });
     expect((await Todolist.findById(listBId))?.name).toBe('List B');
+  });
+
+  it('does not let a default list be renamed, but allows other edits', async () => {
+    const defaultList = await Todolist.create({
+      name: 'Work',
+      userId: userAId,
+      category: 'work',
+      isDefault: true,
+    });
+    const url = `/api/users/${userAId}/todolists/${defaultList._id}`;
+
+    const renamed = await request(app.getHttpServer())
+      .put(url)
+      .set(auth())
+      .send({ name: 'Job' });
+    expect(renamed.status).toBe(403);
+    expect(renamed.body.message).toBe('Default lists cannot be renamed');
+    expect((await Todolist.findById(defaultList._id))?.name).toBe('Work');
+
+    // Resending the same name is not a rename, and other fields are editable.
+    const edited = await request(app.getHttpServer())
+      .put(url)
+      .set(auth())
+      .send({ name: 'Work', priority: 'high', notes: 'Q4' });
+    expect(edited.status).toBe(200);
+    expect(edited.body).toMatchObject({
+      name: 'Work',
+      priority: 'high',
+      isDefault: true,
+    });
+  });
+
+  it('does not let a default list be deleted, and keeps its todos', async () => {
+    const defaultList = await Todolist.create({
+      name: 'Work',
+      userId: userAId,
+      category: 'work',
+      isDefault: true,
+    });
+    const todo = await Todo.create({
+      name: 'Keep me',
+      todolistId: defaultList._id,
+      userId: userAId,
+    });
+
+    const removed = await request(app.getHttpServer())
+      .delete(`/api/users/${userAId}/todolists/${defaultList._id}`)
+      .set(auth());
+    expect(removed.status).toBe(403);
+    expect(removed.body.message).toBe('Default lists cannot be deleted');
+    expect(await Todolist.exists({ _id: defaultList._id })).toBeTruthy();
+    expect((await Todo.findById(todo._id))?.todolistId?.toString()).toBe(
+      defaultList._id.toString()
+    );
+  });
+
+  it('still lets an ordinary list be renamed', async () => {
+    const renamed = await request(app.getHttpServer())
+      .put(`/api/users/${userAId}/todolists/${listAId}`)
+      .set(auth())
+      .send({ name: 'Renamed' });
+    expect(renamed.status).toBe(200);
+    expect(renamed.body).toMatchObject({ name: 'Renamed', isDefault: false });
   });
 
   it('preserves list CRUD, validation, population, and deletion bodies', async () => {

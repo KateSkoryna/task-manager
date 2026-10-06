@@ -66,6 +66,8 @@ export interface NewTodoList {
 export interface TodoList extends NewTodoList {
   id: string;
   todos: TodoItem[];
+  /** One of the lists every user starts with; its name cannot be changed. */
+  isDefault?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

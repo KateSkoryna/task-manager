@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   NotFoundException,
@@ -88,6 +89,14 @@ export class TodolistController {
     @Param('todolistId', new MongoIdPipe()) id: string,
     @Body(new ZodValidationPipe(todolistUpdateSchema)) body: TodolistUpdateInput
   ) {
+    if (
+      body.name !== undefined &&
+      (await this.todolistService.isRenamingDefaultList(id, user.id, body.name))
+    ) {
+      throw new ForbiddenException({
+        message: 'Default lists cannot be renamed',
+      });
+    }
     const list = await this.todolistService.update(id, user.id, body);
     if (!list) throw new NotFoundException({ message: 'Todolist not found' });
     return list;
@@ -103,6 +112,11 @@ export class TodolistController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('todolistId', new MongoIdPipe()) id: string
   ) {
+    if (await this.todolistService.isDefaultList(id, user.id)) {
+      throw new ForbiddenException({
+        message: 'Default lists cannot be deleted',
+      });
+    }
     const list = await this.todolistService.delete(id, user.id);
     if (!list) throw new NotFoundException({ message: 'Todolist not found' });
   }

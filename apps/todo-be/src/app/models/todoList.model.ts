@@ -16,6 +16,7 @@ export interface ITodolistDocument
   userId: Types.ObjectId;
   priority?: TodoListPriority;
   category?: TodoListCategory;
+  isDefault?: boolean;
   dueDate?: Date | null;
   notes?: string | null;
 }
@@ -35,6 +36,7 @@ export const todolistSchema = new Schema<ITodolistDocument>(
       enum: ['home', 'education', 'work', 'family', 'health'],
       default: undefined,
     },
+    isDefault: { type: Boolean, default: false },
     dueDate: { type: Date, default: undefined },
     notes: { type: String, default: undefined },
   },
@@ -50,6 +52,7 @@ export const todolistSchema = new Schema<ITodolistDocument>(
           todos: (ret.todos as TodoItem[]) || [],
           priority: ret.priority,
           category: ret.category,
+          isDefault: ret.isDefault ?? false,
           dueDate: ret.dueDate ? ret.dueDate.toISOString() : null,
           notes: ret.notes,
           createdAt: (
