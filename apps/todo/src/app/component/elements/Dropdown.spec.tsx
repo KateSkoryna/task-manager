@@ -50,7 +50,7 @@ describe('Dropdown', () => {
     render(<Harness onSubmit={onSubmit} />);
     const summary = screen.getByLabelText('Priority');
     await userEvent.click(summary);
-    await userEvent.click(screen.getByRole('button', { name: 'High' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'High' }));
 
     expect(summary).toHaveTextContent('High');
     expect(summary.closest('details')).not.toHaveAttribute('open');
@@ -63,16 +63,16 @@ describe('Dropdown', () => {
     render(<Harness />);
     const summary = screen.getByLabelText('Priority');
     await user.click(summary);
-    screen.getByRole('button', { name: 'Low' }).focus();
+    (await screen.findByRole('button', { name: 'Low' })).focus();
     await user.keyboard('{Enter}');
     expect(summary).toHaveTextContent('Low');
 
     await user.click(summary);
-    screen.getByRole('button', { name: 'High' }).focus();
+    (await screen.findByRole('button', { name: 'High' })).focus();
     await user.keyboard(' ');
     expect(summary).toHaveTextContent('High');
     await user.click(summary);
-    expect(screen.getByRole('button', { name: 'High' })).toHaveAttribute(
+    expect(await screen.findByRole('button', { name: 'High' })).toHaveAttribute(
       'aria-pressed',
       'true'
     );
@@ -82,9 +82,9 @@ describe('Dropdown', () => {
     render(<Harness />);
     const summary = screen.getByLabelText('Priority');
     await userEvent.click(summary);
-    await userEvent.click(screen.getByRole('button', { name: 'Low' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Low' }));
     await userEvent.click(summary);
-    await userEvent.click(screen.getByRole('button', { name: 'None' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'None' }));
     expect(summary).toHaveTextContent('None');
 
     render(

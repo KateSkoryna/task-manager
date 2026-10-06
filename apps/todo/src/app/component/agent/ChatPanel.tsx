@@ -45,7 +45,7 @@ const ChatPanel: React.FC = () => {
         data-testid="chat-panel-launcher"
         onClick={() => setIsOpen(true)}
         aria-label={t('agent.open')}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-pill bg-accent text-on-accent shadow-menu transition-transform hover:scale-105 print:hidden"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-pill bg-accent text-on-accent shadow-menu transition-transform hover:scale-105 focus-visible:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg print:hidden"
       >
         <Sparkles className="h-6 w-6" />
       </button>

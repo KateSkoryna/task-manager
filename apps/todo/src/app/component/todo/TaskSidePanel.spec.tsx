@@ -58,10 +58,12 @@ describe('TodoEditPanel dropdowns', () => {
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(document.querySelector('select')).not.toBeInTheDocument();
 
+    // The options render on the `toggle` event, which fires after the click
+    // has resolved, so wait for them instead of querying straight away.
     await userEvent.click(summaries[0]);
-    const statusButtons = within(
+    const statusButtons = await within(
       summaries[0].closest('details') as HTMLElement
-    ).getAllByRole('button');
+    ).findAllByRole('button');
     expect(statusButtons).toHaveLength(3);
     expect(
       within(summaries[0].closest('details') as HTMLElement).queryByRole(
@@ -71,6 +73,9 @@ describe('TodoEditPanel dropdowns', () => {
     ).not.toBeInTheDocument();
   });
 
+  // Nine user interactions in a row. It takes well under a second alone, but
+  // has exceeded Jest's 5s default when the whole suite runs in parallel on a
+  // busy machine, so it gets a longer budget.
   test('saves keyboard and mouse selections and clears an optional field', async () => {
     const onSave = jest.fn();
     const user = userEvent.setup();
@@ -85,31 +90,37 @@ describe('TodoEditPanel dropdowns', () => {
 
     const status = screen.getByLabelText('tasks.status');
     await user.click(status);
-    within(status.closest('details') as HTMLElement)
-      .getByRole('button', { name: 'tasks.status_successful' })
-      .focus();
+    (
+      await within(status.closest('details') as HTMLElement).findByRole(
+        'button',
+        { name: 'tasks.status_successful' }
+      )
+    ).focus();
     await user.keyboard('{Enter}');
 
     const priority = screen.getByLabelText('tasks.listPriority');
     await user.click(priority);
     await user.click(
-      within(priority.closest('details') as HTMLElement).getByRole('button', {
-        name: 'tasks.priority_high',
-      })
+      await within(priority.closest('details') as HTMLElement).findByRole(
+        'button',
+        { name: 'tasks.priority_high' }
+      )
     );
 
     const category = screen.getByLabelText('tasks.category');
     await user.click(category);
     await user.click(
-      within(category.closest('details') as HTMLElement).getByRole('button', {
-        name: 'tasks.category_work',
-      })
+      await within(category.closest('details') as HTMLElement).findByRole(
+        'button',
+        { name: 'tasks.category_work' }
+      )
     );
     await user.click(category);
     await user.click(
-      within(category.closest('details') as HTMLElement).getByRole('button', {
-        name: 'tasks.category_none',
-      })
+      await within(category.closest('details') as HTMLElement).findByRole(
+        'button',
+        { name: 'tasks.category_none' }
+      )
     );
 
     await user.click(screen.getByTestId('save-todo-edit-button-todo-1'));
@@ -124,7 +135,7 @@ describe('TodoEditPanel dropdowns', () => {
         category: undefined,
       })
     );
-  });
+  }, 15000);
 });
 
 describe('TaskDetailPanel', () => {
