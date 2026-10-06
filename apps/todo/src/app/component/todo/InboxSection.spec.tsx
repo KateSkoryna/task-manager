@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import InboxSection from './InboxSection';
 
 jest.mock('../../fetchers/api', () => ({
@@ -18,19 +17,17 @@ jest.mock('../../store/authStore', () => ({
 
 describe('InboxSection', () => {
   test('renders the quick-capture input', () => {
-    render(<InboxSection todos={[]} onAddTodo={jest.fn()} />);
+    render(<InboxSection todos={[]} />);
     expect(screen.getByTestId('inbox-quick-capture-input')).toBeInTheDocument();
     expect(
       screen.getByTestId('inbox-quick-capture-submit')
     ).toBeInTheDocument();
   });
 
-  test('keeps TodoForm reachable for manual entry', async () => {
-    render(<InboxSection todos={[]} onAddTodo={jest.fn()} />);
+  test('has no add-task button of its own', () => {
+    render(<InboxSection todos={[]} />);
     expect(
-      screen.queryByTestId('todo-form-toggle-extra')
+      screen.queryByRole('button', { name: /add task/i })
     ).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /add task/i }));
-    expect(screen.getByTestId('todo-form-toggle-extra')).toBeInTheDocument();
   });
 });

@@ -1,8 +1,11 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
-interface FittingItemCount {
-  containerRef: React.RefObject<HTMLDivElement>;
-  itemRef: React.RefObject<HTMLDivElement>;
+interface FittingItemCount<
+  Container extends HTMLElement,
+  Item extends HTMLElement
+> {
+  containerRef: React.RefObject<Container>;
+  itemRef: React.RefObject<Item>;
   count: number;
 }
 
@@ -16,12 +19,15 @@ interface FittingItemCount {
  * scrolling wrapper and `itemRef` to the first rendered item (so there's
  * always something to measure), then slices its list down to `count`.
  */
-export const useFittingItemCount = (
+export const useFittingItemCount = <
+  Container extends HTMLElement = HTMLDivElement,
+  Item extends HTMLElement = HTMLDivElement
+>(
   maxItems: number,
   gapPx = 8
-): FittingItemCount => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const itemRef = useRef<HTMLDivElement>(null);
+): FittingItemCount<Container, Item> => {
+  const containerRef = useRef<Container>(null);
+  const itemRef = useRef<Item>(null);
   const [count, setCount] = useState(maxItems);
 
   useLayoutEffect(() => {

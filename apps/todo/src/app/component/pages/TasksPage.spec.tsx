@@ -1,6 +1,6 @@
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TodoItem } from '@shared/types';
 import TasksPage from './TasksPage';
@@ -30,6 +30,8 @@ const TODO_TWO: TodoItem = {
   source: 'web',
 };
 
+const mockHandleAddInboxTodo = jest.fn();
+
 jest.mock('../../hooks/useTodoListsData', () => ({
   useTodoListsData: () => ({
     todoLists: [],
@@ -42,7 +44,7 @@ jest.mock('../../hooks/useTodoListsData', () => ({
     handleDeleteList: jest.fn(),
     handleEditList: jest.fn(),
     handleAddTodo: jest.fn(),
-    handleAddInboxTodo: jest.fn(),
+    handleAddInboxTodo: mockHandleAddInboxTodo,
     handleDeleteTodo: jest.fn(),
     handleEditTodo: jest.fn(),
     createListMutationIsPending: false,
@@ -65,7 +67,65 @@ function NavigationTrigger() {
   );
 }
 
+function renderTasksPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/tasks']}>
+        <TasksPage />
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
 describe('TasksPage', () => {
+  it('has exactly one add-task control, in the page header', () => {
+    renderTasksPage();
+    expect(screen.getAllByRole('button', { name: /add task/i })).toHaveLength(
+      1
+    );
+    expect(
+      within(screen.getByTestId('inbox-section')).queryByRole('button', {
+        name: /add task/i,
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it('adds a task to the inbox from the header add-task form', async () => {
+    renderTasksPage();
+    expect(screen.queryByTestId('todo-form-input')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('add-task-button'));
+    await userEvent.type(screen.getByTestId('todo-form-input'), 'Water plants');
+    await userEvent.click(screen.getByTestId('todo-form-submit-button'));
+
+    expect(mockHandleAddInboxTodo).toHaveBeenCalledWith(
+      'Water plants',
+      undefined
+    );
+    expect(screen.queryByTestId('todo-form-input')).not.toBeInTheDocument();
+  });
+
+  it('opens the add-task form when another page asks for it', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            { pathname: '/tasks', state: { openAddTask: true } },
+          ]}
+        >
+          <TasksPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+    expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
+  });
+
   it('scrolls the selected task back into view in the left list', async () => {
     // test-setup.ts stubs this globally (jsdom has no real layout/scrolling
     // to call it for real); spy on that stub to assert the effect fires.

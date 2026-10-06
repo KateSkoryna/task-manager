@@ -561,7 +561,7 @@ prompt version and phase pointer match that run.
 
 ---
 
-## Phase 18 — Inbox and add-task bug fixes — **Status: URGENT**
+## Phase 18 — Today page, Inbox and add-task fixes — **Status: URGENT**
 
 **Why:** a real user added a task on the dashboard and could not find it. It had gone to the
 Inbox, which the dashboard did not make visible, and nothing told her whether lists are required.
@@ -571,11 +571,11 @@ before the onboarding tour (Phase 19) and before the remaining polish and stretc
 
 **Decisions (Kate, 2026-10-06):**
 
-- The dashboard shows statistics only. Tasks are added on the Tasks page only, through one
-  "Add task" button.
+- The dashboard becomes a Today page (Step 18.1). It has no add form: tasks are added on the
+  Tasks page only, and the Today page links there.
 - Lists are optional. A task without a list goes to the Inbox, and the Inbox is the default.
 - Whatever the user adds must be visible straight away: the page scrolls to it and selects it.
-- The Inbox appears on the dashboard as a clear, separate section (read-only there).
+- The Inbox appears on the Today page as a clear, separate section (read-only there).
 - New tasks start as "Not Started", not "In Progress". Second user report: "a task added outside
   a list is marked as in progress". The stored status values are renamed so the code says what
   the user sees (Step 18.4).
@@ -583,45 +583,116 @@ before the onboarding tour (Phase 19) and before the remaining polish and stretc
 **Concepts:** feedback after an action, sensible defaults, one job per page, naming that matches
 behaviour, data migrations.
 
-### Step 18.1 — Remove task creation from the dashboard
+### Step 18.1 — Turn the dashboard into a Today page with no task input
 
-**What to do.** Remove `QuickAddInbox` and its `QuickCaptureInput` from `DashboardPage`. Keep the
-Inbox count, and turn the Inbox into its own labelled section that lists Inbox tasks and links to
-the Tasks page. Add one "Add task" button on the Tasks page and remove any second add entry point,
-so there is exactly one.
+**Decisions (Kate, 2026-10-06).** The dashboard had no single job: it mixed a completion ring, a
+top-priority panel, status donuts for a selected day, a week strip, today's tasks and completed
+tasks. Kate's words: "I don't see any value and it is not obvious at all what I see and why."
+The page now answers one question, "What do I need to do now?". The status section stays. The
+week strip goes. Tasks can be completed on the page. The navigation label stays "Dashboard" and
+the page itself says "Today". The page uses the existing palette to highlight what matters.
 
-**Why.** Adding a task on a page that does not show tasks is the root of the confusion.
+**What to do.**
 
-**What to expect.** `QuickCaptureInput` is also used elsewhere; remove only the dashboard usage.
-Check that Inbox tasks are counted in the statistics, so the numbers match what the user added.
+1. Remove `QuickAddInbox` and its `QuickCaptureInput` from `DashboardPage`.
+2. Rebuild the page around four blocks, each with a plain title:
+   - A header band titled "Today" with one progress line ("3 of 7 done today"), a progress bar
+     and a message that follows the day. It does not repeat the date.
+   - A main column with a read-only Inbox panel (it lists Inbox tasks and links to the Tasks
+     page) and, under it, "Due today": every task due today, unfinished first, then by
+     priority, completed ones shown ticked. On desktop it shows as many rows as its
+     height allows (measured with `useFittingItemCount`), with previous and next arrows, so
+     the page does not scroll.
+   - A side column with "Today's status" (the three donuts, fixed to today) and "Overdue":
+     tasks due before today that are not completed, oldest first, each showing how late it is.
+     It shows four at a time with previous and next arrows, and is hidden when there are none.
+3. Keep the Top Priority panel (high-priority tasks due today) under the header band; Kate
+   asked for it back. Remove the completion ring, the Completed panel and the week strip.
+4. Let the user mark a task completed, and undo it, from the "Overdue" and "Due today" rows.
+5. Add one "Add task" button to the header band. It navigates to `/tasks` with a location state
+   that opens the add-task form, the same way `openCreateList` opens the list form. There is no
+   add form on the Today page.
+6. On the Tasks page, add one header "Add task" button that opens the add form for the Inbox,
+   and remove the Inbox section's own "+" button. Quick capture and the per-list "+" buttons
+   stay (Kate chose this narrow reading); Step 18.2 turns the form into one with a list picker.
+7. In `TopHeader.tsx`, show the date as "Tuesday, 06 October 2026" in the user's language. Build
+   it from `Intl.DateTimeFormat(...).formatToParts` so the order stays day, month, year in every
+   locale and the month keeps its grammatical form (Ukrainian "06 жовтня 2026").
 
-**What to learn.** A page with one job is easier to understand than a page with two.
+Colour and mood, using only tokens that already exist in `tailwind.config.js`:
+
+- **Header (the mood block).** A dark band (`bg-sidebar`, `text-sidebar-text`) with the title
+  "Today", the progress line and a progress bar in `accent`. Its message follows the day: overdue tasks
+  ("2 overdue — start there"), work left ("4 to go"), or all done. When everything due today is
+  completed, the band switches to `bg-accent` with `text-on-accent`.
+- **Overdue.** The only warning block: a `danger` left border, a light `bg-danger/10` tint and a
+  `text-danger` title.
+- **Due today.** Stays a neutral `surface` card, because it is the working area. Each row gets a
+  left border in its priority colour (`priority-high-bg`, `priority-medium-bg`, `priority-low`),
+  as the Top Priority cards do today.
+- **Today's status.** The donuts keep the `status-complete`, `status-progress` and `status-open`
+  colours.
+- **Inbox.** Icon and count in `notification-dot`, matching the Inbox on the Tasks page.
+- **Add task button.** `accent` with `on-accent` text.
+
+Keep it to two strongly coloured blocks (header and Overdue) so a highlight still means
+something. Do not add colour tokens or hex values; if the palette cannot express a state, stop
+and ask Kate. Check contrast in the light and dark themes.
+
+**Why.** Adding a task on a page that does not show tasks is the root of the first user report,
+and a page that repeats two other pages gives no reason to open it. Overdue tasks were not shown
+anywhere on the dashboard.
+
+**What to expect.** `QuickCaptureInput` is also used in the Inbox section of the Tasks page;
+remove only the dashboard usage. Split the new blocks into their own components instead of
+growing `DashboardPage.tsx`. The date store (`useDateStore`) only served the week strip. The
+statuses still have their old names here; Step 18.4 renames them.
+
+**What to learn.** A page earns its place by answering one question; removing a block is a
+design decision, not a loss.
 
 **Files.** `apps/todo/src/app/component/pages/DashboardPage.tsx`, `DashboardPage.spec.tsx`,
-`apps/todo/src/app/component/pages/TasksPage.tsx`, `TasksPage.spec.tsx`, and the three locale
-files in `apps/todo/src/app/i18n/locales/`.
+`DashboardSkeleton.tsx`, new components under `apps/todo/src/app/component/dashboard/`,
+`apps/todo/src/app/component/pages/TasksPage.tsx`, `TasksPage.spec.tsx`,
+`apps/todo/src/app/component/todo/InboxSection.tsx`, `TodoItem.tsx`,
+`apps/todo/src/app/component/elements/TopHeader.tsx`, small helpers in `apps/todo/src/app/lib/`,
+`apps/todo/src/app/hooks/useTodoListsData.ts`, `apps/todo/src/app/store/dateStore.ts`, their
+specs, and the three locale files in `apps/todo/src/app/i18n/locales/`.
 
-**Not in this step.** Onboarding, scrolling, or changes to how the Inbox stores tasks.
+**Not in this step.** Onboarding, the list picker and form defaults (Step 18.2), scrolling to a
+new task (Step 18.3), editing or deleting tasks on the Today page, or new statistics.
 
-**Done when.** A test asserts the dashboard renders no task input and does render an Inbox
-section; a test asserts the Tasks page has exactly one add-task control; `pnpm nx test todo` passes.
+**Done when.** Tests show: the dashboard renders no task input; an overdue task appears under
+"Overdue" and not under "Due today"; tasks due today are ordered unfinished first, then by
+priority; the progress line and the donuts count the same tasks; completing a task from a row
+calls the toggle with the completed status; the header band shows the overdue, in-progress,
+all-done and empty messages for the matching data; the Inbox panel renders Inbox tasks; the
+"Add task" button navigates to the Tasks page, which opens the add form; the Tasks page has one
+header add-task button and the Inbox section has none; `TopHeader` shows "06 October 2026" for
+6 October 2026 in English. The diff adds no hex colour and no new colour token.
+`pnpm nx test todo` passes. Kate reviews the colours by eye in both themes.
 
-### Step 18.2 — Inbox as the visible default when adding a task
+### Step 18.2 — Sensible defaults in the add-task form: Inbox, priority and today
 
 **What to do.** In the add-task form, show the target list explicitly, with "Inbox" selected by
-default and a short hint such as "No list needed — tasks without a list go to Inbox."
+default and a short hint such as "No list needed — tasks without a list go to Inbox." Show the
+priority and due date fields in the form without opening "More options". Preselect today's date
+and a priority (Medium unless Kate says otherwise), and pass the chosen priority through the
+create call. The form has no priority field today, and the task creation helpers in
+`useTodoListsData.ts` do not accept one.
 
 **Why.** It answers "are lists optional?" at the moment the user is deciding.
 
 **What to learn.** Show the default instead of explaining it later.
 
-**Files.** `apps/todo/src/app/component/todo/` (the add-task form and `MoveToListSelect.tsx`
-if it fits), `apps/todo/src/app/component/pages/TasksPage.tsx`, locale files, and their specs.
+**Files.** `apps/todo/src/app/component/todo/` (the add-task form, `TodoForm.tsx`, and
+`MoveToListSelect.tsx` if it fits), `apps/todo/src/app/hooks/useTodoListsData.ts`,
+`apps/todo/src/app/component/pages/TasksPage.tsx`, locale files, and their specs.
 
 **Not in this step.** Changing the data model or the Inbox API.
 
-**Done when.** A test shows the form defaults to Inbox and a task added without choosing a list
-lands in the Inbox.
+**Done when.** A test shows the form defaults to Inbox, today's date and the default priority,
+and a task added without changing them lands in the Inbox with that date and priority.
 
 ### Step 18.3 — Scroll to and select the task that was just added
 
@@ -705,19 +776,19 @@ affected projects and the production builds pass.
 
 ## Phase 19 — Guided onboarding tour
 
-**Why:** the app does not say what to do first. A new user lands on an empty dashboard with
+**Why:** the app does not say what to do first. A new user lands on an empty home page with
 nothing pointing to the Tasks page or explaining the Inbox. Phase 18 fixes the confusing
-behaviour; this phase adds the guidance. It starts after Phase 18 is done, because the tour
-points at the dashboard Inbox section, the single "Add task" button and the Inbox default.
+behaviour and gives the home page one job; this phase adds the guidance. It starts after it,
+because the tour points at the Today page, its Inbox panel, the single "Add task"
+button and the Inbox default.
 
 **Concepts:** empty states, progressive disclosure, first-run flows.
 
 ### Step 19.1 — Guided onboarding tour
 
-**What to do.** Add a first-run tour with notes and arrows: "This is your dashboard", "This is
+**What to do.** Add a first-run tour with notes and arrows: "This is your Today page", "This is
 where your tasks live", "Create your first task". Show it once to a new user, store that it was
-seen, and add a way to replay it from Help or Settings. A user with no tasks also sees an
-empty-state "Add your first task" button on the dashboard that opens the Tasks page.
+seen, and add a way to replay it from Help or Settings. The tour's last stop is the "Add task" button on the Today page.
 
 **Why.** The app needs to say what to do first. Kate chose a guided tour over a static
 instruction block.

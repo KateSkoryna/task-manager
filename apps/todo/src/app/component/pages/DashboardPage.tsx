@@ -1,632 +1,37 @@
-import { useEffect, useMemo, useState } from 'react';
-import dayjs, { Dayjs } from 'dayjs';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import {
-  ClipboardList,
-  Check,
-  CheckSquare,
-  Flame,
-  Inbox as InboxIcon,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { useMemo } from 'react';
+import dayjs from 'dayjs';
+import { AlertTriangle, ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { TodoItem, TodoList, TodoStatus } from '@shared/types';
+import { TodoItem } from '@shared/types';
 import {
   useTodoListsQuery,
   useInboxTodosQuery,
-  useDeleteTodoMutation,
+  useToggleTodoMutation,
 } from '../../fetchers/api';
-import { useDateStore } from '../../store/dateStore';
-import { useIsCompactScreen } from '../../hooks/useIsCompactScreen';
-import { useFittingItemCount } from '../../hooks/useFittingItemCount';
-import TodoItemComponent from '../todo/TodoItem';
-import QuickCaptureInput from '../todo/QuickCaptureInput';
+import { sortByOrder } from '../../lib/reorder';
+import {
+  daysLate,
+  isCompleted,
+  isDueLater,
+  selectDueToday,
+  selectOverdue,
+  toggledCompletion,
+} from '../../lib/todayTasks';
+import TodayHeader from '../dashboard/TodayHeader';
+import TodayTaskBlock from '../dashboard/TodayTaskBlock';
+import TopPriorityPanel from '../dashboard/TopPriorityPanel';
+import TodayStatusPanel from '../dashboard/TodayStatusPanel';
+import InboxPanel from '../dashboard/InboxPanel';
 import ErrorFallback from '../elements/ErrorFallback';
+import TaskSearch from '../elements/TaskSearch';
 import DashboardSkeleton from './DashboardSkeleton';
 
-// ─── helpers ────────────────────────────────────────────────────────────────
-
-// Upper bound on how many tasks `TodoPanel` will ever measure/render per
-// page — `useFittingItemCount` picks the actual count from this ceiling
-// down to whatever the panel's measured height allows.
-const MAX_TODO_PAGE_SIZE = 8;
-
-function toDateStr(d: Dayjs): string {
-  return d.format('YYYY-MM-DD');
-}
-
-function isToday(d: Dayjs): boolean {
-  return d.isSame(dayjs(), 'day');
-}
-
-function localeFor(language: string): string {
-  if (language === 'de') return 'de-DE';
-  if (language === 'uk') return 'uk-UA';
-  return 'en-US';
-}
-
-// ─── flat item type ──────────────────────────────────────────────────────────
-
-export interface FlatItem extends TodoItem {
-  listCreatedAt: TodoList['createdAt'];
-}
-
-function flattenLists(lists: TodoList[]): FlatItem[] {
-  return lists.flatMap((list) =>
-    list.todos.map((todo) => ({
-      ...todo,
-      listCreatedAt: list.createdAt,
-    }))
-  );
-}
-
-function flattenInbox(todos: TodoItem[]): FlatItem[] {
-  return todos.map((todo) => ({
-    ...todo,
-    listCreatedAt: undefined,
-  }));
-}
-
-const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
-  pending: 'tasks.status_pending',
-  successful: 'tasks.status_successful',
-  failed: 'tasks.status_failed',
-};
-
-const STATUS_TEXT: Record<TodoStatus, string> = {
-  pending: 'text-status-progress',
-  successful: 'text-status-complete',
-  failed: 'text-status-open',
-};
-
-// ─── donut chart ─────────────────────────────────────────────────────────────
-
-function DonutChart({
-  value,
-  total,
-  color,
-  dotColor,
-  label,
-}: {
-  value: number;
-  total: number;
-  color: string;
-  dotColor: string;
-  label: string;
-}) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-  const data = [{ value: pct }, { value: 100 - pct }];
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative h-32 w-32 sm:h-28 sm:w-28">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius="64%"
-              outerRadius="89%"
-              startAngle={90}
-              endAngle={-270}
-              dataKey="value"
-              strokeWidth={0}
-            >
-              <Cell fill={color} />
-              <Cell fill="rgb(var(--color-default))" />
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-primary">
-          {pct}%
-        </span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span
-          className="w-2.5 h-2.5 rounded-full shrink-0"
-          style={{ background: dotColor }}
-        />
-        <span className="text-xs text-muted">{label}</span>
-      </div>
-    </div>
-  );
-}
-
-// ─── completed card ───────────────────────────────────────────────────────────
-
-function CompletedCard({ item }: { item: FlatItem }) {
-  const { t } = useTranslation();
-
-  return (
-    <div className="rounded-xl border border-default bg-surface p-4 h-[5rem] overflow-hidden">
-      <div className="flex items-start gap-3">
-        <div
-          role="img"
-          aria-label={t('dashboard.completed')}
-          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-status-complete ring-2 ring-inset ring-surface"
-        >
-          <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-primary leading-snug">
-            {item.name}
-          </p>
-          <p className="text-xs mt-2 text-muted">
-            {t('dashboard.status')}{' '}
-            <span className="font-medium text-status-complete">
-              {t('dashboard.completed')}
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── panels ──────────────────────────────────────────────────────────────────
-
-function TodoPanel({
-  items,
-  selectedDate,
-  onEditTodo,
-  onDeleteTodo,
-  className = '',
-}: {
-  items: FlatItem[];
-  selectedDate: Dayjs;
-  onEditTodo?: (item: FlatItem) => void;
-  onDeleteTodo?: (item: FlatItem) => void;
-  className?: string;
-}) {
-  const { t } = useTranslation();
-  const isCompact = useIsCompactScreen();
-  // How many tasks fit in the panel's actual available height varies by
-  // screen — a 15" MacBook has room for more rows than a smaller laptop.
-  // Measure it instead of hardcoding a page size.
-  const {
-    containerRef,
-    itemRef,
-    count: pageSize,
-  } = useFittingItemCount(MAX_TODO_PAGE_SIZE);
-  const [page, setPage] = useState(0);
-  const dateKey = toDateStr(selectedDate);
-
-  useEffect(() => {
-    setPage(0);
-  }, [dateKey]);
-
-  const pageCount = Math.ceil(items.length / pageSize);
-  const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
-  const pageItems = isCompact
-    ? items
-    : items.slice(currentPage * pageSize, currentPage * pageSize + pageSize);
-  const hasPrev = !isCompact && currentPage > 0;
-  const hasNext = !isCompact && currentPage < pageCount - 1;
-
-  return (
-    <div
-      className={`${
-        isCompact
-          ? 'bg-surface rounded-xl border border-default p-4 flex flex-col'
-          : 'bg-surface rounded-xl border border-default p-4 flex min-h-0 h-full flex-col'
-      } ${className}`}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-primary">
-          <ClipboardList className="w-5 h-5" />
-          <h3 className="font-bold text-lg leading-none">
-            {t('dashboard.todo')}
-          </h3>
-        </div>
-
-        {!isCompact && (
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(p - 1, 0))}
-              disabled={!hasPrev}
-              aria-label={t('dashboard.previousTasks')}
-              className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
-              disabled={!hasNext}
-              aria-label={t('dashboard.nextTasks')}
-              className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {items.length === 0 ? (
-        <p className="text-muted/60 text-sm flex-1">
-          {t('dashboard.noTasksForDay')}
-        </p>
-      ) : (
-        <div
-          ref={isCompact ? undefined : containerRef}
-          className={
-            isCompact
-              ? 'space-y-3'
-              : 'flex flex-col gap-2 min-h-0 flex-1 overflow-hidden'
-          }
-        >
-          {pageItems.map((item, index) =>
-            isCompact ? (
-              <TodoItemComponent
-                key={item.id}
-                todo={item}
-                onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
-                onDelete={onDeleteTodo ? () => onDeleteTodo(item) : undefined}
-                hideDueDate
-              />
-            ) : (
-              <div
-                key={item.id}
-                ref={index === 0 ? itemRef : undefined}
-                className="shrink-0 overflow-hidden"
-              >
-                <TodoItemComponent
-                  todo={item}
-                  onEdit={onEditTodo ? () => onEditTodo(item) : undefined}
-                  onDelete={onDeleteTodo ? () => onDeleteTodo(item) : undefined}
-                  hideDueDate
-                />
-              </div>
-            )
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TaskStatusPanel({
-  selectedDate,
-  successful,
-  pending,
-  failed,
-  total,
-}: {
-  selectedDate: Dayjs;
-  successful: number;
-  pending: number;
-  failed: number;
-  total: number;
-}) {
-  const { t } = useTranslation();
-  const [weekOffset, setWeekOffset] = useState(0);
-
-  return (
-    <div className="bg-surface rounded-xl border border-default p-4">
-      <div className="flex items-center gap-2 text-primary mb-3">
-        <ClipboardList className="w-5 h-5" />
-        <h3 className="font-bold text-lg leading-none">
-          {t('dashboard.taskStatus')}
-        </h3>
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setWeekOffset((o) => o - 1)}
-            aria-label={t('dashboard.previousWeek')}
-            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setWeekOffset((o) => o + 1)}
-            aria-label={t('dashboard.nextWeek')}
-            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 items-center gap-3 sm:block">
-        <div className="sm:mb-3">
-          <WeekStrip selectedDate={selectedDate} weekOffset={weekOffset} />
-        </div>
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-around">
-          <DonutChart
-            value={successful}
-            total={total}
-            color="rgb(var(--color-status-complete))"
-            dotColor="rgb(var(--color-status-complete))"
-            label={t('dashboard.completed')}
-          />
-          <DonutChart
-            value={pending}
-            total={total}
-            color="rgb(var(--color-status-progress))"
-            dotColor="rgb(var(--color-status-progress))"
-            label={t('dashboard.inProgress')}
-          />
-          <DonutChart
-            value={failed}
-            total={total}
-            color="rgb(var(--color-status-open))"
-            dotColor="rgb(var(--color-status-open))"
-            label={t('dashboard.notStarted')}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CompletedPanel({
-  items,
-  className = '',
-}: {
-  items: FlatItem[];
-  className?: string;
-}) {
-  const { t } = useTranslation();
-  const [page, setPage] = useState(0);
-  const pageCount = Math.ceil(items.length / 2);
-  const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
-  const pageItems = items.slice(currentPage * 2, currentPage * 2 + 2);
-
-  return (
-    <div
-      className={`bg-surface rounded-xl border border-default p-4 flex flex-col ${className}`}
-    >
-      <div className="flex items-center gap-2 text-primary mb-3">
-        <CheckSquare className="w-5 h-5" />
-        <h3 className="font-bold text-lg leading-none">
-          {t('dashboard.completedTask')}
-        </h3>
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(p - 1, 0))}
-            disabled={currentPage <= 0}
-            aria-label={t('dashboard.previousTasks')}
-            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
-            disabled={currentPage >= pageCount - 1}
-            aria-label={t('dashboard.nextTasks')}
-            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-      {pageItems.length === 0 ? (
-        <p className="text-muted/60 text-sm flex-1">
-          {t('dashboard.noCompletedTasks')}
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 content-start flex-1">
-          {pageItems.map((item) => (
-            <CompletedCard key={item.id} item={item} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── daily-focus strip ─────────────────────────────────────────────────────────
-
-function WeekStrip({
-  selectedDate,
-  weekOffset,
-}: {
-  selectedDate: Dayjs;
-  weekOffset: number;
-}) {
-  const { t, i18n } = useTranslation();
-  const setSelectedDate = useDateStore((s) => s.setSelectedDate);
-  const locale = localeFor(i18n.language);
-  const days = Array.from({ length: 7 }, (_, i) =>
-    dayjs().add(weekOffset * 7 + i, 'day')
-  );
-
-  return (
-    <div
-      role="tablist"
-      aria-label={t('dashboard.weekStrip')}
-      className="flex w-full flex-col items-start justify-center gap-1.5 sm:flex-row sm:items-center sm:gap-2"
-    >
-      {days.map((day) => {
-        const selected = day.isSame(selectedDate, 'day');
-        const today = isToday(day);
-        return (
-          <button
-            key={day.format('YYYY-MM-DD')}
-            role="tab"
-            aria-selected={selected}
-            aria-label={day.toDate().toLocaleDateString(locale, {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-            })}
-            onClick={() => setSelectedDate(day)}
-            className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-accent sm:h-11 sm:w-11 ${
-              selected
-                ? 'bg-accent border-accent text-on-accent'
-                : 'bg-surface border-default text-primary hover:border-accent'
-            }`}
-          >
-            <span className="text-[0.625rem] uppercase tracking-wide opacity-70">
-              {day.toDate().toLocaleDateString(locale, { weekday: 'short' })}
-            </span>
-            <span className="text-sm font-bold">{day.format('D')}</span>
-            {today && !selected && (
-              <span
-                aria-hidden="true"
-                className="mt-0.5 h-1 w-1 rounded-full bg-accent"
-              />
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function TodayCompletionRing({
-  successful,
-  pending,
-  total,
-}: {
-  successful: number;
-  pending: number;
-  total: number;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <DonutChart
-        value={successful}
-        total={total}
-        color="rgb(var(--color-status-complete))"
-        dotColor="rgb(var(--color-status-complete))"
-        label={t('dashboard.todayCompletion')}
-      />
-      <div className="flex items-center gap-3 text-xs text-muted">
-        <span>{t('dashboard.todayTasksTotal', { count: total })}</span>
-        <span>{t('dashboard.todayTasksPending', { count: pending })}</span>
-      </div>
-    </div>
-  );
-}
-
-function QuickAddInbox({ inboxCount }: { inboxCount: number }) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-
-  return (
-    <div className="flex flex-col gap-2 flex-1 min-w-0">
-      <button
-        type="button"
-        onClick={() => navigate('/tasks')}
-        className="flex items-center gap-1.5 text-muted shrink-0 hover:text-primary transition-colors"
-      >
-        <InboxIcon className="w-4 h-4" />
-        <span className="text-sm font-medium hover:underline">
-          {t('dashboard.inboxCount', { count: inboxCount })}
-        </span>
-      </button>
-      <QuickCaptureInput
-        inputTestId="dashboard-quick-add-input"
-        submitTestId="dashboard-quick-add-submit"
-        noticeTestId="dashboard-enrichment-notice"
-        undoTestId="dashboard-enrichment-undo"
-      />
-    </div>
-  );
-}
-
-function DailyFocusStrip({
-  todaySuccessful,
-  todayPending,
-  todayTotal,
-  inboxCount,
-}: {
-  todaySuccessful: number;
-  todayPending: number;
-  todayTotal: number;
-  inboxCount: number;
-}) {
-  return (
-    <div className="bg-surface rounded-xl border border-default p-4 flex flex-col lg:flex-row lg:items-center gap-5">
-      <TodayCompletionRing
-        successful={todaySuccessful}
-        pending={todayPending}
-        total={todayTotal}
-      />
-      <div className="hidden lg:block w-px h-14 bg-default" />
-      <QuickAddInbox inboxCount={inboxCount} />
-    </div>
-  );
-}
-
-// ─── top priority panel ─────────────────────────────────────────────────────────
-
-function TopPriorityPanel({ items }: { items: FlatItem[] }) {
-  const { t } = useTranslation();
-  const [page, setPage] = useState(0);
-  const highPriorityItems = items.filter((item) => item.priority === 'high');
-  const pageCount = Math.ceil(highPriorityItems.length / 3);
-  const currentPage = Math.min(page, Math.max(pageCount - 1, 0));
-  const pageItems = highPriorityItems.slice(
-    currentPage * 3,
-    currentPage * 3 + 3
-  );
-
-  return (
-    <div className="bg-surface rounded-xl border border-default p-4">
-      <div className="flex items-center gap-2 text-primary mb-4">
-        <Flame className="w-5 h-5" />
-        <h3 className="font-bold text-lg leading-none">
-          {t('dashboard.topPriority')}
-        </h3>
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(p - 1, 0))}
-            disabled={currentPage <= 0}
-            aria-label={t('dashboard.previousTasks')}
-            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.min(p + 1, pageCount - 1))}
-            disabled={currentPage >= pageCount - 1}
-            aria-label={t('dashboard.nextTasks')}
-            className="flex items-center justify-center p-1 text-muted border border-default rounded-md hover:text-primary hover:border-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-      {pageItems.length === 0 ? (
-        <p className="text-muted/60 text-sm">{t('dashboard.noTopPriority')}</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {pageItems.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-xl border-l-4 border-l-priority-high-bg bg-surface-subtle p-3"
-            >
-              <p className="truncate font-semibold text-primary text-sm leading-snug">
-                {item.name}
-              </p>
-              <p className="text-xs text-muted mt-1.5">
-                {t('dashboard.status')}{' '}
-                <span className={`font-medium ${STATUS_TEXT[item.status]}`}>
-                  {t(STATUS_LABEL_KEYS[item.status])}
-                </span>
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── page ─────────────────────────────────────────────────────────────────────
+// Both task blocks page instead of growing, so the page does not scroll.
+const OVERDUE_PAGE_SIZE = 4;
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     data: todoLists = [],
@@ -642,69 +47,44 @@ function DashboardPage() {
     error: inboxError,
     refetch: refetchInbox,
   } = useInboxTodosQuery();
-  const deleteTodoMutation = useDeleteTodoMutation();
-  const selectedDate = useDateStore((s) => s.selectedDate);
-  const selectedDateStr = toDateStr(selectedDate);
-  const todayStr = toDateStr(dayjs());
+  const toggleTodoMutation = useToggleTodoMutation();
+  const todayStr = dayjs().format('YYYY-MM-DD');
 
   const allItems = useMemo(
-    () => [...flattenLists(todoLists), ...flattenInbox(inboxTodos)],
+    () => [...todoLists.flatMap((list) => list.todos), ...inboxTodos],
     [todoLists, inboxTodos]
   );
 
-  const dateItems = useMemo(
-    () => allItems.filter((item) => item.dueDate?.startsWith(selectedDateStr)),
-    [allItems, selectedDateStr]
-  );
-
-  // Today's completion ring and top-priority panel only count tasks with a
-  // due date of today, independent of whichever day is selected in the strip.
-  const todayItems = useMemo(
-    () => allItems.filter((item) => item.dueDate?.startsWith(todayStr)),
-    [allItems, todayStr]
-  );
-  const todaySuccessful = useMemo(
-    () => todayItems.filter((item) => item.status === 'successful').length,
-    [todayItems]
-  );
-  const todayPending = useMemo(
-    () => todayItems.filter((item) => item.status === 'pending').length,
-    [todayItems]
-  );
-
-  const todoItems = useMemo(
-    () => dateItems.filter((item) => item.status !== 'successful'),
-    [dateItems]
-  );
-
-  const successful = useMemo(
-    () => dateItems.filter((t) => t.status === 'successful').length,
-    [dateItems]
-  );
-  const pending = useMemo(
-    () => dateItems.filter((t) => t.status === 'pending').length,
-    [dateItems]
-  );
-  const failed = useMemo(
-    () => dateItems.filter((t) => t.status === 'failed').length,
-    [dateItems]
-  );
-
-  // Completed tasks always reflect today's completions, independent of
-  // whichever day is selected in the calendar strip — a task can't be
-  // completed ahead of its due date, so "completed" only ever means "today".
-  const completedItems = useMemo(
+  // The Inbox is every task without a list. On this page it leaves out the
+  // ones that are finished or dated for a later day, which are not today's
+  // business. A task due today shows here and under "Due today". Same order
+  // as the Inbox on the Tasks page.
+  const inboxItems = useMemo(
     () =>
-      allItems
-        .filter(
-          (item) =>
-            item.status === 'successful' &&
-            item.completedAt?.startsWith(todayStr)
-        )
-        .sort((a, b) =>
-          (b.completedAt ?? '').localeCompare(a.completedAt ?? '')
-        ),
+      sortByOrder(inboxTodos).filter(
+        (todo) => !isCompleted(todo) && !isDueLater(todo, todayStr)
+      ),
+    [inboxTodos, todayStr]
+  );
+
+  const overdueItems = useMemo(
+    () => selectOverdue(allItems, todayStr),
     [allItems, todayStr]
+  );
+  const todayItems = useMemo(
+    () => selectDueToday(allItems, todayStr),
+    [allItems, todayStr]
+  );
+
+  // The header's progress line and the status donuts count the same tasks:
+  // the ones due today.
+  const statusCounts = useMemo(
+    () => ({
+      completed: todayItems.filter(isCompleted).length,
+      inProgress: todayItems.filter((item) => item.status === 'pending').length,
+      notStarted: todayItems.filter((item) => item.status === 'failed').length,
+    }),
+    [todayItems]
   );
 
   if (isTodoListsLoading || isInboxLoading) {
@@ -724,42 +104,77 @@ function DashboardPage() {
     );
   }
 
+  function handleToggle(item: TodoItem) {
+    toggleTodoMutation.mutate({ id: item.id, ...toggledCompletion(item) });
+  }
+
+  function handleOpen(item: TodoItem) {
+    navigate('/tasks', {
+      state: { todoId: item.id, listId: item.todolistId },
+    });
+  }
+
+  function lateLabel(item: TodoItem) {
+    const days = daysLate(item, todayStr);
+    return days === 1
+      ? t('dashboard.relativeDayAgo')
+      : t('dashboard.relativeDaysAgo', { count: days });
+  }
+
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <DailyFocusStrip
-        todaySuccessful={todaySuccessful}
-        todayPending={todayPending}
-        todayTotal={todayItems.length}
-        inboxCount={inboxTodos.length}
+    <div className="flex flex-col gap-4 lg:h-full">
+      <TaskSearch inputTestId="dashboard-search" className="lg:hidden" />
+      <TodayHeader
+        done={statusCounts.completed}
+        total={todayItems.length}
+        overdue={overdueItems.length}
+        onAddTask={() => navigate('/tasks', { state: { openAddTask: true } })}
       />
 
-      <TopPriorityPanel items={todayItems} />
+      <TopPriorityPanel items={todayItems} onOpen={handleOpen} />
 
-      <div className="grid min-h-0 grid-cols-1 lg:grid-cols-5 gap-4 flex-1">
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <TaskStatusPanel
-            selectedDate={selectedDate}
-            successful={successful}
-            pending={pending}
-            failed={failed}
-            total={dateItems.length}
+      {/* On desktop the grid takes the height left above it, so "Due today"
+          can measure how many rows fit instead of making the page scroll. */}
+      <div className="grid grid-cols-1 gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-5 lg:grid-rows-[minmax(0,1fr)]">
+        <div className="flex flex-col gap-4 lg:col-span-3 lg:min-h-0">
+          <InboxPanel
+            items={inboxItems}
+            onViewAll={() => navigate('/tasks')}
+            onOpen={handleOpen}
           />
-          <CompletedPanel items={completedItems} className="flex-1 min-h-0" />
+          <TodayTaskBlock
+            title={t('dashboard.dueTodayTitle')}
+            icon={<ClipboardList className="h-5 w-5" />}
+            items={todayItems}
+            emptyMessage={t('dashboard.moodEmpty')}
+            pageSize="fit"
+            className="lg:min-h-64 lg:flex-1"
+            onToggle={handleToggle}
+            onOpen={handleOpen}
+            dataTestId="today-due"
+          />
         </div>
 
-        <TodoPanel
-          className="lg:col-span-3"
-          items={todoItems}
-          selectedDate={selectedDate}
-          onEditTodo={(item) =>
-            navigate('/tasks', {
-              state: { todoId: item.id, listId: item.todolistId },
-            })
-          }
-          onDeleteTodo={(item) =>
-            deleteTodoMutation.mutate({ id: item.id, image: item.image })
-          }
-        />
+        <div className="flex flex-col gap-4 lg:col-span-2 lg:min-h-0">
+          <TodayStatusPanel {...statusCounts} total={todayItems.length} />
+          {overdueItems.length > 0 && (
+            <TodayTaskBlock
+              title={t('dashboard.overdueTitle')}
+              icon={<AlertTriangle className="h-5 w-5" />}
+              tone="danger"
+              items={overdueItems}
+              pageSize={OVERDUE_PAGE_SIZE}
+              onToggle={handleToggle}
+              onOpen={handleOpen}
+              renderMeta={(item) => (
+                <span className="shrink-0 text-xs font-semibold text-danger">
+                  {lateLabel(item)}
+                </span>
+              )}
+              dataTestId="today-overdue"
+            />
+          )}
+        </div>
       </div>
     </div>
   );

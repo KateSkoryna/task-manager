@@ -14,6 +14,8 @@ import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { computeReorder } from '../../lib/reorder';
 import { mergeClassNames } from '../../lib/classNames';
 import TodoListForm from '../todo/TodoListForm';
+import TodoForm from '../todo/TodoForm';
+import Card from '../elements/Card';
 import TodoLists from '../todo/TodoLists';
 import InboxSection from '../todo/InboxSection';
 import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
@@ -40,6 +42,7 @@ type LocationState = {
   todoId?: string;
   listId?: string;
   openCreateList?: boolean;
+  openAddTask?: boolean;
 } | null;
 
 type ViewMode = 'grouped' | 'flat';
@@ -69,6 +72,7 @@ function TasksPage() {
   } = useTodoListsData();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showAddTaskForm, setShowAddTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grouped');
@@ -155,9 +159,44 @@ function TasksPage() {
     createListStateHandled.current = true;
   }, [locationState]);
 
+  // Open the add-task form when the Today page's "Add task" button sent the
+  // user here. Keyed on the navigation, like the task selection above, so
+  // clicking that button again reopens a form the user has since closed.
+  const lastAddTaskKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      !locationState?.openAddTask ||
+      lastAddTaskKey.current === location.key
+    ) {
+      return;
+    }
+    setShowAddTaskForm(true);
+    setShowCreateForm(false);
+    lastAddTaskKey.current = location.key;
+  }, [locationState, location.key]);
+
   function handleCreateListSubmit(name: string, opts?: CreateListOpts) {
     handleCreateList(name, opts);
     setShowCreateForm(false);
+  }
+
+  // Only one of the two header forms is open at a time.
+  function toggleAddTaskForm() {
+    setShowAddTaskForm((v) => !v);
+    setShowCreateForm(false);
+  }
+
+  function toggleCreateForm() {
+    setShowCreateForm((v) => !v);
+    setShowAddTaskForm(false);
+  }
+
+  function handleAddTaskSubmit(
+    name: string,
+    opts?: Parameters<typeof handleAddInboxTodo>[1]
+  ) {
+    handleAddInboxTodo(name, opts);
+    setShowAddTaskForm(false);
   }
 
   function handleSelectTodo(todo: TodoItem, list: TodoList | null) {
@@ -268,14 +307,27 @@ function TasksPage() {
               value={viewMode}
               onChange={setViewMode}
             />
-            <Button
-              variant="primary"
-              onClick={() => setShowCreateForm((v) => !v)}
-            >
-              <Plus className="w-4 h-4" />
-              {t('tasks.newList')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="primary"
+                onClick={toggleAddTaskForm}
+                dataTestId="add-task-button"
+              >
+                <Plus className="w-4 h-4" />
+                {t('todoList.addTask')}
+              </Button>
+              <Button variant="primary" onClick={toggleCreateForm}>
+                <Plus className="w-4 h-4" />
+                {t('tasks.newList')}
+              </Button>
+            </div>
           </div>
+
+          {showAddTaskForm && (
+            <Card variant="nested" className="mt-4">
+              <TodoForm onAddTodo={handleAddTaskSubmit} />
+            </Card>
+          )}
 
           {showCreateForm && (
             <div className="mt-4">
@@ -292,7 +344,6 @@ function TasksPage() {
             <>
               <InboxSection
                 todos={inboxTodos}
-                onAddTodo={handleAddInboxTodo}
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={(todo) => handleSelectTodo(todo, null)}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}

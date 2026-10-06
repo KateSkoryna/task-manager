@@ -1,22 +1,26 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, Bell, Loader2, Menu } from 'lucide-react';
+import { CSSProperties, RefObject, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useHeaderTaskSearch } from '../../hooks/useHeaderTaskSearch';
 import { useNotificationStore } from '../../store/notificationStore';
 import { mergeClassNames } from '../../lib/classNames';
+import AppLogo from './AppLogo';
 import IconButton from './IconButton';
-import SearchInput from './SearchInput';
+import TaskSearch from './TaskSearch';
 import { MOBILE_DRAWER_ID } from './MobileDrawer';
+import bgImage from '../../../assets/bg.webp';
 
-const ROUTE_TITLE_KEYS: Record<string, string> = {
-  '/': 'nav.dashboard',
-  '/vital': 'nav.vitalTasks',
-  '/tasks': 'nav.myTasks',
-  '/statistics': 'nav.statistics',
-  '/reports': 'nav.reports',
-  '/settings': 'nav.settings',
-  '/help': 'nav.help',
+const APP_NAME = 'TaskPal';
+
+// The same pattern the login and register pages use as their page
+// background. The image is light grey line art on white, so it is multiplied
+// with the header's own surface colour: the white drops out and only the
+// lines remain, in the light and the dark theme alike.
+const HEADER_PATTERN_STYLE: CSSProperties = {
+  backgroundImage: `url(${bgImage})`,
+  backgroundRepeat: 'repeat',
+  backgroundSize: '800px',
+  backgroundBlendMode: 'multiply',
 };
 
 const LOCALE_MAP: Record<string, string> = {
@@ -24,6 +28,24 @@ const LOCALE_MAP: Record<string, string> = {
   de: 'de-DE',
   uk: 'uk-UA',
 };
+
+/**
+ * "Tuesday, 06 October 2026". Assembled from parts rather than taken from
+ * the locale's own long format so the order stays day, month, year in every
+ * language (en-US would put the month first) while the month name keeps the
+ * grammatical form it has next to a day number (Ukrainian "жовтня").
+ */
+export function formatHeaderDate(date: Date, locale: string): string {
+  const parts = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? '';
+  return `${part('weekday')}, ${part('day')} ${part('month')} ${part('year')}`;
+}
 
 type TopHeaderProps = {
   onOpenMenu?: () => void;
@@ -39,28 +61,7 @@ function TopHeader({
   className,
 }: TopHeaderProps) {
   const { t, i18n } = useTranslation();
-  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const titleKey = pathname.startsWith('/reports/')
-    ? 'nav.reports'
-    : ROUTE_TITLE_KEYS[pathname] ?? 'nav.dashboard';
-  const title = t(titleKey);
-
-  const { query, setQuery, status, matches, clear } = useHeaderTaskSearch();
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const isSearchOpen = query.trim().length > 0;
-
-  useEffect(() => {
-    if (!isSearchOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!searchContainerRef.current?.contains(event.target as Node)) {
-        clear();
-      }
-    };
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSearchOpen]);
 
   const notifications = useNotificationStore((s) => s.notifications);
   const markNotificationRead = useNotificationStore((s) => s.markRead);
@@ -83,12 +84,7 @@ function TopHeader({
     LOCALE_MAP[i18n.language] ??
     LOCALE_MAP[i18n.language.split('-')[0]] ??
     'en-US';
-  const today = new Date();
-  const dayName = today.toLocaleDateString(locale, { weekday: 'long' });
-  const day = String(today.getDate()).padStart(2, '0');
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const year = today.getFullYear();
-  const dateStr = `${day}/${month}/${year}`;
+  const headerDate = formatHeaderDate(new Date(), locale);
 
   return (
     <header
@@ -96,6 +92,7 @@ function TopHeader({
         'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5',
         className
       )}
+      style={HEADER_PATTERN_STYLE}
     >
       {onOpenMenu && (
         <IconButton
@@ -111,78 +108,21 @@ function TopHeader({
         </IconButton>
       )}
 
+      <AppLogo className="size-10" />
       <div className="min-w-0">
         <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">
-          {title}
+          {APP_NAME}
         </h2>
-        <p className="truncate font-mono text-small text-muted">
-          {dayName}, {dateStr}
-        </p>
+        <p className="truncate font-mono text-small text-muted">{headerDate}</p>
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <IconButton ariaLabel={t('header.search')} className="lg:hidden">
-          <Search className="size-4" />
-        </IconButton>
-        <div
-          ref={searchContainerRef}
-          className="relative hidden lg:block lg:w-search-desktop"
-        >
-          <SearchInput
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') clear();
-            }}
-            placeholder={t('header.searchPlaceholder')}
-            ariaLabel={t('header.search')}
-            inputTestId="header-search"
-          />
-
-          {isSearchOpen && (
-            <ul
-              role="listbox"
-              aria-label={t('header.search')}
-              className="absolute z-10 mt-1 w-full list-none overflow-hidden rounded-inner border-2 border-default bg-surface p-0 shadow-menu"
-            >
-              {status === 'loading' && (
-                <li className="flex items-center gap-2 px-3 py-2 text-sm text-muted">
-                  <Loader2 className="size-4 animate-spin" />
-                  {t('header.searchLoading')}
-                </li>
-              )}
-              {status === 'error' && (
-                <li className="px-3 py-2 text-sm text-danger">
-                  {t('header.searchError')}
-                </li>
-              )}
-              {status === 'success' && matches.length === 0 && (
-                <li className="px-3 py-2 text-sm text-muted">
-                  {t('header.searchNoResults')}
-                </li>
-              )}
-              {status === 'success' &&
-                matches.map((match) => (
-                  <li key={match.id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={false}
-                      onClick={() => {
-                        navigate('/tasks', {
-                          state: { todoId: match.id, listId: match.todolistId },
-                        });
-                        clear();
-                      }}
-                      className="w-full truncate px-3 py-2 text-left text-sm text-primary hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none"
-                    >
-                      {match.name}
-                    </button>
-                  </li>
-                ))}
-            </ul>
-          )}
-        </div>
+        {/* Below `lg` there is no room for the search box here; the
+            dashboard shows it in its own content instead. */}
+        <TaskSearch
+          inputTestId="header-search"
+          className="hidden lg:block lg:w-search-desktop"
+        />
         <div className="relative" ref={notificationsContainerRef}>
           <IconButton
             ariaLabel={t('header.notifications')}
