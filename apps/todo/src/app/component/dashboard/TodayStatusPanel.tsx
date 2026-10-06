@@ -26,7 +26,10 @@ function DonutChart({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative h-28 w-28">
+      {/* The chart is one Tab stop: the library would otherwise make both
+          its surface and the ring inside it focusable. The remaining focus
+          outline is drawn round, in the palette's highlight colour. */}
+      <div className="relative h-28 w-28 [&_svg:focus-visible]:outline [&_svg:focus-visible]:outline-2 [&_svg:focus-visible]:outline-priority-high-bg [&_svg]:rounded-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -40,6 +43,7 @@ function DonutChart({
               dataKey="value"
               strokeWidth={0}
               isAnimationActive={animate}
+              rootTabIndex={-1}
             >
               <Cell fill={color} />
               <Cell fill="rgb(var(--color-default))" />
