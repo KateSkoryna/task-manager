@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { TodoList } from '@shared/types';
 import { FlatSort, ListSort } from '../lib/sortTasks';
 
-export type TasksViewMode = 'grouped' | 'flat';
+export type TasksViewMode = 'grouped' | 'flat' | 'archived';
 
 interface ListViewState {
   /** Only lists the user has toggled; the rest use the default below. */
