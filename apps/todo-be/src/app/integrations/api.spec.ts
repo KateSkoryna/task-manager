@@ -598,6 +598,7 @@ describe('Nest API parity', () => {
         deliveryHour: 9,
         tone: 'neutral',
         aiConsent: false,
+        autoArchive: 'never',
       });
     });
 
@@ -668,6 +669,7 @@ describe('Nest API parity', () => {
         deliveryHour: 9,
         tone: 'direct',
         aiConsent: false,
+        autoArchive: 'never',
       });
     });
   });

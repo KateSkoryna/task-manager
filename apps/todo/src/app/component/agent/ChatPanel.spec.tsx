@@ -20,6 +20,7 @@ const FAKE_USER: User = {
     deliveryHour: 9,
     tone: 'neutral',
     aiConsent: true,
+    autoArchive: 'never',
   },
   telegramLinked: false,
 };

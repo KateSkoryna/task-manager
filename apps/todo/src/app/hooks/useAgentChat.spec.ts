@@ -107,6 +107,7 @@ describe('useAgentChat', () => {
           deliveryHour: 9,
           tone: 'neutral',
           aiConsent: true,
+          autoArchive: 'never',
         },
         telegramLinked: false,
       },

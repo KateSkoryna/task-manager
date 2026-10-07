@@ -10,6 +10,7 @@ const PREFERENCES: UserPreferences = {
   deliveryHour: 9,
   tone: 'neutral',
   aiConsent: false,
+  autoArchive: 'never',
 };
 
 const usePreferences = jest.fn();
@@ -119,6 +120,25 @@ describe('SettingsPage', () => {
       )
     );
     expect(screen.getByTestId('settings-saved-message')).toBeInTheDocument();
+  });
+
+  it('saves the auto-archive choice', async () => {
+    render(<SettingsPage />);
+
+    await userEvent.click(screen.getByLabelText('settings.autoArchive'));
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'settings.autoArchive_sixMonths',
+      })
+    );
+    await userEvent.click(screen.getByTestId('settings-save-button'));
+
+    await waitFor(() =>
+      expect(updatePreferences).toHaveBeenCalledWith(
+        expect.objectContaining({ autoArchive: 'sixMonths' }),
+        expect.any(Object)
+      )
+    );
   });
 
   it('shows an error and keeps the entered values when saving fails', async () => {
