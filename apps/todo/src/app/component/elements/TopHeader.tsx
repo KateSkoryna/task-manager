@@ -90,7 +90,7 @@ function TopHeader({
   return (
     <header
       className={mergeClassNames(
-        'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5',
+        'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-4 py-3 md:gap-4 md:py-4 lg:py-5',
         className
       )}
       style={HEADER_PATTERN_STYLE}

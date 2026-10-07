@@ -17,13 +17,13 @@ function SidebarSkeleton() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-1 px-3 py-4">
+      <div className="flex-1 space-y-1 px-2 py-4">
         {Array.from({ length: NAV_ITEM_COUNT }).map((_, i) => (
           <Skeleton key={i} className="h-11 w-full bg-sidebar-text/10" />
         ))}
       </div>
 
-      <div className="px-3 pb-6">
+      <div className="px-2 pb-6">
         <Skeleton className="h-11 w-full bg-sidebar-text/10" />
       </div>
     </div>
