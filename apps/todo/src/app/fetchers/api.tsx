@@ -68,7 +68,7 @@ export const useInboxTodosQuery = ({ includeArchived }: ArchiveOption = {}) => {
 };
 
 export const useReportsQuery = (
-  period: ReportPeriod,
+  period: ReportPeriod | 'all',
   sort: 'asc' | 'desc' = 'desc'
 ) => {
   const user = useAuthStore((s) => s.user);

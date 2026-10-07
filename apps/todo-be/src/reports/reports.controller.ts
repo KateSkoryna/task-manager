@@ -67,7 +67,7 @@ export class ReportsController {
   @ApiQuery({
     name: 'period',
     required: false,
-    enum: ['weekly', 'monthly', 'yearly'],
+    enum: ['weekly', 'monthly', 'yearly', 'all'],
   })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'cursor', required: false })
@@ -84,7 +84,7 @@ export class ReportsController {
   })
   findAll(
     @CurrentUser() user: AuthenticatedUser,
-    @Query('period', ReportPeriodPipe) period: ReportPeriod,
+    @Query('period', ReportPeriodPipe) period: ReportPeriod | 'all',
     @Query('limit', new DefaultValuePipe(DEFAULT_PAGE_SIZE), ParseIntPipe)
     limit: number,
     @Query('cursor') cursor?: string,
@@ -99,17 +99,26 @@ export class ReportsController {
     }
     const sortDirection = sort as 'asc' | 'desc' | undefined;
 
+    // A cursor is the last report's period start. Across all periods two
+    // reports can share a start, so that cursor also carries the report id.
     let before: Date | undefined;
+    let beforeId: string | undefined;
     if (cursor !== undefined) {
-      before = new Date(cursor);
-      if (Number.isNaN(before.getTime())) {
+      const [start, id] = cursor.split('_');
+      before = new Date(start);
+      if (
+        Number.isNaN(before.getTime()) ||
+        (id !== undefined && !/^[0-9a-f]{24}$/i.test(id))
+      ) {
         throw new BadRequestException({ message: 'Invalid cursor' });
       }
+      beforeId = id;
     }
 
     return this.reportsService.list(user.id, period, {
       limit: Math.min(limit, MAX_PAGE_SIZE),
       before,
+      beforeId,
       sort: sortDirection,
     });
   }
