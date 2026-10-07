@@ -15,6 +15,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   deliveryHour: 9,
   tone: 'neutral',
   aiConsent: false,
+  autoArchive: 'never',
 };
 
 const getPreferencesFetcher = jest.fn();

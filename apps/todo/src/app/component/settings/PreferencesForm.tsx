@@ -3,6 +3,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import {
+  AUTO_ARCHIVE_OPTIONS,
+  AutoArchive,
   MAX_DELIVERY_HOUR,
   MIN_DELIVERY_HOUR,
   REPORT_CADENCES,
@@ -44,7 +46,8 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<UserPreferencesUpdate>({
     resolver: zodResolver(userPreferencesUpdateSchema),
     defaultValues: {
@@ -56,6 +59,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       deliveryHour: preferences.deliveryHour,
       tone: preferences.tone,
       aiConsent: preferences.aiConsent,
+      autoArchive: preferences.autoArchive,
     },
   });
 
@@ -67,6 +71,11 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
   const toneOptions: DropdownOption<ReportTone>[] = REPORT_TONES.map(
     (value) => ({ value, label: t(`settings.tone_${value}`) })
   );
+  const autoArchiveOptions: DropdownOption<AutoArchive>[] =
+    AUTO_ARCHIVE_OPTIONS.map((value) => ({
+      value,
+      label: t(`settings.autoArchive_${value}`),
+    }));
   const hourFormatter = useMemo(
     () => new Intl.DateTimeFormat(i18n.language, { hour: 'numeric' }),
     [i18n.language]
@@ -80,7 +89,11 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
     setSaveError(false);
     setSaved(false);
     onSave(data, {
-      onSuccess: () => setSaved(true),
+      onSuccess: () => {
+        // The saved values become the new baseline, so Save goes inactive.
+        reset(data);
+        setSaved(true);
+      },
       onError: () => setSaveError(true),
     });
   };
@@ -96,7 +109,10 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
       </h2>
       <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label htmlFor="settings-timezone" className="text-primary font-medium">
+          <label
+            htmlFor="settings-timezone"
+            className="text-primary font-medium"
+          >
             {t('settings.timezone')}
           </label>
           <Controller
@@ -125,7 +141,10 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="settings-cadence" className="text-primary font-medium">
+          <label
+            htmlFor="settings-cadence"
+            className="text-primary font-medium"
+          >
             {t('settings.reportCadence')}
           </label>
           <Controller
@@ -196,6 +215,33 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
         </div>
 
         <div className="flex flex-col gap-1 md:col-span-2">
+          <label
+            htmlFor="settings-auto-archive"
+            className="text-primary font-medium"
+          >
+            {t('settings.autoArchive')}
+          </label>
+          <Controller
+            name="autoArchive"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                id="settings-auto-archive"
+                ariaLabel={t('settings.autoArchive')}
+                value={field.value ?? 'never'}
+                onChange={(value) => field.onChange(value ?? 'never')}
+                options={autoArchiveOptions}
+                placeholder={t('settings.autoArchive')}
+                data-testid="settings-auto-archive"
+              />
+            )}
+          />
+          <p className="text-sm text-muted">
+            {t('settings.autoArchiveDescription')}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1 md:col-span-2">
           <Controller
             name="aiConsent"
             control={control}
@@ -217,7 +263,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
           <Button
             type="submit"
             variant="primary"
-            disabled={isSaving}
+            disabled={isSaving || !isDirty}
             dataTestId="settings-save-button"
           >
             {isSaving ? t('settings.saving') : t('settings.save')}
@@ -232,7 +278,10 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
           )}
         </div>
         {saveError && (
-          <p className="text-danger text-sm md:col-span-2" data-testid="settings-save-error">
+          <p
+            className="text-danger text-sm md:col-span-2"
+            data-testid="settings-save-error"
+          >
             {t('settings.saveError')}
           </p>
         )}

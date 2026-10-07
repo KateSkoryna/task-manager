@@ -4,10 +4,18 @@ import { DEFAULT_TIMEZONE, isValidTimezone } from './datetime';
 
 export const REPORT_CADENCES = ['daily', 'weekly', 'monthly', 'off'] as const;
 export const REPORT_TONES = ['neutral', 'encouraging', 'direct'] as const;
+/** How long a completed task stays before it is archived automatically. */
+export const AUTO_ARCHIVE_OPTIONS = [
+  'never',
+  'month',
+  'sixMonths',
+  'year',
+] as const;
 export const SUPPORTED_LOCALES = ['en', 'de', 'uk'] as const;
 
 export type ReportCadence = (typeof REPORT_CADENCES)[number];
 export type ReportTone = (typeof REPORT_TONES)[number];
+export type AutoArchive = (typeof AUTO_ARCHIVE_OPTIONS)[number];
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const MIN_DELIVERY_HOUR = 0;
@@ -42,6 +50,7 @@ const preferenceFields = {
    * off, and every Gemini call in the agent is gated on it.
    */
   aiConsent: z.boolean(),
+  autoArchive: z.enum(AUTO_ARCHIVE_OPTIONS),
 };
 
 export const userPreferencesSchema = z.object({
@@ -51,6 +60,7 @@ export const userPreferencesSchema = z.object({
   deliveryHour: preferenceFields.deliveryHour.default(9),
   tone: preferenceFields.tone.default('neutral'),
   aiConsent: preferenceFields.aiConsent.default(false),
+  autoArchive: preferenceFields.autoArchive.default('never'),
 });
 
 export const userPreferencesUpdateSchema = z

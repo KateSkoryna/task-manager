@@ -1,5 +1,6 @@
 import { Schema, model, models, Document, Model, Types } from 'mongoose';
 import {
+  AUTO_ARCHIVE_OPTIONS,
   DEFAULT_USER_PREFERENCES,
   REPORT_CADENCES,
   REPORT_TONES,
@@ -49,6 +50,11 @@ const preferencesSchema = new Schema<UserPreferences>(
       default: DEFAULT_USER_PREFERENCES.tone,
     },
     aiConsent: { type: Boolean, default: DEFAULT_USER_PREFERENCES.aiConsent },
+    autoArchive: {
+      type: String,
+      enum: AUTO_ARCHIVE_OPTIONS as unknown as string[],
+      default: DEFAULT_USER_PREFERENCES.autoArchive,
+    },
   },
   { _id: false }
 );

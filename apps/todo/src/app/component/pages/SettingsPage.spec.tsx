@@ -10,6 +10,7 @@ const PREFERENCES: UserPreferences = {
   deliveryHour: 9,
   tone: 'neutral',
   aiConsent: false,
+  autoArchive: 'never',
 };
 
 const usePreferences = jest.fn();
@@ -119,6 +120,43 @@ describe('SettingsPage', () => {
       )
     );
     expect(screen.getByTestId('settings-saved-message')).toBeInTheDocument();
+  });
+
+  it('saves the auto-archive choice', async () => {
+    render(<SettingsPage />);
+
+    await userEvent.click(screen.getByLabelText('settings.autoArchive'));
+    await userEvent.click(
+      await screen.findByRole('button', {
+        name: 'settings.autoArchive_sixMonths',
+      })
+    );
+    await userEvent.click(screen.getByTestId('settings-save-button'));
+
+    await waitFor(() =>
+      expect(updatePreferences).toHaveBeenCalledWith(
+        expect.objectContaining({ autoArchive: 'sixMonths' }),
+        expect.any(Object)
+      )
+    );
+  });
+
+  it('enables Save only while there is an unsaved change', async () => {
+    updatePreferences.mockImplementation((_data, options) =>
+      options?.onSuccess?.()
+    );
+    render(<SettingsPage />);
+    const save = screen.getByTestId('settings-save-button');
+    expect(save).toBeDisabled();
+
+    await userEvent.click(screen.getByLabelText('settings.tone'));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'settings.tone_direct' })
+    );
+    expect(save).toBeEnabled();
+
+    await userEvent.click(save);
+    await waitFor(() => expect(save).toBeDisabled());
   });
 
   it('shows an error and keeps the entered values when saving fails', async () => {

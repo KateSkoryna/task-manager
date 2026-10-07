@@ -17,6 +17,7 @@ describe('user preferences', () => {
       deliveryHour: 9,
       tone: 'neutral',
       aiConsent: false,
+      autoArchive: 'never',
     });
   });
 
