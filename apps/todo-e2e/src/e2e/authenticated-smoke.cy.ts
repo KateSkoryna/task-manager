@@ -21,7 +21,9 @@ describe('Authenticated todo smoke flow', () => {
       .as('createdList');
 
     cy.get('@createdList').within(() => {
-      cy.contains('button', 'Add Task').click();
+      // A new list has no tasks, so it starts collapsed; the header "+"
+      // expands it and opens the form.
+      cy.get('button[aria-label="Add Task"]').click();
       cy.get('[data-testid="todo-form-input"]').type(todoName);
       cy.get('[data-testid="todo-form-submit-button"]').click();
       cy.contains('div[data-testid^="todo-item-"]', todoName).should(

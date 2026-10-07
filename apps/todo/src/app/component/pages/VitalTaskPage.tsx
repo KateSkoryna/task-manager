@@ -4,8 +4,13 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, TodoList } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
+import { useListSortOptions } from '../../hooks/useListSortOptions';
+import { sortLists } from '../../lib/sortTasks';
+import { useListViewStore } from '../../store/listViewStore';
 import { mergeClassNames } from '../../lib/classNames';
 import TodoLists from '../todo/TodoLists';
+import SortMenu from '../todo/SortMenu';
+import CollapseAllButton from '../todo/CollapseAllButton';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import PomodoroTimer from '../todo/PomodoroTimer';
@@ -41,6 +46,9 @@ function VitalTaskPage() {
 
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
   const [showAddTaskForm, setShowAddTaskForm] = useState(false);
+  const listSort = useListViewStore((state) => state.vitalListSort);
+  const setListSort = useListViewStore((state) => state.setVitalListSort);
+  const listSortOptions = useListSortOptions();
 
   // Open the add-task form when the Today page's "Add task" button sent the
   // user here. Keyed on the navigation, so clicking that button again
@@ -67,12 +75,17 @@ function VitalTaskPage() {
 
   // Vital Tasks is a working view of what's still actionable — done tasks
   // stay visible on the regular Tasks page, not here.
-  const vitalLists = todoLists
-    ?.filter((l) => l.priority === 'high')
-    .map((list) => ({
-      ...list,
-      todos: list.todos.filter((todo) => todo.status === 'pending'),
-    }));
+  const vitalLists =
+    todoLists &&
+    sortLists(
+      todoLists
+        .filter((l) => l.priority === 'high')
+        .map((list) => ({
+          ...list,
+          todos: list.todos.filter((todo) => todo.status === 'pending'),
+        })),
+      listSort
+    );
 
   function handleSelectTodo(todo: TodoItem, list: TodoList) {
     setSelectedTask((prev) =>
@@ -118,7 +131,13 @@ function VitalTaskPage() {
         )}
       >
         <div className="pb-4">
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-2">
+            <SortMenu
+              value={listSort}
+              onChange={setListSort}
+              options={listSortOptions}
+            />
+            <CollapseAllButton lists={vitalLists ?? []} />
             <Button
               variant="primary"
               onClick={() => setShowAddTaskForm((v) => !v)}

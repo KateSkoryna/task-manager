@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import {
+  initialListViewState,
+  useListViewStore,
+} from '../../store/listViewStore';
 import VitalTaskPage from './VitalTaskPage';
 import type { TodoList } from '@shared/types';
 
@@ -46,6 +50,7 @@ jest.mock('../../hooks/useTodoListsData', () => ({
 
 describe('VitalTaskPage', () => {
   beforeEach(() => {
+    useListViewStore.setState(initialListViewState);
     useTodoListsData.mockReturnValue({
       todoLists: [vitalList],
       isLoading: false,
@@ -108,5 +113,39 @@ describe('VitalTaskPage', () => {
       </MemoryRouter>
     );
     expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
+  });
+
+  test('has a sort menu and a collapse-all button for the lists', async () => {
+    render(
+      <MemoryRouter>
+        <VitalTaskPage />
+      </MemoryRouter>
+    );
+    expect(screen.getByLabelText('tasks.sortBy')).toBeInTheDocument();
+    expect(screen.getByTestId('todo-item-t1')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('toggle-all-lists'));
+    expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('toggle-all-lists'));
+    expect(screen.getByTestId('todo-item-t1')).toBeInTheDocument();
+  });
+
+  test('keeps lists collapsed when the page is shown again', async () => {
+    const first = render(
+      <MemoryRouter>
+        <VitalTaskPage />
+      </MemoryRouter>
+    );
+    await userEvent.click(screen.getByTestId('toggle-all-lists'));
+    expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
+    first.unmount();
+
+    render(
+      <MemoryRouter>
+        <VitalTaskPage />
+      </MemoryRouter>
+    );
+    expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
   });
 });

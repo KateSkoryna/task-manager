@@ -14,6 +14,7 @@ import Text from '../elements/Text';
 import Badge from '../elements/Badge';
 import Card from '../elements/Card';
 import { sortByOrder } from '../../lib/reorder';
+import { isListExpanded, useListViewStore } from '../../store/listViewStore';
 import dayjs from 'dayjs';
 
 type NewTodoOpts = {
@@ -58,7 +59,12 @@ function TodoList({
   onMoveTodo,
 }: TodoListProps) {
   const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Remembered across page switches; a list nobody toggled yet starts
+  // expanded only if it has tasks (so empty default lists start collapsed).
+  const isExpanded = useListViewStore((state) =>
+    isListExpanded(state.expandedByList, todoList)
+  );
+  const setListExpanded = useListViewStore((state) => state.setListExpanded);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
 
@@ -87,7 +93,7 @@ function TodoList({
       <div className="px-4 py-3 bg-default border-b border-surface">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsExpanded((v) => !v)}
+            onClick={() => setListExpanded(todoList.id, !isExpanded)}
             className="flex items-center justify-center p-1.5 text-notification-dot hover:text-primary transition-colors shrink-0"
             aria-label={isExpanded ? 'Collapse' : 'Expand'}
           >
@@ -118,7 +124,7 @@ function TodoList({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => {
-                if (!isExpanded) setIsExpanded(true);
+                if (!isExpanded) setListExpanded(todoList.id, true);
                 setShowAddForm((v) => !v);
               }}
               aria-label={t('todoList.addTask')}

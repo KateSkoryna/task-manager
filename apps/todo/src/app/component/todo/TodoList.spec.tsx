@@ -2,6 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TodoList from './TodoList';
 import { TodoList as List } from '@shared/types';
+import {
+  initialListViewState,
+  useListViewStore,
+} from '../../store/listViewStore';
 jest.mock('../../lib/imageUtils', () => ({ uploadImage: jest.fn() }));
 jest.mock('../../store/authStore', () => ({
   useAuthStore: (selector: (s: { user: { firebaseUid: string } }) => unknown) =>
@@ -19,8 +23,18 @@ const base: List = {
   notes: 'Important',
   todos: [],
 };
+const task = {
+  id: 't1',
+  name: 'Task',
+  status: 'pending' as const,
+  todolistId: 'list-1',
+  order: 0,
+  priority: 'medium' as const,
+  source: 'web' as const,
+};
 describe('TodoList', () => {
-  test('shows title, metadata and empty state', () => {
+  beforeEach(() => useListViewStore.setState(initialListViewState));
+  test('shows title, metadata and empty state once expanded', () => {
     render(
       <TodoList
         todoList={base}
@@ -30,7 +44,32 @@ describe('TodoList', () => {
     );
     expect(screen.getByTestId('todolist-title')).toHaveTextContent('Work');
     expect(screen.getByText(/0\/0/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand' }));
     expect(screen.getByTestId('empty-todos-message')).toBeInTheDocument();
+  });
+  test('starts collapsed when the list has no tasks', () => {
+    render(
+      <TodoList
+        todoList={base}
+        onAddTodo={jest.fn()}
+        onDeleteList={jest.fn()}
+      />
+    );
+    expect(screen.queryByTestId('empty-todos-message')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Expand' })).toBeInTheDocument();
+  });
+  test('starts expanded when the list has tasks', () => {
+    render(
+      <TodoList
+        todoList={{ ...base, todos: [task] }}
+        onAddTodo={jest.fn()}
+        onDeleteList={jest.fn()}
+      />
+    );
+    expect(screen.getByTestId('todo-item-t1')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Collapse' })
+    ).toBeInTheDocument();
   });
   test('collapses and expands content', () => {
     render(
@@ -40,10 +79,23 @@ describe('TodoList', () => {
         onDeleteList={jest.fn()}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse' }));
-    expect(screen.queryByTestId('empty-todos-message')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Expand' }));
     expect(screen.getByTestId('empty-todos-message')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse' }));
+    expect(screen.queryByTestId('empty-todos-message')).not.toBeInTheDocument();
+  });
+  test('remembers collapsed state when the list is shown again', () => {
+    const withTask = { ...base, todos: [task] };
+    const props = { onAddTodo: jest.fn(), onDeleteList: jest.fn() };
+    const first = render(<TodoList todoList={withTask} {...props} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse' }));
+    expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
+    first.unmount();
+
+    // Leaving the page and coming back mounts a fresh component.
+    render(<TodoList todoList={withTask} {...props} />);
+    expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Expand' })).toBeInTheDocument();
   });
   test('deletes list', () => {
     const del = jest.fn();
@@ -146,6 +198,7 @@ describe('TodoList', () => {
         onDeleteList={jest.fn()}
       />
     );
+    fireEvent.click(screen.getByRole('button', { name: 'Expand' }));
     fireEvent.click(screen.getAllByRole('button', { name: /add task/i })[1]);
     expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
   });
