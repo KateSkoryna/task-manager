@@ -397,11 +397,11 @@ describe('DashboardPage', () => {
     ).toBeInTheDocument();
   });
 
-  test('the Add task button opens the add form on the Tasks page', async () => {
+  test('the Add task button opens the add form on the Vital Tasks page', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderPage();
     await user.click(screen.getByTestId('today-add-task-button'));
-    expect(mockNavigate).toHaveBeenCalledWith('/tasks', {
+    expect(mockNavigate).toHaveBeenCalledWith('/vital', {
       state: { openAddTask: true },
     });
   });

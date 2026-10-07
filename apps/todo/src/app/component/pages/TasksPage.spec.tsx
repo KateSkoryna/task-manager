@@ -30,8 +30,6 @@ const TODO_TWO: TodoItem = {
   source: 'web',
 };
 
-const mockHandleAddInboxTodo = jest.fn();
-
 jest.mock('../../hooks/useTodoListsData', () => ({
   useTodoListsData: () => ({
     todoLists: [],
@@ -44,7 +42,6 @@ jest.mock('../../hooks/useTodoListsData', () => ({
     handleDeleteList: jest.fn(),
     handleEditList: jest.fn(),
     handleAddTodo: jest.fn(),
-    handleAddInboxTodo: mockHandleAddInboxTodo,
     handleDeleteTodo: jest.fn(),
     handleEditTodo: jest.fn(),
     createListMutationIsPending: false,
@@ -81,49 +78,14 @@ function renderTasksPage() {
 }
 
 describe('TasksPage', () => {
-  it('has exactly one add-task control, in the page header', () => {
+  it('has no add-task control; tasks are added from Vital Tasks and each list', () => {
     renderTasksPage();
-    expect(screen.getAllByRole('button', { name: /add task/i })).toHaveLength(
-      1
-    );
+    expect(screen.queryByTestId('add-task-button')).not.toBeInTheDocument();
     expect(
       within(screen.getByTestId('inbox-section')).queryByRole('button', {
         name: /add task/i,
       })
     ).not.toBeInTheDocument();
-  });
-
-  it('adds a task to the inbox from the header add-task form', async () => {
-    renderTasksPage();
-    expect(screen.queryByTestId('todo-form-input')).not.toBeInTheDocument();
-
-    await userEvent.click(screen.getByTestId('add-task-button'));
-    await userEvent.type(screen.getByTestId('todo-form-input'), 'Water plants');
-    await userEvent.click(screen.getByTestId('todo-form-submit-button'));
-
-    expect(mockHandleAddInboxTodo).toHaveBeenCalledWith(
-      'Water plants',
-      undefined
-    );
-    expect(screen.queryByTestId('todo-form-input')).not.toBeInTheDocument();
-  });
-
-  it('opens the add-task form when another page asks for it', () => {
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter
-          initialEntries={[
-            { pathname: '/tasks', state: { openAddTask: true } },
-          ]}
-        >
-          <TasksPage />
-        </MemoryRouter>
-      </QueryClientProvider>
-    );
-    expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
   });
 
   it('scrolls the selected task back into view in the left list', async () => {
