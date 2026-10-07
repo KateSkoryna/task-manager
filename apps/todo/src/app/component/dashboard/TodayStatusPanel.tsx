@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { mergeClassNames } from '../../lib/classNames';
 
 // The donuts draw themselves in once per session. The page remounts every
 // time the user comes back to it, and replaying the animation on each visit
@@ -70,6 +71,7 @@ interface TodayStatusPanelProps {
   inProgress: number;
   notStarted: number;
   total: number;
+  className?: string;
 }
 
 function TodayStatusPanel({
@@ -77,6 +79,7 @@ function TodayStatusPanel({
   inProgress,
   notStarted,
   total,
+  className,
 }: TodayStatusPanelProps) {
   const { t } = useTranslation();
   const animate = useRef(!donutsHaveAnimated).current;
@@ -86,7 +89,10 @@ function TodayStatusPanel({
 
   return (
     <section
-      className="rounded-xl border border-default bg-surface p-4"
+      className={mergeClassNames(
+        'rounded-xl border border-default bg-surface p-4',
+        className
+      )}
       data-testid="today-status"
     >
       <div className="mb-3 flex items-center gap-2 text-primary">
