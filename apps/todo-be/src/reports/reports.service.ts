@@ -203,36 +203,56 @@ export class ReportsService {
 
   async list(
     userId: string,
-    period: ReportPeriod,
+    period: ReportPeriod | 'all',
     {
       limit,
       before,
+      beforeId,
       sort = 'desc',
-    }: { limit: number; before?: Date; sort?: 'asc' | 'desc' }
+    }: {
+      limit: number;
+      before?: Date;
+      /** Breaks ties between reports of different periods that share a start. */
+      beforeId?: string;
+      sort?: 'asc' | 'desc';
+    }
   ): Promise<PaginatedResult<Report>> {
     return executeOperation('Error fetching reports', async () => {
       const filter: FilterQuery<IReportDocument> = {
         userId: new Types.ObjectId(userId),
-        period,
       };
+      if (period !== 'all') filter.period = period;
       const direction = sort === 'asc' ? 1 : -1;
       if (before) {
-        filter.periodStart =
-          direction === -1 ? { $lt: before } : { $gt: before };
+        const beyond = direction === -1 ? '$lt' : '$gt';
+        filter.$or = [
+          { periodStart: { [beyond]: before } },
+          ...(beforeId
+            ? [
+                {
+                  periodStart: before,
+                  _id: { [beyond]: new Types.ObjectId(beforeId) },
+                },
+              ]
+            : []),
+        ];
       }
 
       const docs = await this.reportModel
         .find(filter)
-        .sort({ periodStart: direction })
+        .sort({ periodStart: direction, _id: direction })
         .limit(limit + 1);
 
       const hasMore = docs.length > limit;
       const page = hasMore ? docs.slice(0, limit) : docs;
+      const last = page[page.length - 1];
+      const cursor = (): string => {
+        const start = last.periodStart.toISOString();
+        return period === 'all' ? `${start}_${last._id}` : start;
+      };
       return {
         items: page.map(toReport),
-        nextCursor: hasMore
-          ? page[page.length - 1].periodStart.toISOString()
-          : null,
+        nextCursor: hasMore ? cursor() : null,
       };
     });
   }

@@ -389,6 +389,7 @@
   "reports": {
     "title": "Reports",
     "loading": "Loading reports…",
+    "all": "All",
     "weekly": "Weekly",
     "monthly": "Monthly",
     "yearly": "Yearly",

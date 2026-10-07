@@ -250,6 +250,34 @@ describe('ReportsService.list', () => {
     expect(secondPage.nextCursor).toBeNull();
   });
 
+  it('lists every period together and pages past reports that share a start', async () => {
+    const user = await seedUser();
+    const userId = user._id.toString();
+    const reference = new Date('2026-01-15T10:00:00.000Z');
+    // The monthly and yearly reports both start on 2026-01-01.
+    await service.generate(userId, 'weekly', reference);
+    await service.generate(userId, 'monthly', reference);
+    await service.generate(userId, 'yearly', reference);
+
+    const firstPage = await service.list(userId, 'all', { limit: 2 });
+    expect(firstPage.items).toHaveLength(2);
+    expect(firstPage.items[0].period).toBe('weekly');
+    const [start, id] = (firstPage.nextCursor as string).split('_');
+
+    const secondPage = await service.list(userId, 'all', {
+      limit: 2,
+      before: new Date(start),
+      beforeId: id,
+    });
+    expect(secondPage.items).toHaveLength(1);
+    expect(secondPage.nextCursor).toBeNull();
+
+    const periods = [...firstPage.items, ...secondPage.items].map(
+      (r) => r.period
+    );
+    expect([...periods].sort()).toEqual(['monthly', 'weekly', 'yearly']);
+  });
+
   it('sorts oldest-first when asked', async () => {
     const user = await seedUser();
     const userId = user._id.toString();

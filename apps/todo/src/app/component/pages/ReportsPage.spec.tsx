@@ -105,6 +105,12 @@ describe('ReportsPage', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('starts on All so reports of every period are listed', () => {
+    renderPage();
+
+    expect(useReportsQuery).toHaveBeenCalledWith('all', 'desc');
+  });
+
   it('switches the query period when a different filter option is selected', () => {
     renderPage();
 
@@ -118,7 +124,7 @@ describe('ReportsPage', () => {
 
     fireEvent.click(screen.getByLabelText('reports.sortOldest'));
 
-    expect(useReportsQuery).toHaveBeenLastCalledWith('weekly', 'asc');
+    expect(useReportsQuery).toHaveBeenLastCalledWith('all', 'asc');
   });
 
   it('"load more" fetches the next page when more results remain', () => {
