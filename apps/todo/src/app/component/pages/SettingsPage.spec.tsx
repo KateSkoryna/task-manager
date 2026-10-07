@@ -141,6 +141,24 @@ describe('SettingsPage', () => {
     );
   });
 
+  it('enables Save only while there is an unsaved change', async () => {
+    updatePreferences.mockImplementation((_data, options) =>
+      options?.onSuccess?.()
+    );
+    render(<SettingsPage />);
+    const save = screen.getByTestId('settings-save-button');
+    expect(save).toBeDisabled();
+
+    await userEvent.click(screen.getByLabelText('settings.tone'));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'settings.tone_direct' })
+    );
+    expect(save).toBeEnabled();
+
+    await userEvent.click(save);
+    await waitFor(() => expect(save).toBeDisabled());
+  });
+
   it('shows an error and keeps the entered values when saving fails', async () => {
     updatePreferences.mockImplementation((_data, options) =>
       options?.onError?.()

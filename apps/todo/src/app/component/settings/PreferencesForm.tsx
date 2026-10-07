@@ -46,7 +46,8 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<UserPreferencesUpdate>({
     resolver: zodResolver(userPreferencesUpdateSchema),
     defaultValues: {
@@ -88,7 +89,11 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
     setSaveError(false);
     setSaved(false);
     onSave(data, {
-      onSuccess: () => setSaved(true),
+      onSuccess: () => {
+        // The saved values become the new baseline, so Save goes inactive.
+        reset(data);
+        setSaved(true);
+      },
       onError: () => setSaveError(true),
     });
   };
@@ -258,7 +263,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
           <Button
             type="submit"
             variant="primary"
-            disabled={isSaving}
+            disabled={isSaving || !isDirty}
             dataTestId="settings-save-button"
           >
             {isSaving ? t('settings.saving') : t('settings.save')}
