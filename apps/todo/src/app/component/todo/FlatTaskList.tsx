@@ -44,36 +44,23 @@ function FlatTaskList({
 
   return (
     <div className="space-y-3" data-testid="flat-task-list">
-      {entries.map(({ todo, listId }) => {
-        const listName =
-          (listId && availableLists.find((l) => l.id === listId)?.name) ||
-          t('tasks.inbox');
-        return (
-          <div key={todo.id}>
-            <span className="text-xs font-medium text-muted ml-1">
-              {listName}
-            </span>
-            <TodoItem
-              todo={todo}
-              isSelected={selectedTodoId === todo.id}
-              onSelect={
-                onSelectTodo ? () => onSelectTodo(todo, listId) : undefined
-              }
-              onEdit={onEditTodo ? () => onEditTodo(todo, listId) : undefined}
-              onDelete={
-                onDeleteTodo ? () => onDeleteTodo(todo, listId) : undefined
-              }
-              currentListId={listId}
-              availableLists={availableLists}
-              onMoveToList={
-                onMoveTodo
-                  ? (todolistId) => onMoveTodo(todo.id, todolistId)
-                  : undefined
-              }
-            />
-          </div>
-        );
-      })}
+      {entries.map(({ todo, listId }) => (
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+          isSelected={selectedTodoId === todo.id}
+          onSelect={onSelectTodo ? () => onSelectTodo(todo, listId) : undefined}
+          onEdit={onEditTodo ? () => onEditTodo(todo, listId) : undefined}
+          onDelete={onDeleteTodo ? () => onDeleteTodo(todo, listId) : undefined}
+          currentListId={listId}
+          availableLists={availableLists}
+          onMoveToList={
+            onMoveTodo
+              ? (todolistId) => onMoveTodo(todo.id, todolistId)
+              : undefined
+          }
+        />
+      ))}
     </div>
   );
 }
