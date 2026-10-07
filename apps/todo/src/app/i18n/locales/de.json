@@ -7,6 +7,7 @@
     "reports": "Berichte",
     "settings": "Einstellungen",
     "help": "Hilfe",
+    "clock": "Aktuelle Uhrzeit: {{time}}",
     "logout": "Abmelden"
   },
   "header": {
