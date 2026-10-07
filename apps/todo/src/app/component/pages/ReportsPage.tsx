@@ -8,8 +8,13 @@ import PeriodSelector from '../elements/PeriodSelector';
 import SearchInput from '../elements/SearchInput';
 import IconButton from '../elements/IconButton';
 import { useReportsQuery } from '../../fetchers/api';
+import { mergeClassNames } from '../../lib/classNames';
 
 type ReportFilter = ReportPeriod | 'all';
+
+// Fixed widths for the two right-hand columns, so the header and every row
+// line up and their text can be centred within the column.
+const ROW_GRID = 'grid grid-cols-[1fr_7rem_6rem] gap-3';
 
 const PERIOD_OPTIONS: ReportFilter[] = ['all', 'weekly', 'monthly', 'yearly'];
 
@@ -81,10 +86,15 @@ export default function ReportsPage() {
         <p className="text-sm text-muted">{t('reports.noData')}</p>
       ) : (
         <div className="overflow-hidden rounded-xl border border-default shadow-card">
-          <div className="grid grid-cols-[1fr_auto_auto] gap-3 bg-surface-subtle px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted">
+          <div
+            className={mergeClassNames(
+              ROW_GRID,
+              'bg-surface-subtle px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted'
+            )}
+          >
             <span>{t('reports.columnName')}</span>
-            <span>{t('reports.columnDate')}</span>
-            <span>{t('reports.columnPeriod')}</span>
+            <span className="text-center">{t('reports.columnDate')}</span>
+            <span className="text-center">{t('reports.columnPeriod')}</span>
           </div>
           <ul className="divide-y divide-default">
             {filtered.map((report) => (
@@ -92,15 +102,18 @@ export default function ReportsPage() {
                 <Link
                   to={`/reports/${report.id}`}
                   data-testid={`report-row-${report.id}`}
-                  className="grid grid-cols-[1fr_auto_auto] items-center gap-3 bg-surface px-4 py-3 hover:bg-surface-subtle transition-colors"
+                  className={mergeClassNames(
+                    ROW_GRID,
+                    'items-center bg-surface px-4 py-3 hover:bg-surface-subtle transition-colors'
+                  )}
                 >
                   <span className="text-sm font-semibold text-primary truncate">
                     {report.name || t('reports.untitled')}
                   </span>
-                  <span className="text-xs text-muted whitespace-nowrap">
+                  <span className="text-center text-xs text-muted whitespace-nowrap">
                     {new Date(report.createdAt).toLocaleDateString()}
                   </span>
-                  <span className="text-xs text-muted uppercase tracking-wider whitespace-nowrap">
+                  <span className="text-center text-xs text-muted uppercase tracking-wider whitespace-nowrap">
                     {t(`reports.${report.period}`)}
                   </span>
                 </Link>
