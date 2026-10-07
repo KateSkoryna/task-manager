@@ -137,11 +137,7 @@ function DashboardPage() {
           can measure how many rows fit instead of making the page scroll. */}
       <div className="grid grid-cols-1 gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-5 lg:grid-rows-[minmax(0,1fr)]">
         <div className="flex flex-col gap-4 lg:col-span-3 lg:min-h-0">
-          <InboxPanel
-            items={inboxItems}
-            onViewAll={() => navigate('/tasks')}
-            onOpen={handleOpen}
-          />
+          <InboxPanel items={inboxItems} onOpen={handleOpen} />
           <TodayTaskBlock
             title={t('dashboard.dueTodayTitle')}
             icon={<ClipboardList className="h-5 w-5" />}

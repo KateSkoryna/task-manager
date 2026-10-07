@@ -77,7 +77,6 @@
     "nextTasks": "Nächste Aufgaben",
     "inboxTitle": "Posteingang",
     "inboxEmpty": "Keine Aufgaben im Posteingang.",
-    "inboxViewAll": "Alle in Aufgaben ansehen",
     "todayTitle": "Heute",
     "progressLine": "{{done}} von {{total}} heute erledigt",
     "moodOverdue": "Überfällig: {{count}}. Fang dort an.",
