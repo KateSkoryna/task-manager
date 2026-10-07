@@ -9,11 +9,13 @@ import SearchInput from '../elements/SearchInput';
 import IconButton from '../elements/IconButton';
 import { useReportsQuery } from '../../fetchers/api';
 
-const PERIOD_OPTIONS: ReportPeriod[] = ['weekly', 'monthly', 'yearly'];
+type ReportFilter = ReportPeriod | 'all';
+
+const PERIOD_OPTIONS: ReportFilter[] = ['all', 'weekly', 'monthly', 'yearly'];
 
 export default function ReportsPage() {
   const { t } = useTranslation();
-  const [period, setPeriod] = useState<ReportPeriod>('weekly');
+  const [period, setPeriod] = useState<ReportFilter>('all');
   const [sort, setSort] = useState<'asc' | 'desc'>('desc');
   const [search, setSearch] = useState('');
 

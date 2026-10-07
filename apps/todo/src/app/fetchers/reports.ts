@@ -9,7 +9,7 @@ export interface ReportsQueryOptions {
 
 export const getReportsFetcher = async (
   userId: string,
-  period: ReportPeriod,
+  period: ReportPeriod | 'all',
   options: ReportsQueryOptions = {}
 ): Promise<PaginatedResult<Report>> => {
   const { data } = await apiClient.get<PaginatedResult<Report>>(

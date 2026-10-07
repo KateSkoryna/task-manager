@@ -389,6 +389,7 @@
   "reports": {
     "title": "Berichte",
     "loading": "Berichte werden geladen…",
+    "all": "Alle",
     "weekly": "Wöchentlich",
     "monthly": "Monatlich",
     "yearly": "Jährlich",
