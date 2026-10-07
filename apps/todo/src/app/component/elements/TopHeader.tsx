@@ -31,16 +31,16 @@ const LOCALE_MAP: Record<string, string> = {
 };
 
 /**
- * "Tuesday, 06 October 2026". Assembled from parts rather than taken from
+ * "Tuesday, 06 Oct 2026". Assembled from parts rather than taken from
  * the locale's own long format so the order stays day, month, year in every
- * language (en-US would put the month first) while the month name keeps the
- * grammatical form it has next to a day number (Ukrainian "жовтня").
+ * language (en-US would put the month first) while the abbreviated month
+ * keeps the form it has next to a day number.
  */
 export function formatHeaderDate(date: Date, locale: string): string {
   const parts = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     day: '2-digit',
-    month: 'long',
+    month: 'short',
     year: 'numeric',
   }).formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) =>

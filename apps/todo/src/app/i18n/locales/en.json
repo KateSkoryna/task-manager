@@ -77,7 +77,6 @@
     "nextTasks": "Next tasks",
     "inboxTitle": "Inbox",
     "inboxEmpty": "No tasks in Inbox.",
-    "inboxViewAll": "View all in Tasks",
     "todayTitle": "Today",
     "progressLine": "{{done}} of {{total}} done today",
     "moodOverdue": "Overdue: {{count}}. Start there.",

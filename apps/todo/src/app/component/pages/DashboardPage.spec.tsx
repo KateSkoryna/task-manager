@@ -131,6 +131,30 @@ describe('DashboardPage', () => {
     expect(dueToday.getByText('Go to Kik')).toBeInTheDocument();
   });
 
+  test('hides the priority badge on overdue tasks but not on due-today tasks', () => {
+    mockLists([
+      todo({ id: 'late', name: 'Pay rent', dueDate: '2026-08-17' }),
+      todo({ id: 't1', name: 'Go to Kik' }),
+    ]);
+    renderPage();
+    const overdue = within(screen.getByTestId('today-overdue'));
+    const dueToday = within(screen.getByTestId('today-due'));
+    expect(overdue.queryByText(/^tasks\.priority_/)).not.toBeInTheDocument();
+    expect(dueToday.getByText(/^tasks\.priority_/)).toBeInTheDocument();
+  });
+
+  test('overdue tasks have no checkbox, due-today tasks do', () => {
+    mockLists([
+      todo({ id: 'late', name: 'Pay rent', dueDate: '2026-08-17' }),
+      todo({ id: 't1', name: 'Go to Kik' }),
+    ]);
+    renderPage();
+    const overdue = within(screen.getByTestId('today-overdue'));
+    const dueToday = within(screen.getByTestId('today-due'));
+    expect(overdue.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(dueToday.getByRole('checkbox')).toBeInTheDocument();
+  });
+
   test('pages through a long overdue list with the arrow buttons', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     mockLists(

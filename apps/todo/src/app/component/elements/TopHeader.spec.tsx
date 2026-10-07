@@ -180,12 +180,12 @@ describe('TopHeader brand', () => {
 describe('formatHeaderDate', () => {
   const date = new Date(2026, 9, 6);
 
-  it('shows day, full month and year in English', () => {
-    expect(formatHeaderDate(date, 'en-US')).toBe('Tuesday, 06 October 2026');
+  it('shows day, abbreviated month and year in English', () => {
+    expect(formatHeaderDate(date, 'en-US')).toBe('Tuesday, 06 Oct 2026');
   });
 
   it('keeps the same order in German and Ukrainian', () => {
-    expect(formatHeaderDate(date, 'de-DE')).toBe('Dienstag, 06 Oktober 2026');
-    expect(formatHeaderDate(date, 'uk-UA')).toBe('вівторок, 06 жовтня 2026');
+    expect(formatHeaderDate(date, 'de-DE')).toBe('Dienstag, 06 Okt. 2026');
+    expect(formatHeaderDate(date, 'uk-UA')).toBe('вівторок, 06 жовт. 2026');
   });
 });

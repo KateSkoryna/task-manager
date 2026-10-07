@@ -77,7 +77,6 @@
     "nextTasks": "Наступні завдання",
     "inboxTitle": "Вхідні",
     "inboxEmpty": "Немає завдань у вхідних.",
-    "inboxViewAll": "Переглянути всі в Завданнях",
     "todayTitle": "Сьогодні",
     "progressLine": "Виконано сьогодні: {{done}} із {{total}}",
     "moodOverdue": "Прострочено: {{count}}. Почніть із них.",

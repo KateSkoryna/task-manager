@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -12,6 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { mergeClassNames } from '../../lib/classNames';
+import { useActiveNavIndicator } from '../../hooks/useActiveNavIndicator';
 
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard, end: true },
@@ -47,6 +49,8 @@ function SidebarContent({
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
+  const navRef = useRef<HTMLElement>(null);
+  const { box, animate } = useActiveNavIndicator(navRef);
 
   const initials = user
     ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
@@ -60,7 +64,7 @@ function SidebarContent({
 
   return (
     <>
-      <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-5">
+      <div className="flex items-center gap-3 border-b border-sidebar-border px-content-mobile md:px-content-tablet lg:px-content-desktop py-5">
         <div
           className={mergeClassNames(
             'flex shrink-0 items-center justify-center rounded-full bg-accent font-bold text-on-accent',
@@ -77,7 +81,27 @@ function SidebarContent({
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      <nav
+        ref={navRef}
+        className="relative flex-1 space-y-1 overflow-y-auto px-content-mobile md:px-content-tablet lg:px-content-desktop py-4"
+      >
+        {box && (
+          // One highlight that slides to the active link, instead of each link
+          // switching its own background.
+          <span
+            aria-hidden="true"
+            className={mergeClassNames(
+              'pointer-events-none absolute left-0 top-0 rounded-lg bg-accent',
+              animate &&
+                'transition-[transform,width,height] duration-300 ease-out motion-reduce:transition-none'
+            )}
+            style={{
+              width: box.width,
+              height: box.height,
+              transform: `translate(${box.left}px, ${box.top}px)`,
+            }}
+          />
+        )}
         {NAV_ITEMS.map(({ to, labelKey, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -86,9 +110,9 @@ function SidebarContent({
             onClick={onNavigate}
             className={({ isActive }) =>
               mergeClassNames(
-                'flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm transition-colors',
+                'relative flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm transition-colors duration-300 motion-reduce:transition-none',
                 isActive
-                  ? 'bg-accent font-semibold text-on-accent'
+                  ? 'font-semibold text-on-accent'
                   : 'text-sidebar-text hover:bg-sidebar-text/10'
               )
             }
@@ -108,7 +132,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="px-3 pb-6">
+      <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6">
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-text/10"

@@ -9,13 +9,12 @@ const PAGE_SIZE = 3;
 
 interface InboxPanelProps {
   items: TodoItem[];
-  onViewAll: () => void;
   onOpen: (item: TodoItem) => void;
 }
 
 // Inbox tasks have no list, so no other block on the page says where they
 // went. Read-only: adding and editing happen on the Tasks page.
-function InboxPanel({ items, onViewAll, onOpen }: InboxPanelProps) {
+function InboxPanel({ items, onOpen }: InboxPanelProps) {
   const { t } = useTranslation();
   const { page, pageCount, pageItems, setPage } = usePagedItems(
     items,
@@ -28,28 +27,21 @@ function InboxPanel({ items, onViewAll, onOpen }: InboxPanelProps) {
       data-testid="dashboard-inbox-section"
     >
       <div className="flex items-center gap-2 text-primary">
-        <InboxIcon className="h-5 w-5 text-notification-dot" />
-        <h3 className="text-lg font-bold leading-none">
-          {t('dashboard.inboxTitle')}
-        </h3>
-        <span className="text-xs font-semibold text-notification-dot">
-          {items.length}
-        </span>
-        <div className="ml-auto flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onViewAll}
-            className="rounded-sm text-sm text-muted underline transition-colors hover:text-priority-high-bg focus-visible:text-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
-          >
-            {t('dashboard.inboxViewAll')}
-          </button>
-          <PageArrows
-            page={page}
-            pageCount={pageCount}
-            onChange={setPage}
-            alwaysVisible
-          />
+        <InboxIcon className="h-5 w-5" />
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-lg font-bold leading-none">
+            {t('dashboard.inboxTitle')}
+          </h3>
+          <span className="text-xs font-semibold text-notification-dot">
+            {items.length}
+          </span>
         </div>
+        <PageArrows
+          page={page}
+          pageCount={pageCount}
+          onChange={setPage}
+          alwaysVisible
+        />
       </div>
       <p className="mb-3 mt-1 text-xs text-muted">{t('dashboard.inboxHint')}</p>
       {pageItems.length === 0 ? (

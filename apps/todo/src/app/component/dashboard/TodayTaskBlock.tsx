@@ -11,17 +11,17 @@ import { usePagedItems } from '../../hooks/usePagedItems';
 import PageArrows from './PageArrows';
 import { PRIORITY_BORDER } from './TaskCard';
 
-type Tone = 'neutral' | 'danger';
-
 interface TodayTaskBlockProps<T extends TodoItem> {
   title: string;
   icon: ReactNode;
   items: T[];
-  tone?: Tone;
   emptyMessage?: string;
-  onToggle: (item: T) => void;
+  /** Without it the rows have no completion checkbox. */
+  onToggle?: (item: T) => void;
   onOpen: (item: T) => void;
   renderMeta?: (item: T) => ReactNode;
+  /** Hide each row's priority badge; the row's left border still shows it. */
+  hidePriority?: boolean;
   /**
    * Rows shown at a time, with previous/next arrows. `'fit'` shows as many
    * as the block's height allows; the block must then be given a height.
@@ -31,16 +31,6 @@ interface TodayTaskBlockProps<T extends TodoItem> {
   dataTestId: string;
 }
 
-const BLOCK_CLASSES: Record<Tone, string> = {
-  neutral: 'border-default bg-surface',
-  danger: 'border-danger/30 border-l-4 border-l-danger bg-danger/10',
-};
-
-const TITLE_CLASSES: Record<Tone, string> = {
-  neutral: 'text-primary',
-  danger: 'text-danger',
-};
-
 // Ceiling for `pageSize="fit"`: the most rows ever rendered to be measured.
 const MAX_FIT_PAGE_SIZE = 12;
 
@@ -49,12 +39,14 @@ function TodayTaskRow<T extends TodoItem>({
   onToggle,
   onOpen,
   meta,
+  hidePriority,
   rowRef,
 }: {
   item: T;
-  onToggle: (item: T) => void;
+  onToggle?: (item: T) => void;
   onOpen: (item: T) => void;
   meta?: ReactNode;
+  hidePriority?: boolean;
   rowRef?: Ref<HTMLLIElement>;
 }) {
   const { t } = useTranslation();
@@ -72,26 +64,30 @@ function TodayTaskRow<T extends TodoItem>({
       )}
       data-testid={`today-task-${item.id}`}
     >
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={completed}
-        aria-label={t(
-          completed ? 'dashboard.markNotCompleted' : 'dashboard.markCompleted',
-          { name: item.name }
-        )}
-        onClick={() => onToggle(item)}
-        className={mergeClassNames(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg',
-          completed
-            ? 'border-status-complete bg-status-complete'
-            : 'border-muted hover:border-primary'
-        )}
-      >
-        {completed && (
-          <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
-        )}
-      </button>
+      {onToggle && (
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={completed}
+          aria-label={t(
+            completed
+              ? 'dashboard.markNotCompleted'
+              : 'dashboard.markCompleted',
+            { name: item.name }
+          )}
+          onClick={() => onToggle(item)}
+          className={mergeClassNames(
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg',
+            completed
+              ? 'border-status-complete bg-status-complete'
+              : 'border-muted hover:border-primary'
+          )}
+        >
+          {completed && (
+            <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
+          )}
+        </button>
+      )}
       <button
         type="button"
         data-row-open
@@ -104,9 +100,11 @@ function TodayTaskRow<T extends TodoItem>({
         {item.name}
       </button>
       {meta}
-      <Badge tone={`priority-${item.priority}`} className="shrink-0">
-        {t(`tasks.priority_${item.priority}`)}
-      </Badge>
+      {!hidePriority && (
+        <Badge tone={`priority-${item.priority}`} className="shrink-0">
+          {t(`tasks.priority_${item.priority}`)}
+        </Badge>
+      )}
     </li>
   );
 }
@@ -115,11 +113,11 @@ function TodayTaskBlock<T extends TodoItem>({
   title,
   icon,
   items,
-  tone = 'neutral',
   emptyMessage,
   onToggle,
   onOpen,
   renderMeta,
+  hidePriority,
   pageSize,
   className,
   dataTestId,
@@ -141,21 +139,24 @@ function TodayTaskBlock<T extends TodoItem>({
   return (
     <section
       className={mergeClassNames(
-        'flex flex-col rounded-xl border p-4',
-        BLOCK_CLASSES[tone],
+        'flex flex-col rounded-xl border border-default bg-surface p-4',
         className
       )}
       data-testid={dataTestId}
     >
       <div
         className={mergeClassNames(
-          'mb-3 flex items-center gap-2',
-          TITLE_CLASSES[tone]
+          'flex items-center gap-2 text-primary',
+          // The fitted rows' container pulls up by 6px (-m-1.5), so the
+          // title needs 6px more to keep the same gap as the other blocks.
+          fits ? 'mb-[18px]' : 'mb-3'
         )}
       >
         {icon}
-        <h3 className="text-lg font-bold leading-none">{title}</h3>
-        <span className="text-xs text-muted">{items.length}</span>
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-lg font-bold leading-none">{title}</h3>
+          <span className="text-xs text-muted">{items.length}</span>
+        </div>
         <PageArrows page={page} pageCount={pageCount} onChange={setPage} />
       </div>
       {items.length === 0 ? (
@@ -178,6 +179,7 @@ function TodayTaskBlock<T extends TodoItem>({
                 onToggle={onToggle}
                 onOpen={onOpen}
                 meta={renderMeta?.(item)}
+                hidePriority={hidePriority}
                 rowRef={index === 0 ? itemRef : undefined}
               />
             ))}
