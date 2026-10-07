@@ -9,6 +9,10 @@ jest.mock('../../store/authStore', () => ({
   ) => selector({ user: null, logout: jest.fn() }),
 }));
 
+jest.mock('../../hooks/usePreferences', () => ({
+  usePreferences: () => ({ preferences: { timezone: 'Europe/Berlin' } }),
+}));
+
 function renderSidebar(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -44,5 +48,18 @@ describe('SidebarContent active highlight', () => {
   test('shows no highlight on a page that is not in the menu', () => {
     renderSidebar('/somewhere-else');
     expect(highlight()).not.toBeInTheDocument();
+  });
+
+  test('shows the clock between the page links and Logout', () => {
+    renderSidebar('/tasks');
+    const clock = screen.getByTestId('sidebar-clock');
+    const nav = screen.getByRole('navigation');
+    const logout = screen.getByRole('button', { name: 'nav.logout' });
+    expect(
+      nav.compareDocumentPosition(clock) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      clock.compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   });
 });

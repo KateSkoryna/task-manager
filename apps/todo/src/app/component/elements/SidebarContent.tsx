@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { mergeClassNames } from '../../lib/classNames';
 import { useActiveNavIndicator } from '../../hooks/useActiveNavIndicator';
+import SidebarClock from './SidebarClock';
 
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard, end: true },
@@ -83,7 +84,7 @@ function SidebarContent({
 
       <nav
         ref={navRef}
-        className="relative flex-1 space-y-1 overflow-y-auto px-content-mobile md:px-content-tablet lg:px-content-desktop py-4"
+        className="relative min-h-0 space-y-1 overflow-y-auto px-content-mobile md:px-content-tablet lg:px-content-desktop py-4"
       >
         {box && (
           // One highlight that slides to the active link, instead of each link
@@ -132,7 +133,11 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6">
+      {/* The nav only takes the room its links need, so the auto margins
+          centre the clock in the space left above Logout. */}
+      <SidebarClock className="my-auto" />
+
+      <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6 pt-4">
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
