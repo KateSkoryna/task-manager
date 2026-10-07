@@ -34,10 +34,24 @@ const TODO_TWO: TodoItem = {
   source: 'web',
 };
 
+const ARCHIVED_TODO: TodoItem = {
+  id: 't3',
+  name: 'Old Task',
+  status: 'successful',
+  todolistId: null,
+  order: 2,
+  priority: 'low',
+  source: 'web',
+  archivedAt: '2026-09-01T10:00:00.000Z',
+};
+const mockHandleArchiveTodo = jest.fn();
+const mockHandleRestoreTodo = jest.fn();
+
 jest.mock('../../hooks/useTodoListsData', () => ({
   useTodoListsData: () => ({
     todoLists: [],
     inboxTodos: [TODO_ONE, TODO_TWO],
+    archivedEntries: [{ todo: ARCHIVED_TODO, listId: null }],
     isLoading: false,
     isError: false,
     error: null,
@@ -48,6 +62,8 @@ jest.mock('../../hooks/useTodoListsData', () => ({
     handleAddTodo: jest.fn(),
     handleDeleteTodo: jest.fn(),
     handleEditTodo: jest.fn(),
+    handleArchiveTodo: mockHandleArchiveTodo,
+    handleRestoreTodo: mockHandleRestoreTodo,
     createListMutationIsPending: false,
   }),
 }));
@@ -135,6 +151,31 @@ describe('TasksPage', () => {
 
     renderTasksPage();
     expect(screen.getByTestId('flat-task-list')).toBeInTheDocument();
+  });
+
+  it('archives the selected task from its detail panel', async () => {
+    renderTasksPage();
+    await userEvent.click(screen.getByTestId('todo-item-t1'));
+    await userEvent.click(screen.getByTestId('archive-todo-button-t1'));
+    expect(mockHandleArchiveTodo).toHaveBeenCalledWith('t1');
+  });
+
+  it('shows archived tasks in the Archived view and restores them', async () => {
+    renderTasksPage();
+    expect(screen.queryByTestId('archived-item-t3')).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'tasks.archivedView' })
+    );
+    const item = screen.getByTestId('archived-item-t3');
+    expect(within(item).getByText('Old Task')).toBeInTheDocument();
+    expect(within(item).getByText(/tasks\.inbox/)).toBeInTheDocument();
+    expect(screen.queryByTestId('inbox-section')).not.toBeInTheDocument();
+    // Sorting makes no sense in the archive.
+    expect(screen.queryByLabelText('tasks.sortBy')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('restore-todo-button-t3'));
+    expect(mockHandleRestoreTodo).toHaveBeenCalledWith('t3');
   });
 
   it('re-sorts the flat view when a sort is chosen', async () => {

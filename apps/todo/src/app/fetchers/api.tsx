@@ -28,6 +28,7 @@ import {
   UpdateTodoList,
 } from '@shared/types';
 import { useAuthStore } from '../store/authStore';
+import { activeTodos, withoutArchivedTodos } from '../lib/archive';
 import { storage } from '../lib/firebase';
 import { parseTodoFetcher } from './agent';
 import {
@@ -37,22 +38,29 @@ import {
   getReportsFetcher,
 } from './reports';
 
-export const useTodoListsQuery = () => {
+type ArchiveOption = {
+  /** Statistics and the Archived view need archived tasks; everyone else doesn't. */
+  includeArchived?: boolean;
+};
+
+export const useTodoListsQuery = ({ includeArchived }: ArchiveOption = {}) => {
   const user = useAuthStore((s) => s.user);
   return useQuery<TodoListType[], Error>({
     queryKey: ['todoLists', user?.id],
     queryFn: () => getTodoListsFetcher(user!.id),
+    select: includeArchived ? undefined : withoutArchivedTodos,
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
   });
 };
 
-export const useInboxTodosQuery = () => {
+export const useInboxTodosQuery = ({ includeArchived }: ArchiveOption = {}) => {
   const user = useAuthStore((s) => s.user);
   return useQuery<TodoItemType[], Error>({
     queryKey: ['inboxTodos', user?.id],
     queryFn: () => getInboxTodosFetcher(user!.id),
+    select: includeArchived ? undefined : activeTodos,
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,

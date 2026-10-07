@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Trash2, ImagePlus, Upload } from 'lucide-react';
+import { Archive, Trash2, ImagePlus, Upload } from 'lucide-react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
@@ -466,11 +466,13 @@ export function TaskDetailPanel({
   todo,
   list,
   onDelete,
+  onArchive,
   onStartEdit,
 }: {
   todo: TodoItem;
   list: TodoList | null;
   onDelete: (id: string) => void;
+  onArchive?: (id: string) => void;
   onStartEdit: () => void;
 }) {
   const { t } = useTranslation();
@@ -491,6 +493,16 @@ export function TaskDetailPanel({
           </div>
 
           <div className="flex flex-col items-end gap-3 shrink-0">
+            {onArchive && (
+              <button
+                onClick={() => onArchive(todo.id)}
+                aria-label={t('tasks.archive')}
+                data-testid={'archive-todo-button-' + todo.id}
+                className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
+              >
+                <Archive className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
               onClick={() => onDelete(todo.id)}
               aria-label={t('tasks.delete')}

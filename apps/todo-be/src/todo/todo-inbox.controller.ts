@@ -79,6 +79,15 @@ export class TodoInboxController {
     return this.todoService.create(body.todolistId ?? null, body, user.id);
   }
 
+  @Post('archive-completed')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Archive all completed todos of the user' })
+  @ApiParam({ name: 'userId' })
+  @ApiResponse({ status: 200, schema: { type: 'object' } })
+  archiveCompleted(@CurrentUser() user: AuthenticatedUser) {
+    return this.todoService.archiveCompleted(user.id);
+  }
+
   @Put(':id')
   @ApiOperation({
     summary: 'Update a todo, optionally moving it between the inbox and a list',

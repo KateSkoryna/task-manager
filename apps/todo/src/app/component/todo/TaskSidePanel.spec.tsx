@@ -194,4 +194,31 @@ describe('TaskDetailPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'tasks.delete' }));
     expect(onDelete).toHaveBeenCalledWith('todo-1');
   });
+
+  test('shows an archive button only when an archive handler is given', () => {
+    const onArchive = jest.fn();
+    const { rerender } = render(
+      <TaskDetailPanel
+        todo={todo}
+        list={list}
+        onDelete={jest.fn()}
+        onStartEdit={jest.fn()}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: 'tasks.archive' })
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <TaskDetailPanel
+        todo={todo}
+        list={list}
+        onDelete={jest.fn()}
+        onArchive={onArchive}
+        onStartEdit={jest.fn()}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'tasks.archive' }));
+    expect(onArchive).toHaveBeenCalledWith('todo-1');
+  });
 });

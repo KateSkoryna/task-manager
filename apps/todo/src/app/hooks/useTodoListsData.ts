@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   useCreateListMutation,
   useEditListMutation,
@@ -17,6 +18,8 @@ import {
   TodoListCategory,
 } from '@shared/types';
 import { toggledCompletion } from '../lib/todayTasks';
+import { archiveUpdate, isArchived, restoreUpdate } from '../lib/archive';
+import { FlatEntry } from '../component/todo/FlatTaskList';
 
 export const useTodoListsData = () => {
   const {
@@ -28,6 +31,25 @@ export const useTodoListsData = () => {
   } = useTodoListsQuery();
   const { data: inboxTodos = [] } = useInboxTodosQuery();
 
+  // Archived tasks are hidden from `todoLists`/`inboxTodos`; the Archived view
+  // reads them from the same cache, unfiltered.
+  const { data: allLists = [] } = useTodoListsQuery({ includeArchived: true });
+  const { data: allInbox = [] } = useInboxTodosQuery({ includeArchived: true });
+  const archivedEntries = useMemo<FlatEntry[]>(
+    () =>
+      [
+        ...allLists.flatMap((list) =>
+          list.todos.map((todo) => ({ todo, listId: list.id }))
+        ),
+        ...allInbox.map((todo) => ({ todo, listId: null })),
+      ]
+        .filter(({ todo }) => isArchived(todo))
+        .sort((a, b) =>
+          (b.todo.archivedAt ?? '').localeCompare(a.todo.archivedAt ?? '')
+        ),
+    [allLists, allInbox]
+  );
+
   const createListMutation = useCreateListMutation();
   const editListMutation = useEditListMutation();
   const deleteListMutation = useDeleteListMutation();
@@ -38,9 +60,9 @@ export const useTodoListsData = () => {
   const editTodoMutation = useEditTodoMutation();
 
   const findTodo = (id: string) =>
-    todoLists
-      ?.flatMap((list) => list.todos)
-      .concat(inboxTodos)
+    allLists
+      .flatMap((list) => list.todos)
+      .concat(allInbox)
       .find((t) => t.id === id);
 
   const handleCreateList = (
@@ -117,9 +139,18 @@ export const useTodoListsData = () => {
     );
   };
 
+  const handleArchiveTodo = (id: string) => {
+    editTodoMutation.mutate({ id, ...archiveUpdate() });
+  };
+
+  const handleRestoreTodo = (id: string) => {
+    editTodoMutation.mutate({ id, ...restoreUpdate() });
+  };
+
   return {
     todoLists,
     inboxTodos,
+    archivedEntries,
     isLoading,
     isError,
     error,
@@ -132,6 +163,8 @@ export const useTodoListsData = () => {
     handleToggleTodo,
     handleDeleteTodo,
     handleEditTodo,
+    handleArchiveTodo,
+    handleRestoreTodo,
     createListMutationIsPending: createListMutation.isPending,
   };
 };

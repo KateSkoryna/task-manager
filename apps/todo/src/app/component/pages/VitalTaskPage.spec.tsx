@@ -43,6 +43,7 @@ const vitalList: TodoList = {
 
 const useTodoListsData = jest.fn();
 const mockHandleAddInboxTodo = jest.fn();
+const mockHandleArchiveTodo = jest.fn();
 
 jest.mock('../../hooks/useTodoListsData', () => ({
   useTodoListsData: () => useTodoListsData(),
@@ -60,6 +61,7 @@ describe('VitalTaskPage', () => {
       handleDeleteList: jest.fn(),
       handleAddTodo: jest.fn(),
       handleAddInboxTodo: mockHandleAddInboxTodo,
+      handleArchiveTodo: mockHandleArchiveTodo,
       handleDeleteTodo: jest.fn(),
       handleToggleTodo: jest.fn(),
     });
@@ -147,5 +149,18 @@ describe('VitalTaskPage', () => {
       </MemoryRouter>
     );
     expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
+  });
+
+  test('archives the selected task and clears the selection', async () => {
+    render(
+      <MemoryRouter>
+        <VitalTaskPage />
+      </MemoryRouter>
+    );
+    await userEvent.click(screen.getByTestId('todo-item-t1'));
+    await userEvent.click(screen.getByTestId('archive-todo-button-t1'));
+
+    expect(mockHandleArchiveTodo).toHaveBeenCalledWith('t1');
+    expect(screen.queryByTestId('pomodoro-timer')).not.toBeInTheDocument();
   });
 });

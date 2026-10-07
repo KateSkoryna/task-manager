@@ -68,9 +68,9 @@ export default function StatisticsPage() {
   const [periodKind, setPeriodKind] = useState<PeriodKind>('month');
   const [anchor, setAnchor] = useState<Date>(() => new Date());
   const { data: todoLists = [], isLoading: isLoadingTodoLists } =
-    useTodoListsQuery();
+    useTodoListsQuery({ includeArchived: true });
   const { data: inboxTodos = [], isLoading: isLoadingInboxTodos } =
-    useInboxTodosQuery();
+    useInboxTodosQuery({ includeArchived: true });
   const { preferences } = usePreferences();
   const isLoading = isLoadingTodoLists || isLoadingInboxTodos;
   const generateReport = useGenerateReportMutation();

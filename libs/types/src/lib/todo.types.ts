@@ -15,6 +15,8 @@ export interface NewTodoItem {
   location?: string | null;
   notes?: string | null;
   completedAt?: string | null;
+  /** ISO timestamp once archived; null/absent while the task is active. */
+  archivedAt?: string | null;
   image?: string | null;
   order?: number;
   priority?: TodoPriority;
@@ -40,6 +42,7 @@ export interface UpdateTodoItem {
   location?: string | null;
   notes?: string | null;
   completedAt?: string | null;
+  archivedAt?: string | null;
   image?: string | null;
   order?: number;
   priority?: TodoPriority;

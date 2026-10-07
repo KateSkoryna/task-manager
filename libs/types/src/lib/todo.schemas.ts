@@ -48,6 +48,7 @@ const todoFields = {
   location: optionalTextSchema(MAX_LOCATION_LENGTH),
   notes: optionalTextSchema(MAX_NOTES_LENGTH),
   completedAt: dateFieldSchema,
+  archivedAt: dateFieldSchema,
   image: optionalImage,
   order: z.number().optional(),
   priority: z

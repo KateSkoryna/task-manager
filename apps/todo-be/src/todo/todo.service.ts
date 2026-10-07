@@ -108,23 +108,39 @@ export class TodoService {
   }
 
   /**
-   * All of a user's todos, just the inbox (`todolistId: null`), or just one
-   * list's, for the agent's `list_tasks` tool. Every todo carries its own
-   * `userId` regardless of list membership, so filtering on it here is
-   * sufficient ownership scoping on its own.
+   * All of a user's active todos, just the inbox (`todolistId: null`), or
+   * just one list's, for the agent's tools. Archived tasks are left out: they
+   * are no longer relevant to the agent. Every todo carries its own `userId`
+   * regardless of list membership, so filtering on it here is sufficient
+   * ownership scoping on its own.
    */
   findAllOwned(
     userId: string,
     todolistId?: string | null
   ): Promise<TodoItem[]> {
     return executeOperation('Error fetching todos', async () => {
-      const filter: FilterQuery<ITodoDocument> = { userId };
+      const filter: FilterQuery<ITodoDocument> = { userId, archivedAt: null };
       if (todolistId !== undefined) filter.todolistId = todolistId;
 
       const docs = await this.todoModel
         .find(filter)
         .sort({ order: 1, createdAt: 1 });
       return docs.map((doc) => doc.toJSON() as TodoItem);
+    });
+  }
+
+  /**
+   * Archives every completed, not-yet-archived todo the user owns in one
+   * update, so a large backlog does not take one request per task. Returns
+   * how many were archived.
+   */
+  archiveCompleted(userId: string): Promise<{ count: number }> {
+    return executeOperation('Error archiving completed todos', async () => {
+      const result = await this.todoModel.updateMany(
+        { userId, status: 'successful', archivedAt: null },
+        { archivedAt: new Date() }
+      );
+      return { count: result.modifiedCount };
     });
   }
 

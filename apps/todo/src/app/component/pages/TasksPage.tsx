@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Rows3, LayoutList, ArrowLeft } from 'lucide-react';
+import { Plus, Rows3, LayoutList, ArrowLeft, Archive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoItem,
@@ -22,6 +22,7 @@ import SortMenu from '../todo/SortMenu';
 import CollapseAllButton from '../todo/CollapseAllButton';
 import InboxSection from '../todo/InboxSection';
 import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
+import ArchivedTaskList from '../todo/ArchivedTaskList';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import { TaskDetailPanel, TodoEditPanel } from '../todo/TaskSidePanel';
 import TasksPageSkeleton from './TasksPageSkeleton';
@@ -57,6 +58,7 @@ function TasksPage() {
   const {
     todoLists,
     inboxTodos,
+    archivedEntries,
     isLoading,
     isError,
     error,
@@ -67,6 +69,8 @@ function TasksPage() {
     handleAddTodo,
     handleDeleteTodo,
     handleEditTodo,
+    handleArchiveTodo,
+    handleRestoreTodo,
     createListMutationIsPending,
   } = useTodoListsData();
 
@@ -186,6 +190,11 @@ function TasksPage() {
     return todoLists?.find((l) => l.id === listId) ?? null;
   }
 
+  function handleArchiveSelectedTodo(id: string) {
+    handleArchiveTodo(id);
+    setSelectedTask(null);
+  }
+
   function handleDeleteSelectedTodo(id: string) {
     handleDeleteTodo(id);
     setSelectedTask(null);
@@ -286,6 +295,11 @@ function TasksPage() {
                   value: 'flat' as const,
                   icon: <LayoutList className="w-3.5 h-3.5" />,
                 },
+                {
+                  label: t('tasks.archivedView'),
+                  value: 'archived' as const,
+                  icon: <Archive className="w-3.5 h-3.5" />,
+                },
               ]}
               value={viewMode}
               onChange={setViewMode}
@@ -326,7 +340,14 @@ function TasksPage() {
         </div>
 
         <div className="flex-1 space-y-4">
-          {viewMode === 'grouped' ? (
+          {viewMode === 'archived' ? (
+            <ArchivedTaskList
+              entries={archivedEntries}
+              availableLists={availableLists}
+              onRestore={handleRestoreTodo}
+              onDelete={(todo) => handleDeleteTodoFromList(todo.id)}
+            />
+          ) : viewMode === 'grouped' ? (
             <>
               <InboxSection
                 todos={inboxTodos}
@@ -409,6 +430,7 @@ function TasksPage() {
                 todo={selectedTask.todo}
                 list={selectedTask.list}
                 onDelete={(id) => handleDeleteSelectedTodo(id)}
+                onArchive={handleArchiveSelectedTodo}
                 onStartEdit={() => setIsEditing(true)}
               />
             )

@@ -10,7 +10,12 @@ import {
 export interface ITodoDocument
   extends Omit<
       TodoItem,
-      'id' | 'todolistId' | 'dueDate' | 'completedAt' | 'createdAt'
+      | 'id'
+      | 'todolistId'
+      | 'dueDate'
+      | 'completedAt'
+      | 'archivedAt'
+      | 'createdAt'
     >,
     Document {
   _id: Types.ObjectId;
@@ -18,6 +23,7 @@ export interface ITodoDocument
   todolistId?: Types.ObjectId | null;
   dueDate?: Date | null;
   completedAt?: Date | null;
+  archivedAt?: Date | null;
   createdAt?: Date;
   order: number;
   priority: TodoPriority;
@@ -47,6 +53,7 @@ export const todoSchema = new Schema<ITodoDocument>(
     location: { type: String, default: null },
     notes: { type: String, default: null },
     completedAt: { type: Date, default: null },
+    archivedAt: { type: Date, default: null },
     image: { type: String, default: null },
     order: { type: Number, default: 0 },
     priority: {
@@ -79,6 +86,7 @@ export const todoSchema = new Schema<ITodoDocument>(
           location: ret.location ?? null,
           notes: ret.notes ?? null,
           completedAt: ret.completedAt ? ret.completedAt.toISOString() : null,
+          archivedAt: ret.archivedAt ? ret.archivedAt.toISOString() : null,
           image: ret.image ?? null,
           order: ret.order ?? 0,
           priority: ret.priority ?? 'medium',

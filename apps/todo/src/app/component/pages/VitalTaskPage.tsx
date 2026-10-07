@@ -42,6 +42,7 @@ function VitalTaskPage() {
     handleAddTodo,
     handleAddInboxTodo,
     handleDeleteTodo,
+    handleArchiveTodo,
   } = useTodoListsData();
 
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
@@ -102,6 +103,11 @@ function VitalTaskPage() {
       ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTask?.todo.id]);
+
+  function handleArchiveSelectedTodo(id: string) {
+    handleArchiveTodo(id);
+    setSelectedTask(null);
+  }
 
   function handleDeleteSelectedTodo(id: string) {
     handleDeleteTodo(id);
@@ -203,6 +209,7 @@ function VitalTaskPage() {
                 todo={selectedTask.todo}
                 list={selectedTask.list}
                 onDelete={(id) => handleDeleteSelectedTodo(id)}
+                onArchive={handleArchiveSelectedTodo}
                 onStartEdit={() =>
                   navigate('/tasks', {
                     state: {
