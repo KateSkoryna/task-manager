@@ -9,7 +9,7 @@ function SidebarSkeleton() {
       role="status"
       aria-label="Loading navigation"
     >
-      <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-5">
+      <div className="flex items-center gap-3 border-b border-sidebar-border px-content-mobile md:px-content-tablet lg:px-content-desktop py-5">
         <Skeleton className="size-avatar rounded-full bg-sidebar-text/20" />
         <div className="min-w-0 flex-1 space-y-2">
           <Skeleton className="h-4 w-32 bg-sidebar-text/20" />
@@ -17,13 +17,13 @@ function SidebarSkeleton() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-1 px-2 py-4">
+      <div className="flex-1 space-y-1 px-content-mobile md:px-content-tablet lg:px-content-desktop py-4">
         {Array.from({ length: NAV_ITEM_COUNT }).map((_, i) => (
           <Skeleton key={i} className="h-11 w-full bg-sidebar-text/10" />
         ))}
       </div>
 
-      <div className="px-2 pb-6">
+      <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6">
         <Skeleton className="h-11 w-full bg-sidebar-text/10" />
       </div>
     </div>

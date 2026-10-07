@@ -60,7 +60,7 @@ function SidebarContent({
 
   return (
     <>
-      <div className="flex items-center gap-3 border-b border-sidebar-border px-4 py-5">
+      <div className="flex items-center gap-3 border-b border-sidebar-border px-content-mobile md:px-content-tablet lg:px-content-desktop py-5">
         <div
           className={mergeClassNames(
             'flex shrink-0 items-center justify-center rounded-full bg-accent font-bold text-on-accent',
@@ -77,7 +77,7 @@ function SidebarContent({
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-content-mobile md:px-content-tablet lg:px-content-desktop py-4">
         {NAV_ITEMS.map(({ to, labelKey, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -86,7 +86,7 @@ function SidebarContent({
             onClick={onNavigate}
             className={({ isActive }) =>
               mergeClassNames(
-                'flex items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors',
+                'flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm transition-colors',
                 isActive
                   ? 'bg-accent font-semibold text-on-accent'
                   : 'text-sidebar-text hover:bg-sidebar-text/10'
@@ -108,10 +108,10 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="px-2 pb-6">
+      <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-2 py-3 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
+          className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
         >
           <LogOut className="size-4 shrink-0 text-sidebar-muted" />
           {t('nav.logout')}
