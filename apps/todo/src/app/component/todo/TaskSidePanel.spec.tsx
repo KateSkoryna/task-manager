@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { TodoItem, TodoList } from '@shared/types';
 import { TaskDetailPanel, TodoEditPanel } from './TaskSidePanel';
 
@@ -40,6 +41,8 @@ describe('TodoEditPanel dropdowns', () => {
       <TodoEditPanel
         todo={todo}
         list={list}
+        lists={[list]}
+        onCreateList={jest.fn()}
         onSave={jest.fn()}
         onCancel={jest.fn()}
       />
@@ -83,6 +86,8 @@ describe('TodoEditPanel dropdowns', () => {
       <TodoEditPanel
         todo={todo}
         list={list}
+        lists={[list]}
+        onCreateList={jest.fn()}
         onSave={onSave}
         onCancel={jest.fn()}
       />
@@ -130,7 +135,6 @@ describe('TodoEditPanel dropdowns', () => {
     );
     expect(onSave.mock.calls[0][1]).toEqual(
       expect.objectContaining({
-        name: 'Engineering',
         priority: 'high',
         category: undefined,
       })
@@ -138,33 +142,169 @@ describe('TodoEditPanel dropdowns', () => {
   }, 15000);
 });
 
-describe('TodoEditPanel default lists', () => {
-  test('locks the list name for a default list but keeps it for others', () => {
-    const { rerender } = render(
-      <TodoEditPanel
-        todo={todo}
-        list={{ ...list, isDefault: true }}
-        onSave={jest.fn()}
-        onCancel={jest.fn()}
-      />
-    );
-    expect(screen.getByDisplayValue(list.name)).toHaveAttribute('readonly');
-    expect(
-      screen.getByTestId('edit-todo-default-list-note')
-    ).toBeInTheDocument();
+const otherList: TodoList = {
+  id: 'list-2',
+  name: 'Home',
+  userId: 'user-1',
+  todos: [],
+  priority: 'high',
+  category: 'work',
+};
+const inboxTodo: TodoItem = { ...todo, todolistId: null };
 
-    rerender(
+function renderEditPanel(
+  props: Partial<React.ComponentProps<typeof TodoEditPanel>>
+) {
+  const onSave = jest.fn();
+  const onCreateList = jest.fn();
+  render(
+    <MemoryRouter>
       <TodoEditPanel
-        todo={todo}
-        list={list}
-        onSave={jest.fn()}
+        todo={inboxTodo}
+        list={null}
+        lists={[list, otherList]}
+        onCreateList={onCreateList}
+        onSave={onSave}
         onCancel={jest.fn()}
+        {...props}
       />
+    </MemoryRouter>
+  );
+  return { onSave, onCreateList };
+}
+
+async function pickList(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string
+) {
+  const picker = screen.getByLabelText('tasks.list');
+  await user.click(picker);
+  await user.click(
+    await within(picker.closest('details') as HTMLElement).findByRole(
+      'button',
+      { name }
+    )
+  );
+}
+
+describe('TodoEditPanel list picker', () => {
+  test('an Inbox task has inactive list settings until a list is picked', async () => {
+    const user = userEvent.setup();
+    const { onSave } = renderEditPanel({});
+
+    expect(screen.getByLabelText('tasks.list')).toHaveTextContent(
+      'tasks.inbox'
     );
-    expect(screen.getByDisplayValue(list.name)).not.toHaveAttribute('readonly');
+    expect(screen.getByLabelText('tasks.listPriority')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+    expect(screen.getByLabelText('tasks.category')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+    expect(screen.getByTestId('edit-todo-inbox-note')).toBeInTheDocument();
+
+    await pickList(user, 'Home');
+
+    expect(screen.getByLabelText('tasks.listPriority')).toHaveAttribute(
+      'aria-disabled',
+      'false'
+    );
+    expect(screen.getByLabelText('tasks.listPriority')).toHaveTextContent(
+      'tasks.priority_high'
+    );
+    expect(screen.getByLabelText('tasks.category')).toHaveTextContent(
+      'tasks.category_work'
+    );
     expect(
-      screen.queryByTestId('edit-todo-default-list-note')
+      screen.queryByTestId('edit-todo-inbox-note')
     ).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('save-todo-edit-button-todo-1'));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ todolistId: 'list-2' })
+    );
+    expect(onSave.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ priority: 'high', category: 'work' })
+    );
+    expect(onSave.mock.calls[0][2]).toBe(otherList);
+  });
+
+  test('moving a task to the Inbox clears and disables the list settings', async () => {
+    const user = userEvent.setup();
+    const { onSave } = renderEditPanel({ todo, list });
+
+    await pickList(user, 'tasks.inbox');
+
+    expect(screen.getByLabelText('tasks.listPriority')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+    await user.click(screen.getByTestId('save-todo-edit-button-todo-1'));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ todolistId: null })
+    );
+    expect(onSave.mock.calls[0][1]).toBeNull();
+    expect(onSave.mock.calls[0][2]).toBeNull();
+  });
+
+  test('does not move the task when the list is left alone', async () => {
+    const user = userEvent.setup();
+    const { onSave } = renderEditPanel({ todo, list });
+
+    await user.click(screen.getByTestId('save-todo-edit-button-todo-1'));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('todolistId');
+    expect(onSave.mock.calls[0][2]).toBe(list);
+  });
+
+  test('adds a list from the picker with the list form and selects it', async () => {
+    const user = userEvent.setup();
+    const created: TodoList = { ...otherList, id: 'list-new', name: 'Garden' };
+    const onCreateList = jest.fn().mockResolvedValue(created);
+    const { onSave } = renderEditPanel({ onCreateList });
+
+    await pickList(user, 'tasks.addList');
+    expect(screen.getByTestId('edit-todo-new-list-dialog')).toBeInTheDocument();
+
+    await user.type(screen.getByTestId('todolist-form-input'), 'Garden');
+    await user.click(screen.getByTestId('todolist-form-submit-button'));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId('edit-todo-new-list-dialog')
+      ).not.toBeInTheDocument()
+    );
+    expect(onCreateList).toHaveBeenCalledWith('Garden', expect.anything());
+    expect(screen.getByLabelText('tasks.list')).toHaveTextContent('Garden');
+
+    await user.click(screen.getByTestId('save-todo-edit-button-todo-1'));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ todolistId: 'list-new' })
+    );
+    expect(onSave.mock.calls[0][2]).toBe(created);
+  });
+
+  test('closes the list form without creating anything', async () => {
+    const user = userEvent.setup();
+    const { onCreateList } = renderEditPanel({});
+
+    await pickList(user, 'tasks.addList');
+    await user.click(
+      screen.getByRole('button', { name: 'tasks.cancel', hidden: false })
+    );
+
+    expect(
+      screen.queryByTestId('edit-todo-new-list-dialog')
+    ).not.toBeInTheDocument();
+    expect(onCreateList).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('tasks.list')).toHaveTextContent(
+      'tasks.inbox'
+    );
   });
 });
 

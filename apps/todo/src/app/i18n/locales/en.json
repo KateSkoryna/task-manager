@@ -92,6 +92,9 @@
     "markNotCompleted": "Mark \"{{name}}\" as not completed"
   },
   "tasks": {
+    "addList": "Add list",
+    "listCreateFailed": "Could not create the list. Please try again.",
+    "inboxNoListSettings": "The Inbox has no list settings. Pick a list to set them.",
     "myTasks": "My Tasks",
     "newList": "New List",
     "selectTask": "Select a task to view details",
@@ -317,6 +320,7 @@
     }
   },
   "statistics": {
+    "period": "Period",
     "title": "Statistics",
     "loading": "Loading statistics\u2026",
     "week": "Week",

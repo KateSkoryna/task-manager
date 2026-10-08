@@ -67,6 +67,7 @@ function TasksPage() {
     error,
     refetch,
     handleCreateList,
+    createList,
     handleDeleteList,
     handleEditList,
     handleAddTodo,
@@ -257,7 +258,8 @@ function TasksPage() {
 
   function handleSaveEdit(
     todoUpdates: UpdateTodoItem,
-    listUpdates: UpdateTodoList | null
+    listUpdates: UpdateTodoList | null,
+    targetList: TodoList | null
   ) {
     if (!selectedTask) return;
     const previousTodo = selectedTask.todo;
@@ -270,17 +272,14 @@ function TasksPage() {
           : prev
       );
     });
-    if (listUpdates && selectedTask.list) {
-      handleEditList(selectedTask.list.id, listUpdates);
+    if (listUpdates && targetList) {
+      handleEditList(targetList.id, listUpdates);
     }
     setSelectedTask((prev) =>
       prev
         ? {
             todo: { ...prev.todo, ...todoUpdates },
-            list:
-              listUpdates && prev.list
-                ? { ...prev.list, ...listUpdates }
-                : prev.list,
+            list: targetList ? { ...targetList, ...listUpdates } : null,
           }
         : null
     );
@@ -476,6 +475,8 @@ function TasksPage() {
                 key={selectedTask.todo.id}
                 todo={selectedTask.todo}
                 list={selectedTask.list}
+                lists={todoLists ?? []}
+                onCreateList={createList}
                 onSave={handleSaveEdit}
                 onCancel={() => setIsEditing(false)}
               />

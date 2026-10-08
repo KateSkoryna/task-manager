@@ -92,6 +92,9 @@
     "markNotCompleted": "„{{name}}“ als nicht erledigt markieren"
   },
   "tasks": {
+    "addList": "Liste hinzufügen",
+    "listCreateFailed": "Die Liste konnte nicht erstellt werden. Bitte versuche es erneut.",
+    "inboxNoListSettings": "Der Posteingang hat keine Listeneinstellungen. Wähle eine Liste, um sie festzulegen.",
     "myTasks": "Meine Aufgaben",
     "newList": "Neue Liste",
     "selectTask": "Aufgabe wählen, um Details anzuzeigen",
@@ -317,6 +320,7 @@
     }
   },
   "statistics": {
+    "period": "Zeitraum",
     "title": "Statistiken",
     "loading": "Statistiken werden geladen...",
     "week": "Woche",
