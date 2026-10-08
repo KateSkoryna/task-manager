@@ -1,13 +1,15 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import MobileDrawer from './MobileDrawer';
 import TopHeader from './TopHeader';
 import Footer from './Footer';
 import ChatPanel from '../agent/ChatPanel';
+import { useMobileMenuStore } from '../../store/mobileMenuStore';
 
 function AppShell() {
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const isDrawerOpen = useMobileMenuStore((s) => s.isOpen);
+  const setDrawerOpen = useMobileMenuStore((s) => s.setOpen);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   return (

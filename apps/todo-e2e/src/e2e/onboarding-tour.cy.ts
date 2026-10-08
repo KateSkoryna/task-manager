@@ -25,4 +25,32 @@ describe('Onboarding tour', () => {
     cy.location('pathname').should('eq', '/');
     cy.get('.driver-popover').should('contain.text', 'This is your Today page');
   });
+
+  it('opens the menu on a phone and points at the pages inside it', () => {
+    cy.viewport('iphone-x');
+    cy.registerTestUser({ namePrefix: 'tour-phone', skipTour: false });
+
+    cy.get('.driver-popover-next-btn').click();
+    cy.get('.driver-popover').should('contain.text', 'Open the menu');
+    cy.get('[data-testid="menu-button"]').should(
+      'have.class',
+      'driver-active-element'
+    );
+
+    cy.get('.driver-popover-next-btn').click();
+    cy.get('.driver-popover').should(
+      'contain.text',
+      'This is where your tasks live'
+    );
+    cy.get('#mobile-nav-drawer [data-tour="my-tasks-link"]').should(
+      'have.class',
+      'driver-active-element'
+    );
+
+    cy.get('.driver-popover-next-btn').click();
+    cy.get('.driver-popover-next-btn').click();
+    cy.get('.driver-popover-next-btn').click();
+    cy.get('.driver-popover').should('contain.text', 'Find any task');
+    cy.get('#mobile-nav-drawer').should('not.exist');
+  });
 });

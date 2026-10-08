@@ -102,6 +102,7 @@ function TopHeader({
           ariaLabel={t('header.openMenu')}
           ariaExpanded={isMenuOpen}
           ariaControls={MOBILE_DRAWER_ID}
+          dataTestId="menu-button"
           onClick={onOpenMenu}
           className="md:hidden"
         >
