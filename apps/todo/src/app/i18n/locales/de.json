@@ -24,6 +24,7 @@
     "reportReadyNotification": "Bericht bereit: {{name}}"
   },
   "auth": {
+    "slowServer": "Der Server wird gestartet, das kann bis zu einer Minute dauern…",
     "login": {
       "title": "Anmelden",
       "emailPlaceholder": "E-Mail",

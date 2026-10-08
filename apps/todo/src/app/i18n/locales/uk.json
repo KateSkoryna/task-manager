@@ -24,6 +24,7 @@
     "reportReadyNotification": "Звіт готовий: {{name}}"
   },
   "auth": {
+    "slowServer": "Сервер прокидається, це може тривати до хвилини…",
     "login": {
       "title": "Вхід",
       "emailPlaceholder": "Електронна пошта",

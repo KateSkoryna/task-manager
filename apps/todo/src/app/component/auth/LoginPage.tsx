@@ -17,6 +17,7 @@ import womanImage from '../../../assets/woman.webp';
 import Checkbox from '../elements/Checkbox';
 import Button from '../elements/Button';
 import AuthLayout from './AuthLayout';
+import SlowServerNotice from './SlowServerNotice';
 import {
   AUTH_INPUT_CLASS as INPUT_CLASS,
   AUTH_PASSWORD_INPUT_CLASS as PASSWORD_INPUT_CLASS,
@@ -213,6 +214,8 @@ function LoginPage() {
             {t('auth.login.continueWithGoogle')}
           </Button>
         </div>
+
+        <SlowServerNotice pending={isPending} />
 
         <p className="mt-6 text-sm text-muted">
           {t('auth.login.noAccount')}{' '}

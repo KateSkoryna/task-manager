@@ -15,6 +15,7 @@ import manImage from '../../../assets/man.webp';
 import Checkbox from '../elements/Checkbox';
 import Button from '../elements/Button';
 import AuthLayout from './AuthLayout';
+import SlowServerNotice from './SlowServerNotice';
 import {
   AUTH_INPUT_CLASS,
   AUTH_PASSWORD_INPUT_CLASS,
@@ -319,6 +320,8 @@ function RegisterPage() {
             {t('auth.register.continueWithGoogle')}
           </Button>
         </div>
+
+        <SlowServerNotice pending={isPending} />
 
         <p className="mt-4 text-sm text-muted">
           {t('auth.register.haveAccount')}{' '}

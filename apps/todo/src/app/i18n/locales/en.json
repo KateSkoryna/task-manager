@@ -24,6 +24,7 @@
     "reportReadyNotification": "Report ready: {{name}}"
   },
   "auth": {
+    "slowServer": "Waking up the server, this can take up to a minute…",
     "login": {
       "title": "Sign In",
       "emailPlaceholder": "Email",
