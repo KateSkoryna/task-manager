@@ -101,7 +101,7 @@ function SidebarContent({
 
       <nav
         ref={navRef}
-        className="relative min-h-0 space-y-1 overflow-y-auto px-content-mobile md:px-content-tablet lg:px-content-desktop py-4"
+        className="relative flex min-h-0 flex-col gap-1 overflow-y-auto px-content-mobile md:px-content-tablet lg:px-content-desktop py-4"
       >
         {box && (
           // One highlight that slides to the active link, instead of each link
