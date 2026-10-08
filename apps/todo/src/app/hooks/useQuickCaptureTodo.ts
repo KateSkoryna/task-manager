@@ -5,7 +5,15 @@ import {
   useInboxTodosQuery,
   useParseTodoMutation,
 } from '../fetchers/api';
+import { TodoPriority } from '@shared/types';
 import { usePreferences } from './usePreferences';
+
+/** Fields the user filled in by hand under "More". */
+export interface QuickCaptureExtras {
+  priority?: TodoPriority;
+  dueDate?: string;
+  notes?: string;
+}
 
 export interface QuickCaptureEnrichment {
   id: string;
@@ -19,6 +27,9 @@ export interface QuickCaptureEnrichment {
  * app (Inbox section, Dashboard) so the behavior — and its safety guard
  * against clobbering a manual edit made while the parse was in flight —
  * stays in one place.
+ *
+ * Fields the user chose by hand are saved as given and the AI parse is
+ * skipped, so it can never overwrite an explicit choice.
  */
 export const useQuickCaptureTodo = () => {
   const { data: todos = [] } = useInboxTodosQuery();
@@ -33,7 +44,6 @@ export const useQuickCaptureTodo = () => {
   // Only an explicit "off" skips the parse; while preferences are still
   // loading, the server remains the one that decides.
   const aiIsOff = preferences?.aiConsent === false;
-  const [aiHintShown, setAiHintShown] = useState(false);
 
   // The parse round trip can take several seconds; read from a ref rather
   // than the `todos` closure captured at submit time, so the enrichment
@@ -43,17 +53,17 @@ export const useQuickCaptureTodo = () => {
     todosRef.current = todos;
   }, [todos]);
 
-  function submit(rawText: string) {
+  function submit(rawText: string, extras: QuickCaptureExtras = {}) {
     const text = rawText.trim();
     if (!text) return;
+    const hasExtras = Object.values(extras).some(Boolean);
     setEnrichment(null);
-    setAiHintShown(aiIsOff);
 
     addInboxTodo.mutate(
-      { name: text },
+      { name: text, ...extras },
       {
         onSuccess: (created) => {
-          if (aiIsOff) return;
+          if (aiIsOff || hasExtras) return;
           parseTodo.mutate(text, {
             onSuccess: (parsed) => {
               if (parsed.ambiguous) return;
@@ -93,5 +103,5 @@ export const useQuickCaptureTodo = () => {
     setEnrichment(null);
   }
 
-  return { enrichment, aiHintShown, submit, undo };
+  return { enrichment, aiIsOff, submit, undo };
 };
