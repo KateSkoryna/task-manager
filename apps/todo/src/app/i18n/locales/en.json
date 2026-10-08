@@ -266,7 +266,11 @@
   },
   "help": {
     "title": "Help",
-    "comingSoon": "Coming soon."
+    "tour": {
+      "title": "Welcome tour",
+      "description": "Take the short tour of the Today page again.",
+      "replay": "Replay the tour"
+    }
   },
   "error": {
     "title": "Something went wrong!",
@@ -422,5 +426,23 @@
     "generated": "Report generated",
     "viewReport": "View report",
     "print": "Print / Save as PDF"
+  },
+  "onboarding": {
+    "todayTitle": "This is your Today page",
+    "todayDescription": "Everything due today and anything overdue shows up here, along with your Inbox.",
+    "tasksTitle": "This is where your tasks live",
+    "tasksDescription": "Open My Tasks to see your lists. Tasks without a list go to the Inbox, so lists are optional.",
+    "statisticsTitle": "See how you are doing",
+    "statisticsDescription": "Statistics shows what you finished over a week, month or year. You can also create a report from there.",
+    "settingsTitle": "Make the app yours",
+    "settingsDescription": "Settings is where you pick the language, timezone and theme, and turn on AI assistance.",
+    "searchTitle": "Find any task",
+    "searchDescription": "Type here to search all your tasks by name.",
+    "addTitle": "Create your first task",
+    "addDescription": "Press Add task to write it down. It lands in your Inbox unless you pick a list.",
+    "next": "Next",
+    "previous": "Back",
+    "done": "Got it",
+    "progress": "{{current}} of {{total}}"
   }
 }

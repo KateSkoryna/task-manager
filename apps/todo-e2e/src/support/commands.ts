@@ -9,6 +9,9 @@ declare namespace Cypress {
      * password, uniqueId }` so callers that need to log back in (or want a
      * unique suffix for further naming) can use them.
      *
+     * A new user gets the first-run tour, whose overlay blocks clicks, so
+     * it is skipped unless `skipTour` is false.
+     *
      * The registered user is tracked automatically and cleaned up by a
      * single global `afterEach` in `support/e2e.ts` — specs using this
      * command don't need their own `let createdUser` / cleanup boilerplate.
@@ -16,6 +19,7 @@ declare namespace Cypress {
     registerTestUser(options?: {
       namePrefix?: string;
       aiConsent?: boolean;
+      skipTour?: boolean;
     }): Chainable<{ email: string; password: string; uniqueId: number }>;
   }
 }
@@ -36,7 +40,7 @@ const TEST_PASSWORD = 'Baseline123!';
 
 Cypress.Commands.add(
   'registerTestUser',
-  ({ namePrefix = 'test-user', aiConsent = false } = {}) => {
+  ({ namePrefix = 'test-user', aiConsent = false, skipTour = true } = {}) => {
     const uniqueId = Date.now();
     const email = `${namePrefix}-${uniqueId}@example.com`;
 
@@ -60,6 +64,11 @@ Cypress.Commands.add(
       });
     });
     cy.location('pathname').should('eq', '/');
+
+    if (skipTour) {
+      cy.get('.driver-popover-close-btn').click();
+      cy.get('.driver-popover').should('not.exist');
+    }
 
     if (aiConsent) {
       cy.contains('a', 'Settings').click();

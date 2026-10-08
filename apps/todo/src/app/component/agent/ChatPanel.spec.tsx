@@ -21,6 +21,7 @@ const FAKE_USER: User = {
     tone: 'neutral',
     aiConsent: true,
     autoArchive: 'never',
+    onboardingSeen: false,
   },
   telegramLinked: false,
 };

@@ -11,6 +11,7 @@ const PREFERENCES: UserPreferences = {
   tone: 'neutral',
   aiConsent: false,
   autoArchive: 'never',
+  onboardingSeen: false,
 };
 
 const usePreferences = jest.fn();

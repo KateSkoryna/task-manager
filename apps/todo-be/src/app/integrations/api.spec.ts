@@ -599,6 +599,7 @@ describe('Nest API parity', () => {
         tone: 'neutral',
         aiConsent: false,
         autoArchive: 'never',
+        onboardingSeen: false,
       });
     });
 
@@ -614,6 +615,19 @@ describe('Nest API parity', () => {
         .get(`/api/users/${userAId}/preferences`)
         .set(auth());
       expect(get.body.timezone).toBe('Europe/Berlin');
+    });
+
+    it('remembers that the onboarding tour has been seen', async () => {
+      const patch = await request(app.getHttpServer())
+        .patch(`/api/users/${userAId}/preferences`)
+        .set(auth())
+        .send({ onboardingSeen: true });
+      expect(patch.status).toBe(200);
+
+      const get = await request(app.getHttpServer())
+        .get(`/api/users/${userAId}/preferences`)
+        .set(auth());
+      expect(get.body.onboardingSeen).toBe(true);
     });
 
     it('rejects a timezone that is not a real IANA identifier', async () => {
@@ -670,6 +684,7 @@ describe('Nest API parity', () => {
         tone: 'direct',
         aiConsent: false,
         autoArchive: 'never',
+        onboardingSeen: false,
       });
     });
   });

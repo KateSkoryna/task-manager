@@ -40,6 +40,9 @@ jest.mock('../../fetchers/api', () => ({
   useToggleTodoMutation: () => ({ mutate: mockToggle }),
 }));
 
+// The tour has its own spec; here it would need a query client and driver.js.
+jest.mock('../onboarding/OnboardingTour', () => () => null);
+
 jest.mock('../../hooks/useHeaderTaskSearch', () => ({
   useHeaderTaskSearch: () => ({
     query: '',

@@ -51,6 +51,8 @@ const preferenceFields = {
    */
   aiConsent: z.boolean(),
   autoArchive: z.enum(AUTO_ARCHIVE_OPTIONS),
+  /** Set once the first-run tour has been finished or skipped. */
+  onboardingSeen: z.boolean(),
 };
 
 export const userPreferencesSchema = z.object({
@@ -61,6 +63,7 @@ export const userPreferencesSchema = z.object({
   tone: preferenceFields.tone.default('neutral'),
   aiConsent: preferenceFields.aiConsent.default(false),
   autoArchive: preferenceFields.autoArchive.default('never'),
+  onboardingSeen: preferenceFields.onboardingSeen.default(false),
 });
 
 export const userPreferencesUpdateSchema = z
