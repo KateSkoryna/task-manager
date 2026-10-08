@@ -4,7 +4,7 @@ export function sortByOrder<T extends { order: number; id: string }>(
   items: T[]
 ): T[] {
   return [...items].sort(
-    (a, b) => a.order - b.order || a.id.localeCompare(b.id)
+    (a, b) => a.order - b.order || b.id.localeCompare(a.id)
   );
 }
 
