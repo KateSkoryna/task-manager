@@ -70,6 +70,7 @@ function TasksPage() {
     handleEditList,
     handleAddTodo,
     handleDeleteTodo,
+    handleToggleTodo,
     handleEditTodo,
     handleArchiveTodo,
     handleRestoreTodo,
@@ -380,6 +381,7 @@ function TasksPage() {
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={(todo) => handleSelectTodo(todo, null)}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+                onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
@@ -396,6 +398,7 @@ function TasksPage() {
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={handleSelectTodo}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+                onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
@@ -410,6 +413,7 @@ function TasksPage() {
                 handleSelectTodo(todo, resolveList(listId))
               }
               onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+              onToggleTodo={handleToggleTodo}
               availableLists={availableLists}
               onMoveTodo={handleMoveTodo}
             />

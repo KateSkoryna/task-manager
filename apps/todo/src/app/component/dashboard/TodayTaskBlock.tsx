@@ -1,8 +1,8 @@
 import { ReactNode, Ref } from 'react';
-import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem } from '@shared/types';
 import Badge from '../elements/Badge';
+import CompletionCheckbox from '../elements/CompletionCheckbox';
 import { mergeClassNames } from '../../lib/classNames';
 import { isCompleted } from '../../lib/todayTasks';
 import { useFittingItemCount } from '../../hooks/useFittingItemCount';
@@ -65,28 +65,16 @@ function TodayTaskRow<T extends TodoItem>({
       data-testid={`today-task-${item.id}`}
     >
       {onToggle && (
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={completed}
-          aria-label={t(
+        <CompletionCheckbox
+          completed={completed}
+          label={t(
             completed
               ? 'dashboard.markNotCompleted'
               : 'dashboard.markCompleted',
             { name: item.name }
           )}
-          onClick={() => onToggle(item)}
-          className={mergeClassNames(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg',
-            completed
-              ? 'border-status-complete bg-status-complete'
-              : 'border-muted hover:border-primary'
-          )}
-        >
-          {completed && (
-            <Check className="h-3.5 w-3.5 text-surface" strokeWidth={3} />
-          )}
-        </button>
+          onToggle={() => onToggle(item)}
+        />
       )}
       <button
         type="button"

@@ -31,6 +31,19 @@ describe('Authenticated todo smoke flow', () => {
       );
     });
 
+    // The round check on the card completes the task without opening it.
+    cy.get('@createdList')
+      .contains('div[data-testid^="todo-item-"]', todoName)
+      .find('[role="checkbox"]')
+      .click();
+    cy.get('@createdList')
+      .contains('div[data-testid^="todo-item-"]', todoName)
+      .should('contain.text', 'Completed');
+    cy.get('@createdList')
+      .contains('div[data-testid^="todo-item-"]', todoName)
+      .find('[role="checkbox"]')
+      .click();
+
     cy.get('@createdList')
       .contains('div[data-testid^="todo-item-"]', todoName)
       .click();

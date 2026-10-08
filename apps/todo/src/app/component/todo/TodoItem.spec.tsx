@@ -94,9 +94,10 @@ describe('TodoItem', () => {
     rerender(<TodoItem todo={makeTodo()} isSelected />);
     expect(screen.getByText('tasks.selected')).toBeInTheDocument();
   });
-  test('marks completed task text as struck through', () => {
+  test('dims completed task text without striking it through', () => {
     render(<TodoItem todo={makeTodo('successful')} />);
-    expect(screen.getByText('Write tests')).toHaveClass('line-through');
+    expect(screen.getByText('Write tests')).toHaveClass('text-muted');
+    expect(screen.getByText('Write tests')).not.toHaveClass('line-through');
     expect(screen.getByText('tasks.status_successful')).toHaveClass(
       'text-status-complete'
     );
@@ -123,5 +124,49 @@ describe('TodoItem', () => {
       <TodoItem todo={makeTodo('successful', { dueDate: '2026-08-18' })} />
     );
     expect(screen.queryByText('tasks.dueSoon')).not.toBeInTheDocument();
+  });
+
+  describe('quick complete', () => {
+    test('has no check unless a handler is given', () => {
+      render(<TodoItem todo={makeTodo()} />);
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    });
+
+    test('shows whether the task is completed', () => {
+      const { rerender } = render(
+        <TodoItem todo={makeTodo('pending')} onToggleComplete={jest.fn()} />
+      );
+      expect(screen.getByRole('checkbox')).toHaveAttribute(
+        'aria-checked',
+        'false'
+      );
+
+      rerender(
+        <TodoItem todo={makeTodo('successful')} onToggleComplete={jest.fn()} />
+      );
+      expect(screen.getByRole('checkbox')).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+    });
+
+    test('toggles without selecting the task', () => {
+      jest.useRealTimers();
+      const onToggleComplete = jest.fn();
+      const onSelect = jest.fn();
+      render(
+        <TodoItem
+          todo={makeTodo()}
+          onSelect={onSelect}
+          onToggleComplete={onToggleComplete}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.keyDown(screen.getByRole('checkbox'), { key: 'Enter' });
+
+      expect(onToggleComplete).toHaveBeenCalledTimes(1);
+      expect(onSelect).not.toHaveBeenCalled();
+    });
   });
 });

@@ -46,6 +46,7 @@ const ARCHIVED_TODO: TodoItem = {
 };
 const mockHandleArchiveTodo = jest.fn();
 const mockHandleRestoreTodo = jest.fn();
+const mockHandleToggleTodo = jest.fn();
 
 jest.mock('../../hooks/useTodoListsData', () => ({
   useTodoListsData: () => ({
@@ -61,6 +62,7 @@ jest.mock('../../hooks/useTodoListsData', () => ({
     handleEditList: jest.fn(),
     handleAddTodo: jest.fn(),
     handleDeleteTodo: jest.fn(),
+    handleToggleTodo: mockHandleToggleTodo,
     handleEditTodo: jest.fn(),
     handleArchiveTodo: mockHandleArchiveTodo,
     handleRestoreTodo: mockHandleRestoreTodo,
@@ -176,6 +178,18 @@ describe('TasksPage', () => {
 
     renderTasksPage();
     expect(screen.getByTestId('flat-task-list')).toBeInTheDocument();
+  });
+
+  it('completes a task from its card without opening it', async () => {
+    renderTasksPage();
+    const card = screen.getByTestId('todo-item-t1');
+
+    await userEvent.click(within(card).getByRole('checkbox'));
+
+    expect(mockHandleToggleTodo).toHaveBeenCalledWith('t1');
+    expect(
+      screen.queryByTestId('archive-todo-button-t1')
+    ).not.toBeInTheDocument();
   });
 
   it('archives the selected task from its detail panel', async () => {

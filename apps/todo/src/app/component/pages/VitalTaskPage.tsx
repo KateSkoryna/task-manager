@@ -42,6 +42,7 @@ function VitalTaskPage() {
     handleAddTodo,
     handleAddInboxTodo,
     handleDeleteTodo,
+    handleToggleTodo,
     handleArchiveTodo,
   } = useTodoListsData();
 
@@ -173,6 +174,7 @@ function VitalTaskPage() {
           selectedTodoId={selectedTask?.todo.id ?? null}
           onSelectTodo={handleSelectTodo}
           onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+          onToggleTodo={handleToggleTodo}
           onCreateList={() =>
             navigate('/tasks', { state: { openCreateList: true } })
           }

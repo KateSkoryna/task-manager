@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
 import Card from '../elements/Card';
 import Badge from '../elements/Badge';
+import CompletionCheckbox from '../elements/CompletionCheckbox';
 import MoveToListSelect, { AvailableList } from './MoveToListSelect';
 import { isDueWithinHours } from '../../lib/urgency';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
@@ -15,6 +16,8 @@ interface TodoItemProps {
   onSelect?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Completes the task, or undoes it, without opening the edit panel. */
+  onToggleComplete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   canMoveUp?: boolean;
@@ -46,6 +49,7 @@ function TodoItem({
   onSelect,
   onEdit,
   onDelete,
+  onToggleComplete,
   onMoveUp,
   onMoveDown,
   canMoveUp,
@@ -81,9 +85,21 @@ function TodoItem({
       <div className="flex flex-col gap-2">
         {/* Row 1: name + selected pill + priority + edit/delete btns */}
         <div className="flex items-center gap-3">
+          {onToggleComplete && (
+            <CompletionCheckbox
+              completed={todo.status === 'successful'}
+              label={t(
+                todo.status === 'successful'
+                  ? 'dashboard.markNotCompleted'
+                  : 'dashboard.markCompleted',
+                { name: todo.name }
+              )}
+              onToggle={onToggleComplete}
+            />
+          )}
           <p
             className={`flex-1 min-w-0 truncate font-semibold text-primary leading-snug ${
-              todo.status === 'successful' ? 'line-through text-muted' : ''
+              todo.status === 'successful' ? 'text-muted' : ''
             }`}
           >
             {todo.name}
