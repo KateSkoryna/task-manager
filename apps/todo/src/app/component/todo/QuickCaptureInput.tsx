@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
@@ -32,8 +33,11 @@ function QuickCaptureInput({
 
   return (
     <div className="flex flex-col gap-2">
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
-        <div className="flex-1">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-2 xl:flex-row xl:items-center"
+      >
+        <div className="xl:flex-1">
           <Input
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -44,9 +48,10 @@ function QuickCaptureInput({
         <Button
           type="submit"
           variant="primary"
-          className="text-sm shrink-0"
+          className="w-full shrink-0 text-sm xl:w-auto"
           dataTestId={submitTestId}
         >
+          <Plus className="h-4 w-4" />
           {t('tasks.quickCaptureAdd')}
         </Button>
       </form>

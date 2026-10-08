@@ -100,6 +100,28 @@ describe('Dropdown', () => {
     expect(screen.queryAllByRole('button')).toHaveLength(0);
   });
 
+  test('cuts a long name with three dots and keeps the full name on hover', async () => {
+    const longName = 'A very long list name that cannot fit in the menu';
+    render(
+      <Dropdown
+        ariaLabel="List"
+        value="long"
+        onChange={jest.fn()}
+        options={[{ value: 'long', label: longName }]}
+        placeholder="Pick a list"
+      />
+    );
+
+    // jsdom has no layout, so check the classes that make the browser cut it.
+    expect(screen.getByText(longName)).toHaveClass('min-w-0', 'truncate');
+
+    await userEvent.click(screen.getByLabelText('List'));
+    const option = (await screen.findAllByText(longName)).find(
+      (element) => element.getAttribute('title') === longName
+    );
+    expect(option).toHaveClass('min-w-0', 'truncate');
+  });
+
   test('dismisses with Escape or outside pointer without changing value', async () => {
     render(<Harness />);
     const summary = screen.getByLabelText('Priority');

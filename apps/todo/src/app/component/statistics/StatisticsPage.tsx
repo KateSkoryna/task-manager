@@ -8,6 +8,7 @@ import {
 } from '@shared/types';
 import Container from '../elements/Container';
 import PeriodSelector from '../elements/PeriodSelector';
+import Dropdown from '../elements/Dropdown';
 import Button from '../elements/Button';
 import {
   useTodoListsQuery,
@@ -15,6 +16,7 @@ import {
   useGenerateReportMutation,
 } from '../../fetchers/api';
 import { usePreferences } from '../../hooks/usePreferences';
+import { useIsBelowXlScreen } from '../../hooks/useIsBelowXlScreen';
 import { useNotificationStore } from '../../store/notificationStore';
 import {
   resolvePeriod,
@@ -65,6 +67,8 @@ const REPORT_PERIOD_BY_KIND: Record<PeriodKind, ReportPeriod> = {
 
 export default function StatisticsPage() {
   const { t } = useTranslation();
+  // Below xl the controls row is tight, so the period goes in a dropdown.
+  const isBelowXl = useIsBelowXlScreen();
   const [periodKind, setPeriodKind] = useState<PeriodKind>('month');
   const [anchor, setAnchor] = useState<Date>(() => new Date());
   const { data: todoLists = [], isLoading: isLoadingTodoLists } =
@@ -281,6 +285,12 @@ export default function StatisticsPage() {
     );
   }
 
+  const periodOptions = [
+    { label: t('statistics.week'), value: 'week' as const },
+    { label: t('statistics.month'), value: 'month' as const },
+    { label: t('statistics.year'), value: 'year' as const },
+  ];
+
   return (
     <Container className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -295,16 +305,24 @@ export default function StatisticsPage() {
           />
         </div>
         <div className="flex w-full flex-nowrap items-center gap-2 sm:w-auto sm:gap-3">
-          <PeriodSelector
-            options={[
-              { label: t('statistics.week'), value: 'week' as const },
-              { label: t('statistics.month'), value: 'month' as const },
-              { label: t('statistics.year'), value: 'year' as const },
-            ]}
-            value={periodKind}
-            onChange={handlePeriodChange}
-            className="min-w-0 flex-1 sm:flex-none"
-          />
+          {isBelowXl ? (
+            <div className="min-w-0 flex-1 sm:w-40 sm:flex-none">
+              <Dropdown
+                ariaLabel={t('statistics.period')}
+                value={periodKind}
+                onChange={(value) => value && handlePeriodChange(value)}
+                options={periodOptions}
+                placeholder={t('statistics.period')}
+              />
+            </div>
+          ) : (
+            <PeriodSelector
+              options={periodOptions}
+              value={periodKind}
+              onChange={handlePeriodChange}
+              className="min-w-0 flex-1 sm:flex-none"
+            />
+          )}
           <Button
             variant="secondary"
             loading={generateReport.isPending}

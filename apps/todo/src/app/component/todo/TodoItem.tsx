@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
 import Card from '../elements/Card';
 import Badge from '../elements/Badge';
+import CompletionCheckbox from '../elements/CompletionCheckbox';
 import MoveToListSelect, { AvailableList } from './MoveToListSelect';
 import { isDueWithinHours } from '../../lib/urgency';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
@@ -15,6 +16,8 @@ interface TodoItemProps {
   onSelect?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** Completes the task, or undoes it, without opening the edit panel. */
+  onToggleComplete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   canMoveUp?: boolean;
@@ -46,6 +49,7 @@ function TodoItem({
   onSelect,
   onEdit,
   onDelete,
+  onToggleComplete,
   onMoveUp,
   onMoveDown,
   canMoveUp,
@@ -81,9 +85,21 @@ function TodoItem({
       <div className="flex flex-col gap-2">
         {/* Row 1: name + selected pill + priority + edit/delete btns */}
         <div className="flex items-center gap-3">
+          {onToggleComplete && (
+            <CompletionCheckbox
+              completed={todo.status === 'successful'}
+              label={t(
+                todo.status === 'successful'
+                  ? 'dashboard.markNotCompleted'
+                  : 'dashboard.markCompleted',
+                { name: todo.name }
+              )}
+              onToggle={onToggleComplete}
+            />
+          )}
           <p
             className={`flex-1 min-w-0 truncate font-semibold text-primary leading-snug ${
-              todo.status === 'successful' ? 'line-through text-muted' : ''
+              todo.status === 'successful' ? 'text-muted' : ''
             }`}
           >
             {todo.name}
@@ -97,7 +113,7 @@ function TodoItem({
             {t(`tasks.priority_${todo.priority}`)}
           </Badge>
           {(onEdit || onDelete) && (
-            <div className="flex items-center gap-1 lg:gap-3 shrink-0">
+            <div className="flex items-center gap-1 xl:gap-3 shrink-0">
               {onEdit && (
                 <button
                   onClick={(e) => {
@@ -140,7 +156,7 @@ function TodoItem({
         )}
 
         {/* Row 3: status */}
-        <span className="hidden sm:inline text-xs text-muted">
+        <span className="hidden xl:inline text-xs text-muted">
           {t('tasks.status')}{' '}
           <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
             {statusLabel}
@@ -148,7 +164,7 @@ function TodoItem({
         </span>
 
         {/* Row 4: reorder + move-to-list controls, due date */}
-        <div className="flex flex-nowrap items-center gap-x-1.5 sm:gap-x-3">
+        <div className="flex flex-nowrap items-center gap-x-1.5 xl:gap-x-3">
           {(onMoveUp || onMoveDown) && (
             <div
               className="flex items-center border border-default rounded-inner overflow-hidden shrink-0"
@@ -176,7 +192,7 @@ function TodoItem({
           )}
           {onMoveToList && (
             <div
-              className="min-w-0 flex-1 sm:flex-none"
+              className="min-w-0 flex-1 xl:flex-none"
               onClick={(e) => e.stopPropagation()}
             >
               <MoveToListSelect
@@ -200,7 +216,7 @@ function TodoItem({
                   }`}
                 />
               )}
-              <span className="hidden sm:inline">{t('tasks.due')} </span>
+              <span className="hidden xl:inline">{t('tasks.due')} </span>
               {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               {isUrgent && (
                 <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">

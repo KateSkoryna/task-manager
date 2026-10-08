@@ -1,6 +1,14 @@
 import { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Archive, Trash2, ImagePlus, Upload } from 'lucide-react';
+import {
+  Archive,
+  Trash2,
+  ImagePlus,
+  Upload,
+  Plus,
+  Inbox as InboxIcon,
+  X,
+} from 'lucide-react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,6 +29,9 @@ import DatePickerInput from '../elements/DatePickerInput';
 import Dropdown, { DropdownOption } from '../elements/Dropdown';
 import Badge from '../elements/Badge';
 import Button from '../elements/Button';
+import IconButton from '../elements/IconButton';
+import TodoListForm from './TodoListForm';
+import { CreateTodoListOpts } from '../../fetchers/todolist';
 
 // ─── Edit Panel ───────────────────────────────────────────────────────────────
 
@@ -31,23 +42,36 @@ type EditFormValues = {
   dueDate: string;
   location: string;
   notes: string;
-  listName: string;
+  /** The list the task belongs to; null is the Inbox. */
+  listId: string | null;
+  /** The chosen list's priority and category; both empty for the Inbox. */
   listPriority: TodoListPriority | '';
   category: TodoListCategory | '';
   image: string | null;
 };
 
+/** Dropdown entry that opens the create-list form instead of picking a list. */
+const NEW_LIST = '__new__';
+
 export function TodoEditPanel({
   todo,
   list,
+  lists,
+  onCreateList,
   onSave,
   onCancel,
 }: {
   todo: TodoItem;
   list: TodoList | null;
+  /** Every list the task could move to. */
+  lists: TodoList[];
+  onCreateList: (name: string, opts?: CreateTodoListOpts) => Promise<TodoList>;
+  /** `listUpdates` change `targetList`, the list the task ends up in; both are
+   * null for the Inbox. */
   onSave: (
     todoUpdates: UpdateTodoItem,
-    listUpdates: UpdateTodoList | null
+    listUpdates: UpdateTodoList | null,
+    targetList: TodoList | null
   ) => void;
   onCancel: () => void;
 }) {
@@ -56,7 +80,17 @@ export function TodoEditPanel({
   const [imageError, setImageError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [showNewListForm, setShowNewListForm] = useState(false);
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  // Lists made in this panel, shown before the page's list data catches up.
+  const [createdLists, setCreatedLists] = useState<TodoList[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const allLists = [
+    ...lists,
+    ...createdLists.filter(
+      (created) => !lists.some((l) => l.id === created.id)
+    ),
+  ];
 
   const {
     register,
@@ -73,7 +107,7 @@ export function TodoEditPanel({
       dueDate: todo.dueDate ?? '',
       location: todo.location ?? '',
       notes: todo.notes ?? '',
-      listName: list?.name ?? '',
+      listId: list?.id ?? null,
       listPriority: list?.priority ?? '',
       category: list?.category ?? '',
       image: todo.image ?? null,
@@ -99,6 +133,37 @@ export function TodoEditPanel({
     { value: 'family', label: t('tasks.category_family') },
     { value: 'health', label: t('tasks.category_health') },
   ];
+  const listOptions: DropdownOption<string>[] = [
+    ...allLists.map((l) => ({ value: l.id, label: l.name })),
+    {
+      value: NEW_LIST,
+      label: t('tasks.addList'),
+      icon: <Plus className="w-3 h-3 shrink-0" />,
+    },
+  ];
+
+  // The list fields follow the chosen list; the Inbox has none.
+  function showListSettings(chosen: TodoList | null) {
+    setValue('listPriority', chosen?.priority ?? '');
+    setValue('category', chosen?.category ?? '');
+  }
+
+  async function handleCreateList(name: string, opts?: CreateTodoListOpts) {
+    setIsCreatingList(true);
+    try {
+      const created = await onCreateList(name, opts);
+      setCreatedLists((prev) => [...prev, created]);
+      setValue('listId', created.id, { shouldDirty: true });
+      showListSettings(created);
+      setShowNewListForm(false);
+      setValidationError(null);
+    } catch {
+      setValidationError(t('tasks.listCreateFailed'));
+      setShowNewListForm(false);
+    } finally {
+      setIsCreatingList(false);
+    }
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -130,6 +195,9 @@ export function TodoEditPanel({
     const statusChangedFromSuccessful =
       data.status !== 'successful' && todo.status === 'successful';
 
+    const targetList = allLists.find((l) => l.id === data.listId) ?? null;
+    const listChanged = (data.listId ?? null) !== (list?.id ?? null);
+
     const todoResult = todoUpdateSchema.safeParse({
       name: data.name.trim() || todo.name,
       status: data.status,
@@ -137,6 +205,7 @@ export function TodoEditPanel({
       dueDate: data.dueDate || null,
       location: data.location.trim() || null,
       notes: data.notes.trim() || null,
+      ...(listChanged ? { todolistId: data.listId } : {}),
       ...(dirtyFields.image ? { image: data.image } : {}),
       ...(statusChangedToSuccessful
         ? { completedAt: new Date().toISOString() }
@@ -144,9 +213,9 @@ export function TodoEditPanel({
         ? { completedAt: null }
         : {}),
     });
-    const listResult = list
+    // Only an existing list has settings to save; the Inbox has none.
+    const listResult = targetList
       ? todolistUpdateSchema.safeParse({
-          name: data.listName.trim() || list.name,
           priority: data.listPriority,
           category: data.category,
         })
@@ -162,155 +231,177 @@ export function TodoEditPanel({
     }
 
     setValidationError(null);
-    onSave(todoResult.data, listResult ? listResult.data : null);
+    onSave(todoResult.data, listResult ? listResult.data : null, targetList);
   };
 
-  const labelClass = 'text-xs text-muted font-medium w-20 shrink-0';
+  const labelClass = 'text-xs text-muted font-medium';
   const inputClass =
-    'flex-1 px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-sm';
+    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-sm';
   const dropdownClass =
-    'flex min-w-[10rem] cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
+    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
     'z-50 w-max min-w-[10rem] max-w-[13.75rem] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =
     'w-6 h-6 flex items-center justify-center shrink-0 rounded-inner text-muted transition-colors outline-none cursor-pointer';
 
   return (
-    <form
-      onSubmit={handleSubmit(onFormSubmit)}
-      className="flex flex-col h-full p-8"
-    >
-      <h2 className="text-xl font-bold text-primary mb-5">
-        {t('tasks.editTask')}
-      </h2>
+    <>
+      <form
+        onSubmit={handleSubmit(onFormSubmit)}
+        className="flex flex-col h-full px-8 py-3 md:py-8"
+      >
+        <h2 className="text-xl font-bold text-primary mb-3 md:mb-5">
+          {t('tasks.editTask')}
+        </h2>
 
-      <div className="flex-1 space-y-4 overflow-y-auto">
-        <div className="flex items-center gap-2">
-          <label className={labelClass}>{t('tasks.name')}</label>
-          <input
-            {...register('name')}
-            type="text"
-            className={inputClass}
-            data-testid={'edit-todo-input-' + todo.id}
-          />
-        </div>
+        <div className="flex-1 space-y-4 overflow-y-auto">
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>{t('tasks.name')}</label>
+            <input
+              {...register('name')}
+              type="text"
+              className={inputClass}
+              data-testid={'edit-todo-input-' + todo.id}
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <label
-            id={`edit-todo-status-label-${todo.id}`}
-            className={labelClass}
-          >
-            {t('tasks.status')}
-          </label>
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                id={`edit-todo-status-summary-${todo.id}`}
-                data-testid={`edit-todo-status-${todo.id}`}
-                ariaLabelledby={`edit-todo-status-label-${todo.id}`}
-                value={field.value}
-                onChange={(value: TodoStatus | null) =>
-                  value && field.onChange(value)
-                }
-                options={statusOptions}
-                placeholder={t('tasks.status')}
-                className={dropdownClass}
-                menuClassName={dropdownMenuClass}
-                fixedPosition
-              />
-            )}
-          />
-        </div>
+          <div className="flex flex-col gap-1">
+            <label
+              id={`edit-todo-status-label-${todo.id}`}
+              className={labelClass}
+            >
+              {t('tasks.status')}
+            </label>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  id={`edit-todo-status-summary-${todo.id}`}
+                  data-testid={`edit-todo-status-${todo.id}`}
+                  ariaLabelledby={`edit-todo-status-label-${todo.id}`}
+                  value={field.value}
+                  onChange={(value: TodoStatus | null) =>
+                    value && field.onChange(value)
+                  }
+                  options={statusOptions}
+                  placeholder={t('tasks.status')}
+                  className={dropdownClass}
+                  menuClassName={dropdownMenuClass}
+                  fixedPosition
+                />
+              )}
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <label
-            id={`edit-todo-task-priority-label-${todo.id}`}
-            className={labelClass}
-          >
-            {t('tasks.taskPriority')}
-          </label>
-          <Controller
-            name="taskPriority"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                id={`edit-todo-task-priority-summary-${todo.id}`}
-                data-testid={`edit-todo-task-priority-${todo.id}`}
-                ariaLabelledby={`edit-todo-task-priority-label-${todo.id}`}
-                value={field.value}
-                onChange={(value: TodoPriority | null) =>
-                  value && field.onChange(value)
-                }
-                options={priorityOptions}
-                placeholder={t('tasks.taskPriority')}
-                className={dropdownClass}
-                menuClassName={dropdownMenuClass}
-                fixedPosition
-              />
-            )}
-          />
-        </div>
+          <div className="flex flex-col gap-1">
+            <label
+              id={`edit-todo-task-priority-label-${todo.id}`}
+              className={labelClass}
+            >
+              {t('tasks.taskPriority')}
+            </label>
+            <Controller
+              name="taskPriority"
+              control={control}
+              render={({ field }) => (
+                <Dropdown
+                  id={`edit-todo-task-priority-summary-${todo.id}`}
+                  data-testid={`edit-todo-task-priority-${todo.id}`}
+                  ariaLabelledby={`edit-todo-task-priority-label-${todo.id}`}
+                  value={field.value}
+                  onChange={(value: TodoPriority | null) =>
+                    value && field.onChange(value)
+                  }
+                  options={priorityOptions}
+                  placeholder={t('tasks.taskPriority')}
+                  className={dropdownClass}
+                  menuClassName={dropdownMenuClass}
+                  fixedPosition
+                />
+              )}
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <label className={labelClass}>{t('tasks.dueDate')}</label>
-          <Controller
-            name="dueDate"
-            control={control}
-            render={({ field }) => (
-              <DatePickerInput
-                id={'edit-todo-due-date-' + todo.id}
-                value={field.value ?? ''}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>{t('tasks.dueDate')}</label>
+            <Controller
+              name="dueDate"
+              control={control}
+              render={({ field }) => (
+                <DatePickerInput
+                  id={'edit-todo-due-date-' + todo.id}
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <label className={labelClass}>{t('tasks.location')}</label>
-          <input
-            type="text"
-            {...register('location')}
-            placeholder={t('tasks.locationPlaceholder')}
-            className={inputClass}
-            data-testid={'edit-todo-location-' + todo.id}
-          />
-        </div>
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>{t('tasks.location')}</label>
+            <input
+              type="text"
+              {...register('location')}
+              placeholder={t('tasks.locationPlaceholder')}
+              className={inputClass}
+              data-testid={'edit-todo-location-' + todo.id}
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          <label className={labelClass}>{t('tasks.notes')}</label>
-          <textarea
-            {...register('notes')}
-            placeholder={t('tasks.notesPlaceholder')}
-            rows={3}
-            className={`${inputClass} resize-none`}
-            data-testid={'edit-todo-notes-' + todo.id}
-          />
-        </div>
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>{t('tasks.notes')}</label>
+            <textarea
+              {...register('notes')}
+              placeholder={t('tasks.notesPlaceholder')}
+              rows={3}
+              className={`${inputClass} resize-none`}
+              data-testid={'edit-todo-notes-' + todo.id}
+            />
+          </div>
 
-        {list && (
           <div className="border-t border-default pt-3 mt-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <label className={labelClass}>{t('tasks.listName')}</label>
-              <input
-                {...register('listName')}
-                type="text"
-                readOnly={list.isDefault}
-                className={`${inputClass} read-only:cursor-not-allowed read-only:opacity-60`}
+            <div className="flex flex-col gap-1">
+              <label
+                id={`edit-todo-list-label-${todo.id}`}
+                className={labelClass}
+              >
+                {t('tasks.list')}
+              </label>
+              <Controller
+                name="listId"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id={`edit-todo-list-summary-${todo.id}`}
+                    data-testid={`edit-todo-list-${todo.id}`}
+                    ariaLabelledby={`edit-todo-list-label-${todo.id}`}
+                    value={field.value}
+                    onChange={(value: string | null) => {
+                      if (value === NEW_LIST) {
+                        setShowNewListForm(true);
+                        return;
+                      }
+                      field.onChange(value);
+                      showListSettings(
+                        allLists.find((l) => l.id === value) ?? null
+                      );
+                    }}
+                    options={listOptions}
+                    nullOption={{
+                      label: t('tasks.inbox'),
+                      icon: <InboxIcon className="w-3 h-3 shrink-0" />,
+                    }}
+                    placeholder={t('tasks.inbox')}
+                    className={dropdownClass}
+                    menuClassName={dropdownMenuClass}
+                    fixedPosition
+                  />
+                )}
               />
             </div>
-            {list.isDefault && (
-              <p
-                className="text-xs text-muted"
-                data-testid="edit-todo-default-list-note"
-              >
-                {t('todoListForm.defaultNameLocked')}
-              </p>
-            )}
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-1">
               <label
                 id={`edit-todo-list-priority-label-${todo.id}`}
                 className={labelClass}
@@ -334,12 +425,13 @@ export function TodoEditPanel({
                     className={dropdownClass}
                     menuClassName={dropdownMenuClass}
                     fixedPosition
+                    disabled={!watch('listId')}
                   />
                 )}
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-1">
               <label
                 id={`edit-todo-category-label-${todo.id}`}
                 className={labelClass}
@@ -363,91 +455,136 @@ export function TodoEditPanel({
                     className={dropdownClass}
                     menuClassName={dropdownMenuClass}
                     fixedPosition
+                    disabled={!watch('listId')}
                   />
                 )}
               />
             </div>
-          </div>
-        )}
 
-        <div className="flex items-start gap-2">
-          <label className={`${labelClass} pt-2`}>{t('tasks.image')}</label>
-          <div className="flex flex-col gap-2">
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              data-testid={'edit-todo-image-' + todo.id}
-            />
-            {!editImage && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={imageUploading}
-                className="flex items-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent hover:bg-accent/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            {!watch('listId') && (
+              <p
+                className="text-xs text-muted"
+                data-testid="edit-todo-inbox-note"
               >
-                {imageUploading ? (
-                  <>
-                    <Upload size={16} className="animate-bounce" />
-                    <span className="text-sm">{t('tasks.uploading')}</span>
-                  </>
-                ) : (
-                  <>
-                    <ImagePlus size={16} />
-                    <span className="text-sm">{t('tasks.chooseImage')}</span>
-                  </>
-                )}
-              </button>
+                {t('tasks.inboxNoListSettings')}
+              </p>
             )}
-            {imageError && <p className="text-danger text-xs">{imageError}</p>}
-            {editImage && (
-              <div className="flex items-center gap-2">
-                <img
-                  src={editImage}
-                  alt="Preview"
-                  className="h-16 w-16 object-cover rounded"
-                />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className={`${labelClass}`}>{t('tasks.image')}</label>
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                data-testid={'edit-todo-image-' + todo.id}
+              />
+              {!editImage && (
                 <button
                   type="button"
-                  onClick={handleRemoveImage}
-                  className={`${actionBtnClass} hover:text-danger`}
-                  aria-label="Remove image"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={imageUploading}
+                  className="flex w-full items-center justify-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent hover:bg-accent/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 size={20} />
+                  {imageUploading ? (
+                    <>
+                      <Upload size={16} className="animate-bounce" />
+                      <span className="text-sm">{t('tasks.uploading')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImagePlus size={16} />
+                      <span className="text-sm">{t('tasks.chooseImage')}</span>
+                    </>
+                  )}
                 </button>
-              </div>
-            )}
+              )}
+              {imageError && (
+                <p className="text-danger text-xs">{imageError}</p>
+              )}
+              {editImage && (
+                <div className="flex items-center gap-2">
+                  <img
+                    src={editImage}
+                    alt="Preview"
+                    className="h-16 w-16 object-cover rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className={`${actionBtnClass} hover:text-danger`}
+                    aria-label="Remove image"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex gap-2 justify-end pt-5 border-t border-default mt-5">
-        {validationError && (
-          <p className="text-sm text-danger mr-auto" role="alert">
-            {validationError}
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm text-muted hover:text-primary transition-colors"
-          aria-label="Cancel todo edit"
-          data-testid={'cancel-todo-edit-button-' + todo.id}
+        <div className="flex gap-2 justify-end pt-3 border-t border-default mt-3 md:pt-5 md:mt-5">
+          {validationError && (
+            <p className="text-sm text-danger mr-auto" role="alert">
+              {validationError}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm text-muted hover:text-primary transition-colors"
+            aria-label="Cancel todo edit"
+            data-testid={'cancel-todo-edit-button-' + todo.id}
+          >
+            {t('tasks.cancel')}
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm font-medium bg-accent text-on-accent rounded-inner hover:opacity-90 transition-opacity"
+            aria-label="Save todo edit"
+            data-testid={'save-todo-edit-button-' + todo.id}
+          >
+            {t('tasks.save')}
+          </button>
+        </div>
+      </form>
+
+      {/* Beside the form, not inside it: forms cannot be nested. */}
+      {showNewListForm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-sidebar/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('tasks.addList')}
+          data-testid="edit-todo-new-list-dialog"
+          onClick={() => setShowNewListForm(false)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setShowNewListForm(false);
+          }}
         >
-          {t('tasks.cancel')}
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 text-sm font-medium bg-accent text-on-accent rounded-inner hover:opacity-90 transition-opacity"
-          aria-label="Save todo edit"
-          data-testid={'save-todo-edit-button-' + todo.id}
-        >
-          {t('tasks.save')}
-        </button>
-      </div>
-    </form>
+          <div
+            className="w-full max-w-md space-y-2"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <IconButton
+                ariaLabel={t('tasks.cancel')}
+                onClick={() => setShowNewListForm(false)}
+              >
+                <X className="size-4" />
+              </IconButton>
+            </div>
+            <TodoListForm
+              onSubmit={handleCreateList}
+              isSubmitting={isCreatingList}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

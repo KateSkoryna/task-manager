@@ -12,7 +12,7 @@ import {
 } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { useListSortOptions } from '../../hooks/useListSortOptions';
-import { useIsMobileScreen } from '../../hooks/useIsMobileScreen';
+import { useIsBelowXlScreen } from '../../hooks/useIsBelowXlScreen';
 import { useListViewStore } from '../../store/listViewStore';
 import { computeReorder } from '../../lib/reorder';
 import { FlatSort, sortFlatEntries, sortLists } from '../../lib/sortTasks';
@@ -48,6 +48,7 @@ type LocationState = {
   todoId?: string;
   listId?: string;
   openCreateList?: boolean;
+  openAddTask?: boolean;
 } | null;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -66,10 +67,12 @@ function TasksPage() {
     error,
     refetch,
     handleCreateList,
+    createList,
     handleDeleteList,
     handleEditList,
     handleAddTodo,
     handleDeleteTodo,
+    handleToggleTodo,
     handleEditTodo,
     handleArchiveTodo,
     handleRestoreTodo,
@@ -79,7 +82,8 @@ function TasksPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const isMobile = useIsMobileScreen();
+  // Below xl the list column is narrow, so the views go in a dropdown.
+  const isNarrowList = useIsBelowXlScreen();
   const viewMode = useListViewStore((state) => state.tasksViewMode);
   const setViewMode = useListViewStore((state) => state.setTasksViewMode);
   // Each view keeps its own sort choice, remembered across page switches.
@@ -172,6 +176,29 @@ function TasksPage() {
     createListStateHandled.current = true;
   }, [locationState]);
 
+  // The Today page's "Add task" button lands here: show the Inbox and put the
+  // cursor in its quick-add field. Keyed on the navigation, so pressing the
+  // button again works after the user has moved on.
+  const lastAddTaskKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      isLoading ||
+      !locationState?.openAddTask ||
+      lastAddTaskKey.current === location.key
+    ) {
+      return;
+    }
+    lastAddTaskKey.current = location.key;
+    setViewMode('grouped');
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLInputElement>(
+          '[data-testid="inbox-quick-capture-input"]'
+        )
+        ?.focus()
+    );
+  }, [isLoading, locationState, location.key, setViewMode]);
+
   function handleCreateListSubmit(name: string, opts?: CreateListOpts) {
     handleCreateList(name, opts);
     setShowCreateForm(false);
@@ -231,7 +258,8 @@ function TasksPage() {
 
   function handleSaveEdit(
     todoUpdates: UpdateTodoItem,
-    listUpdates: UpdateTodoList | null
+    listUpdates: UpdateTodoList | null,
+    targetList: TodoList | null
   ) {
     if (!selectedTask) return;
     const previousTodo = selectedTask.todo;
@@ -244,17 +272,14 @@ function TasksPage() {
           : prev
       );
     });
-    if (listUpdates && selectedTask.list) {
-      handleEditList(selectedTask.list.id, listUpdates);
+    if (listUpdates && targetList) {
+      handleEditList(targetList.id, listUpdates);
     }
     setSelectedTask((prev) =>
       prev
         ? {
             todo: { ...prev.todo, ...todoUpdates },
-            list:
-              listUpdates && prev.list
-                ? { ...prev.list, ...listUpdates }
-                : prev.list,
+            list: targetList ? { ...targetList, ...listUpdates } : null,
           }
         : null
     );
@@ -292,7 +317,7 @@ function TasksPage() {
   ];
 
   return (
-    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail/edit view replaces it as its own screen there. */}
       <div
@@ -302,9 +327,9 @@ function TasksPage() {
         )}
       >
         <div className="pb-4">
-          <div className="flex items-center justify-between mb-1 gap-1 md:flex-wrap md:gap-2">
-            {isMobile ? (
-              <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between mb-1 gap-1 md:gap-2">
+            {isNarrowList ? (
+              <div className="min-w-0 flex-1 basis-full">
                 <Dropdown
                   ariaLabel={t('tasks.viewMode')}
                   value={viewMode}
@@ -324,7 +349,8 @@ function TasksPage() {
                 onChange={setViewMode}
               />
             )}
-            <div className="flex shrink-0 items-center gap-1 md:gap-2">
+            {/* Below the wide layout the list column is narrow, so these wrap to a row of their own below the views dropdown. */}
+            <div className="flex shrink-0 items-center gap-1 w-full justify-end md:gap-2 xl:w-auto">
               {viewMode === 'flat' && (
                 <SortMenu
                   value={flatSort}
@@ -342,7 +368,11 @@ function TasksPage() {
                   <CollapseAllButton lists={sortedLists ?? []} />
                 </>
               )}
-              <Button variant="primary" onClick={toggleCreateForm}>
+              <Button
+                variant="primary"
+                onClick={toggleCreateForm}
+                className="flex-1 xl:flex-none"
+              >
                 <Plus className="w-4 h-4" />
                 {t('tasks.newList')}
               </Button>
@@ -374,6 +404,7 @@ function TasksPage() {
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={(todo) => handleSelectTodo(todo, null)}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+                onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
@@ -390,6 +421,7 @@ function TasksPage() {
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={handleSelectTodo}
                 onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+                onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
@@ -404,6 +436,7 @@ function TasksPage() {
                 handleSelectTodo(todo, resolveList(listId))
               }
               onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
+              onToggleTodo={handleToggleTodo}
               availableLists={availableLists}
               onMoveTodo={handleMoveTodo}
             />
@@ -442,6 +475,8 @@ function TasksPage() {
                 key={selectedTask.todo.id}
                 todo={selectedTask.todo}
                 list={selectedTask.list}
+                lists={todoLists ?? []}
+                onCreateList={createList}
                 onSave={handleSaveEdit}
                 onCancel={() => setIsEditing(false)}
               />

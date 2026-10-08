@@ -4,6 +4,23 @@ import TodoListForm from './TodoListForm';
 
 jest.mock('react-router-dom', () => ({ useParams: () => ({ userId: 'u1' }) }));
 
+describe('TodoListForm layout', () => {
+  test('shows the extra fields above the create button', async () => {
+    render(<TodoListForm onSubmit={jest.fn()} isSubmitting={false} />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'todoListForm.more' })
+    );
+
+    const priority = screen.getByLabelText('todoListForm.priority');
+    const create = screen.getByTestId('todolist-form-submit-button');
+    // DOM order is what a phone shows top to bottom.
+    expect(
+      priority.compareDocumentPosition(create) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+});
+
 describe('TodoListForm dropdowns', () => {
   test('submits selected optional metadata from named semantic dropdowns', async () => {
     const onSubmit = jest.fn();

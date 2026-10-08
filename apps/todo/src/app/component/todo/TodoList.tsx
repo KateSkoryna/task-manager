@@ -32,6 +32,7 @@ interface TodoListProps {
   onSelectTodo?: (todo: TodoItemType) => void;
   onEditTodo?: (todo: TodoItemType) => void;
   onDeleteTodo?: (todo: TodoItemType) => void;
+  onToggleTodo?: (id: string) => void;
   dataTestId?: string;
   availableLists?: AvailableList[];
   onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
@@ -53,6 +54,7 @@ function TodoList({
   onSelectTodo,
   onEditTodo,
   onDeleteTodo,
+  onToggleTodo,
   dataTestId,
   availableLists,
   onReorderTodo,
@@ -91,7 +93,9 @@ function TodoList({
     >
       {/* List header */}
       <div className="px-4 py-3 bg-default border-b border-surface">
-        <div className="flex items-center gap-3">
+        {/* The buttons wrap below the name when the column is too narrow to
+            leave it a readable width. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <button
             onClick={() => setListExpanded(todoList.id, !isExpanded)}
             className="flex items-center justify-center p-1.5 text-notification-dot hover:text-primary transition-colors shrink-0"
@@ -104,14 +108,14 @@ function TodoList({
             )}
           </button>
 
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-3 min-w-[7rem] flex-1">
             <h3
               className="min-w-0 truncate text-primary font-bold"
               data-testid="todolist-title"
             >
               {todoList.name}
             </h3>
-            <span className="hidden text-muted text-xs shrink-0 sm:inline">
+            <span className="hidden text-muted text-xs shrink-0 lg:inline">
               {completedCount}/{todoList.todos.length}
             </span>
             {todoList.priority && (
@@ -121,7 +125,7 @@ function TodoList({
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="ml-auto flex items-center gap-2 shrink-0">
             <button
               onClick={() => {
                 if (!isExpanded) setListExpanded(todoList.id, true);
@@ -215,6 +219,9 @@ function TodoList({
                 onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
                 onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
                 onDelete={onDeleteTodo ? () => onDeleteTodo(todo) : undefined}
+                onToggleComplete={
+                  onToggleTodo ? () => onToggleTodo(todo.id) : undefined
+                }
                 onMoveUp={
                   onReorderTodo ? () => onReorderTodo(todo.id, 'up') : undefined
                 }

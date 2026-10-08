@@ -130,7 +130,7 @@ function DashboardPage() {
         done={statusCounts.completed}
         total={todayItems.length}
         overdue={overdueItems.length}
-        onAddTask={() => navigate('/vital', { state: { openAddTask: true } })}
+        onAddTask={() => navigate('/tasks', { state: { openAddTask: true } })}
       />
 
       <TopPriorityPanel items={todayItems} onOpen={handleOpen} />

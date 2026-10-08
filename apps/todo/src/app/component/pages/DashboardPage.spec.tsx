@@ -240,6 +240,19 @@ describe('DashboardPage', () => {
     ]);
   });
 
+  test('dims a completed task without striking it through', () => {
+    mockLists([
+      todo({ id: 'open', name: 'Open task' }),
+      todo({ id: 'done', name: 'Done task', status: 'successful' }),
+    ]);
+    renderPage();
+
+    const done = screen.getByText('Done task');
+    expect(done).toHaveClass('text-muted');
+    expect(done).not.toHaveClass('line-through');
+    expect(screen.getByText('Open task')).toHaveClass('text-primary');
+  });
+
   test('counts the same tasks in the progress line and the progress bar', () => {
     mockLists([
       todo({ id: 'a', status: 'successful' }),
@@ -428,7 +441,7 @@ describe('DashboardPage', () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderPage();
     await user.click(screen.getByTestId('today-add-task-button'));
-    expect(mockNavigate).toHaveBeenCalledWith('/vital', {
+    expect(mockNavigate).toHaveBeenCalledWith('/tasks', {
       state: { openAddTask: true },
     });
   });

@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 
-const QUERY = '(max-width: 49.9375rem)'; // below the md breakpoint (50rem) - mobile layout
+const QUERY = '(max-width: 79.9375rem)'; // below the xl breakpoint (80rem) — phones and tablets
 
-export function useIsMobileScreen(): boolean {
-  const [isMobile, setIsMobile] = useState(
+export function useIsBelowXlScreen(): boolean {
+  const [isBelowXl, setIsBelowXl] = useState(
     () => window.matchMedia(QUERY).matches
   );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(QUERY);
-    const handleChange = () => setIsMobile(mediaQuery.matches);
+    const handleChange = () => setIsBelowXl(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  return isMobile;
+  return isBelowXl;
 }

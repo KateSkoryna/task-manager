@@ -111,7 +111,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           ? t('todoListForm.editList')
           : t('todoListForm.createNewList')}
       </Text>
-      <div className="flex flex-col sm:flex-row gap-3 items-baseline">
+      <div className="flex flex-col xl:flex-row xl:flex-wrap gap-3 xl:items-baseline">
         <Text as="p" className="text-primary font-medium">
           {t('todoListForm.listName')}
         </Text>
@@ -139,6 +139,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           type="button"
           variant="secondary"
           onClick={() => setShowMore((v) => !v)}
+          className="w-full xl:w-auto"
         >
           {showMore ? t('todoListForm.less') : t('todoListForm.more')}
           <ChevronDown
@@ -147,11 +148,103 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
             }`}
           />
         </Button>
+        {showMore && (
+          <div className="grid grid-cols-1 gap-4 xl:order-last xl:basis-full xl:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label
+                id="list-priority-label"
+                className="text-sm font-medium text-primary"
+              >
+                {t('todoListForm.priority')}
+              </label>
+              <Controller
+                name="priority"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id="list-priority"
+                    ariaLabelledby="list-priority-label"
+                    value={field.value || null}
+                    onChange={(value: TodoListPriority | null) =>
+                      field.onChange(value ?? '')
+                    }
+                    options={priorityOptions}
+                    nullOption={{ label: t('todoListForm.noPriority') }}
+                    placeholder={t('todoListForm.noPriority')}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label
+                id="list-category-label"
+                className="text-sm font-medium text-primary"
+              >
+                {t('todoListForm.category')}
+              </label>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id="list-category"
+                    ariaLabelledby="list-category-label"
+                    value={field.value || null}
+                    onChange={(value: TodoListCategory | null) =>
+                      field.onChange(value ?? '')
+                    }
+                    options={categoryOptions}
+                    nullOption={{ label: t('todoListForm.noCategory') }}
+                    placeholder={t('todoListForm.noCategory')}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label
+                className="text-sm font-medium text-primary"
+                htmlFor="list-due-date"
+              >
+                {t('todoListForm.dueDate')}
+              </label>
+              <Controller
+                name="dueDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePickerInput
+                    id="list-due-date"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label
+                className="text-sm font-medium text-primary"
+                htmlFor="list-notes"
+              >
+                {t('todoListForm.notes')}
+              </label>
+              <textarea
+                id="list-notes"
+                {...register('notes')}
+                placeholder={t('todoListForm.notesPlaceholder')}
+                rows={2}
+                className="px-3 py-2 rounded-inner border border-default focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-surface-subtle text-primary placeholder:text-muted resize-none"
+              />
+            </div>
+          </div>
+        )}
         <Button
           type="submit"
           variant="primary"
           disabled={isSubmitting}
           dataTestId="todolist-form-submit-button"
+          className="w-full xl:w-auto"
         >
           {isEditing
             ? t('tasks.save')
@@ -169,98 +262,6 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
         >
           {errors.name.message}
         </Text>
-      )}
-
-      {showMore && (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
-            <label
-              id="list-priority-label"
-              className="text-sm font-medium text-primary"
-            >
-              {t('todoListForm.priority')}
-            </label>
-            <Controller
-              name="priority"
-              control={control}
-              render={({ field }) => (
-                <Dropdown
-                  id="list-priority"
-                  ariaLabelledby="list-priority-label"
-                  value={field.value || null}
-                  onChange={(value: TodoListPriority | null) =>
-                    field.onChange(value ?? '')
-                  }
-                  options={priorityOptions}
-                  nullOption={{ label: t('todoListForm.noPriority') }}
-                  placeholder={t('todoListForm.noPriority')}
-                />
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label
-              id="list-category-label"
-              className="text-sm font-medium text-primary"
-            >
-              {t('todoListForm.category')}
-            </label>
-            <Controller
-              name="category"
-              control={control}
-              render={({ field }) => (
-                <Dropdown
-                  id="list-category"
-                  ariaLabelledby="list-category-label"
-                  value={field.value || null}
-                  onChange={(value: TodoListCategory | null) =>
-                    field.onChange(value ?? '')
-                  }
-                  options={categoryOptions}
-                  nullOption={{ label: t('todoListForm.noCategory') }}
-                  placeholder={t('todoListForm.noCategory')}
-                />
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label
-              className="text-sm font-medium text-primary"
-              htmlFor="list-due-date"
-            >
-              {t('todoListForm.dueDate')}
-            </label>
-            <Controller
-              name="dueDate"
-              control={control}
-              render={({ field }) => (
-                <DatePickerInput
-                  id="list-due-date"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label
-              className="text-sm font-medium text-primary"
-              htmlFor="list-notes"
-            >
-              {t('todoListForm.notes')}
-            </label>
-            <textarea
-              id="list-notes"
-              {...register('notes')}
-              placeholder={t('todoListForm.notesPlaceholder')}
-              rows={2}
-              className="px-3 py-2 rounded-inner border border-default focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-surface-subtle text-primary placeholder:text-muted resize-none"
-            />
-          </div>
-        </div>
       )}
     </form>
   );

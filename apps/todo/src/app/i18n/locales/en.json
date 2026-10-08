@@ -92,6 +92,9 @@
     "markNotCompleted": "Mark \"{{name}}\" as not completed"
   },
   "tasks": {
+    "addList": "Add list",
+    "listCreateFailed": "Could not create the list. Please try again.",
+    "inboxNoListSettings": "The Inbox has no list settings. Pick a list to set them.",
     "myTasks": "My Tasks",
     "newList": "New List",
     "selectTask": "Select a task to view details",
@@ -158,8 +161,8 @@
     "sortStatus": "Status",
     "sortListPriority": "List priority",
     "dueSoon": "Due soon",
-    "quickCapturePlaceholder": "Add a task... (e.g. \"buy milk friday high priority\")",
-    "quickCaptureAdd": "Add",
+    "quickCapturePlaceholder": "e.g. \"buy milk friday high priority\"",
+    "quickCaptureAdd": "Add task",
     "enriched": "Updated with AI",
     "undo": "Undo"
   },
@@ -317,9 +320,11 @@
     }
   },
   "statistics": {
+    "period": "Period",
     "title": "Statistics",
     "loading": "Loading statistics\u2026",
     "week": "Week",
+    "period": "Period",
     "month": "Month",
     "year": "Year",
     "numberOfTodos": "Number of Todos",

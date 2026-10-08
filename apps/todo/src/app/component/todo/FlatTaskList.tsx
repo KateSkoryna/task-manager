@@ -15,6 +15,7 @@ interface FlatTaskListProps {
   onSelectTodo?: (todo: TodoItemType, listId: string | null) => void;
   onEditTodo?: (todo: TodoItemType, listId: string | null) => void;
   onDeleteTodo?: (todo: TodoItemType, listId: string | null) => void;
+  onToggleTodo?: (id: string) => void;
   availableLists: AvailableList[];
   onMoveTodo?: (id: string, todolistId: string | null) => void;
 }
@@ -25,6 +26,7 @@ function FlatTaskList({
   onSelectTodo,
   onEditTodo,
   onDeleteTodo,
+  onToggleTodo,
   availableLists,
   onMoveTodo,
 }: FlatTaskListProps) {
@@ -52,6 +54,9 @@ function FlatTaskList({
           onSelect={onSelectTodo ? () => onSelectTodo(todo, listId) : undefined}
           onEdit={onEditTodo ? () => onEditTodo(todo, listId) : undefined}
           onDelete={onDeleteTodo ? () => onDeleteTodo(todo, listId) : undefined}
+          onToggleComplete={
+            onToggleTodo ? () => onToggleTodo(todo.id) : undefined
+          }
           currentListId={listId}
           availableLists={availableLists}
           onMoveToList={

@@ -128,12 +128,15 @@ function Dropdown<T extends string>({
         {triggerIcon ?? (
           <>
             <span
-              className={`flex min-w-0 items-center gap-1.5 truncate ${
+              className={`flex min-w-0 items-center gap-1.5 ${
                 selected ? 'text-primary' : 'text-muted'
               }`}
             >
               {selected?.icon}
-              {selected?.label ?? placeholder}
+              {/* A flex child only shows "…" when it can shrink below its text. */}
+              <span className="min-w-0 truncate">
+                {selected?.label ?? placeholder}
+              </span>
             </span>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
           </>
@@ -181,7 +184,9 @@ function Dropdown<T extends string>({
                   }`}
                 >
                   {entry.icon}
-                  <span className="truncate">{entry.label}</span>
+                  <span className="min-w-0 truncate" title={entry.label}>
+                    {entry.label}
+                  </span>
                 </button>
               </li>
             );

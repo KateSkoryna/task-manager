@@ -13,6 +13,7 @@ interface InboxSectionProps {
   onSelectTodo?: (todo: TodoItemType) => void;
   onEditTodo?: (todo: TodoItemType) => void;
   onDeleteTodo?: (todo: TodoItemType) => void;
+  onToggleTodo?: (id: string) => void;
   availableLists?: AvailableList[];
   onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
@@ -24,6 +25,7 @@ function InboxSection({
   onSelectTodo,
   onEditTodo,
   onDeleteTodo,
+  onToggleTodo,
   availableLists,
   onReorderTodo,
   onMoveTodo,
@@ -69,6 +71,9 @@ function InboxSection({
               onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
               onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
               onDelete={onDeleteTodo ? () => onDeleteTodo(todo) : undefined}
+              onToggleComplete={
+                onToggleTodo ? () => onToggleTodo(todo.id) : undefined
+              }
               onMoveUp={
                 onReorderTodo ? () => onReorderTodo(todo.id, 'up') : undefined
               }

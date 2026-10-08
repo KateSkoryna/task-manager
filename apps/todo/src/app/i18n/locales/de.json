@@ -92,6 +92,9 @@
     "markNotCompleted": "„{{name}}“ als nicht erledigt markieren"
   },
   "tasks": {
+    "addList": "Liste hinzufügen",
+    "listCreateFailed": "Die Liste konnte nicht erstellt werden. Bitte versuche es erneut.",
+    "inboxNoListSettings": "Der Posteingang hat keine Listeneinstellungen. Wähle eine Liste, um sie festzulegen.",
     "myTasks": "Meine Aufgaben",
     "newList": "Neue Liste",
     "selectTask": "Aufgabe wählen, um Details anzuzeigen",
@@ -158,8 +161,8 @@
     "sortStatus": "Status",
     "sortListPriority": "Listenpriorität",
     "dueSoon": "Bald fällig",
-    "quickCapturePlaceholder": "Aufgabe hinzufügen... (z. B. \"Milch kaufen Freitag hohe Priorität\")",
-    "quickCaptureAdd": "Hinzufügen",
+    "quickCapturePlaceholder": "z. B. \"Milch kaufen Freitag hohe Priorität\"",
+    "quickCaptureAdd": "Aufgabe hinzufügen",
     "enriched": "Mit KI aktualisiert",
     "undo": "Rückgängig"
   },
@@ -317,9 +320,11 @@
     }
   },
   "statistics": {
+    "period": "Zeitraum",
     "title": "Statistiken",
     "loading": "Statistiken werden geladen...",
     "week": "Woche",
+    "period": "Zeitraum",
     "month": "Monat",
     "year": "Jahr",
     "numberOfTodos": "Anzahl der Aufgaben",

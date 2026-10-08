@@ -17,6 +17,7 @@ import {
   TodoListPriority,
   TodoListCategory,
 } from '@shared/types';
+import { CreateTodoListOpts } from '../fetchers/todolist';
 import { toggledCompletion } from '../lib/todayTasks';
 import { archiveUpdate, isArchived, restoreUpdate } from '../lib/archive';
 import { FlatEntry } from '../component/todo/FlatTaskList';
@@ -76,6 +77,10 @@ export const useTodoListsData = () => {
   ) => {
     createListMutation.mutate({ name, ...opts });
   };
+
+  // Resolves with the new list, for callers that use it straight away.
+  const createList = (name: string, opts?: CreateTodoListOpts) =>
+    createListMutation.mutateAsync({ name, ...opts });
 
   const handleDeleteList = (id: string) => {
     deleteListMutation.mutate(id);
@@ -156,6 +161,7 @@ export const useTodoListsData = () => {
     error,
     refetch,
     handleCreateList,
+    createList,
     handleDeleteList,
     handleEditList,
     handleAddTodo,
