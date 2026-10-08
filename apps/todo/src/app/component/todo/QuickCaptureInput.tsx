@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Input from '../elements/Input';
 import Button from '../elements/Button';
@@ -22,7 +23,7 @@ function QuickCaptureInput({
 }: QuickCaptureInputProps) {
   const { t } = useTranslation();
   const [text, setText] = useState('');
-  const { enrichment, submit, undo } = useQuickCaptureTodo();
+  const { enrichment, aiHintShown, submit, undo } = useQuickCaptureTodo();
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -55,6 +56,21 @@ function QuickCaptureInput({
           {t('tasks.quickCaptureAdd')}
         </Button>
       </form>
+
+      {aiHintShown && (
+        <p
+          className="text-xs text-muted bg-surface-subtle rounded-inner px-3 py-2"
+          data-testid={`${noticeTestId}-ai-off`}
+        >
+          {t('tasks.aiOffHint')}{' '}
+          <Link
+            to="/settings"
+            className="text-notification-dot hover:underline"
+          >
+            {t('tasks.aiOffHintLink')}
+          </Link>
+        </p>
+      )}
 
       {enrichment && (
         <div

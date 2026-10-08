@@ -164,6 +164,8 @@
     "quickCapturePlaceholder": "z. B. \"Milch kaufen Freitag hohe Priorität\"",
     "quickCaptureAdd": "Aufgabe hinzufügen",
     "enriched": "Mit KI aktualisiert",
+    "aiOffHint": "Wie eingegeben hinzugefügt. Aktiviere \"KI-Funktionen erlauben\", damit die KI Datum und Priorität ergänzt.",
+    "aiOffHintLink": "Einstellungen öffnen",
     "undo": "Rückgängig"
   },
   "todoForm": {

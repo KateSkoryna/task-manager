@@ -5,6 +5,7 @@ import {
   useInboxTodosQuery,
   useParseTodoMutation,
 } from '../fetchers/api';
+import { usePreferences } from './usePreferences';
 
 export interface QuickCaptureEnrichment {
   id: string;
@@ -28,6 +29,11 @@ export const useQuickCaptureTodo = () => {
   const addInboxTodo = useAddInboxTodoMutation();
   const editTodo = useEditTodoMutation();
   const parseTodo = useParseTodoMutation();
+  const { preferences } = usePreferences();
+  // Only an explicit "off" skips the parse; while preferences are still
+  // loading, the server remains the one that decides.
+  const aiIsOff = preferences?.aiConsent === false;
+  const [aiHintShown, setAiHintShown] = useState(false);
 
   // The parse round trip can take several seconds; read from a ref rather
   // than the `todos` closure captured at submit time, so the enrichment
@@ -41,11 +47,13 @@ export const useQuickCaptureTodo = () => {
     const text = rawText.trim();
     if (!text) return;
     setEnrichment(null);
+    setAiHintShown(aiIsOff);
 
     addInboxTodo.mutate(
       { name: text },
       {
         onSuccess: (created) => {
+          if (aiIsOff) return;
           parseTodo.mutate(text, {
             onSuccess: (parsed) => {
               if (parsed.ambiguous) return;
@@ -85,5 +93,5 @@ export const useQuickCaptureTodo = () => {
     setEnrichment(null);
   }
 
-  return { enrichment, submit, undo };
+  return { enrichment, aiHintShown, submit, undo };
 };

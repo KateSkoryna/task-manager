@@ -7,6 +7,9 @@ jest.mock('../../fetchers/api', () => ({
   useParseTodoMutation: () => ({ mutate: jest.fn() }),
   useInboxTodosQuery: () => ({ data: [] }),
 }));
+jest.mock('../../hooks/usePreferences', () => ({
+  usePreferences: () => ({ preferences: { aiConsent: true } }),
+}));
 jest.mock('../../lib/imageUtils', () => ({
   uploadImage: jest.fn().mockResolvedValue('https://cdn/image.png'),
 }));
