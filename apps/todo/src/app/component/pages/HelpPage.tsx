@@ -1,13 +1,7 @@
-import { useTranslation } from 'react-i18next';
+import TourSection from '../onboarding/TourSection';
 
 function HelpPage() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="space-y-2">
-      <p className="text-muted">{t('help.comingSoon')}</p>
-    </div>
-  );
+  return <TourSection />;
 }
 
 export default HelpPage;

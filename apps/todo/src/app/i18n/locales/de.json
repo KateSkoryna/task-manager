@@ -266,7 +266,11 @@
   },
   "help": {
     "title": "Hilfe",
-    "comingSoon": "Demnächst verfügbar."
+    "tour": {
+      "title": "Willkommenstour",
+      "description": "Mach die kurze Tour durch die Heute-Seite noch einmal.",
+      "replay": "Tour wiederholen"
+    }
   },
   "error": {
     "title": "Etwas ist schiefgelaufen!",
@@ -422,5 +426,23 @@
     "generated": "Bericht erstellt",
     "viewReport": "Bericht ansehen",
     "print": "Drucken / Als PDF speichern"
+  },
+  "onboarding": {
+    "todayTitle": "Das ist deine Heute-Seite",
+    "todayDescription": "Alles, was heute fällig oder überfällig ist, erscheint hier – zusammen mit deinem Posteingang.",
+    "tasksTitle": "Hier liegen deine Aufgaben",
+    "tasksDescription": "Öffne „Meine Aufgaben“, um deine Listen zu sehen. Aufgaben ohne Liste landen im Posteingang, Listen sind also optional.",
+    "statisticsTitle": "Sieh, wie es läuft",
+    "statisticsDescription": "Statistik zeigt, was du in einer Woche, einem Monat oder einem Jahr erledigt hast. Dort kannst du auch einen Bericht erstellen.",
+    "settingsTitle": "Mach die App zu deiner",
+    "settingsDescription": "In den Einstellungen wählst du Sprache, Zeitzone und Design und schaltest die KI-Unterstützung ein.",
+    "searchTitle": "Finde jede Aufgabe",
+    "searchDescription": "Tippe hier, um alle deine Aufgaben nach Namen zu durchsuchen.",
+    "addTitle": "Erstelle deine erste Aufgabe",
+    "addDescription": "Drücke „Aufgabe hinzufügen“, um sie festzuhalten. Sie landet im Posteingang, sofern du keine Liste wählst.",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "done": "Verstanden",
+    "progress": "{{current}} von {{total}}"
   }
 }

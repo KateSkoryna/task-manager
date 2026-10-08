@@ -24,6 +24,7 @@ import TopPriorityPanel from '../dashboard/TopPriorityPanel';
 import TodayStatusPanel from '../dashboard/TodayStatusPanel';
 import InboxPanel from '../dashboard/InboxPanel';
 import ErrorFallback from '../elements/ErrorFallback';
+import OnboardingTour from '../onboarding/OnboardingTour';
 import TaskSearch from '../elements/TaskSearch';
 import DashboardSkeleton from './DashboardSkeleton';
 
@@ -123,6 +124,7 @@ function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4 lg:h-full">
+      <OnboardingTour />
       <TaskSearch inputTestId="dashboard-search" className="lg:hidden" />
       <TodayHeader
         done={statusCounts.completed}
