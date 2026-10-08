@@ -108,17 +108,20 @@ function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
         aria-label={t('header.menuTitle')}
         className="absolute inset-y-0 left-0 flex w-drawer flex-col bg-sidebar shadow-menu"
       >
-        <div className="flex justify-end px-3 pt-3">
-          <IconButton
-            size="menu"
-            tone="sidebar"
-            ariaLabel={t('header.closeMenu')}
-            onClick={onClose}
-          >
-            <X className="size-4" />
-          </IconButton>
-        </div>
-        <SidebarContent avatarSize="drawer" onNavigate={onClose} />
+        <SidebarContent
+          avatarSize="drawer"
+          onNavigate={onClose}
+          headerAction={
+            <IconButton
+              size="menu"
+              tone="sidebar"
+              ariaLabel={t('header.closeMenu')}
+              onClick={onClose}
+            >
+              <X className="size-4" />
+            </IconButton>
+          }
+        />
       </div>
     </div>
   );
