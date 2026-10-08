@@ -1,3 +1,10 @@
+// Matches the whole day number: a plain substring like "8" would also match
+// a leading day from the previous month such as "28".
+const pickToday = () =>
+  cy
+    .contains('button', new RegExp(`^\\s*${new Date().getDate()}\\s*$`))
+    .click();
+
 describe('Statistics and reports', () => {
   it('generates a report from statistics and views it in the list and detail page', () => {
     const uniqueId = Date.now();
@@ -33,7 +40,7 @@ describe('Statistics and reports', () => {
       cy.get('[data-testid="todo-form-toggle-extra"]').click();
       cy.get('#new-todo-due-date').click();
     });
-    cy.contains('button', String(new Date().getDate())).click();
+    pickToday();
     cy.get('@createdList').within(() => {
       cy.get('[data-testid="todo-form-submit-button"]').click();
       cy.contains('div[data-testid^="todo-item-"]', doneTaskName).should(
@@ -44,7 +51,7 @@ describe('Statistics and reports', () => {
       cy.get('[data-testid="todo-form-toggle-extra"]').click();
       cy.get('#new-todo-due-date').click();
     });
-    cy.contains('button', String(new Date().getDate())).click();
+    pickToday();
     cy.get('@createdList').within(() => {
       cy.get('[data-testid="todo-form-submit-button"]').click();
       cy.contains('div[data-testid^="todo-item-"]', pendingTaskName).should(
@@ -64,9 +71,8 @@ describe('Statistics and reports', () => {
       'Completed'
     );
 
-    // Statistics: switch to "Week" — Reports defaults to the weekly filter,
-    // so generating under the matching period means the new report shows
-    // up without an extra period-selector interaction there too.
+    // Statistics: switch to "Week" — Reports starts on its All filter,
+    // so the new weekly report shows up without a period-selector interaction.
     cy.contains('a', 'Statistics').click();
     cy.url().should('include', '/statistics');
     cy.contains('button', 'Week').click();
