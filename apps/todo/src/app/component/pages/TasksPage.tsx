@@ -12,6 +12,7 @@ import {
 } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { useListSortOptions } from '../../hooks/useListSortOptions';
+import { useIsMobileScreen } from '../../hooks/useIsMobileScreen';
 import { useListViewStore } from '../../store/listViewStore';
 import { computeReorder } from '../../lib/reorder';
 import { FlatSort, sortFlatEntries, sortLists } from '../../lib/sortTasks';
@@ -28,6 +29,7 @@ import { TaskDetailPanel, TodoEditPanel } from '../todo/TaskSidePanel';
 import TasksPageSkeleton from './TasksPageSkeleton';
 import Button from '../elements/Button';
 import IconButton from '../elements/IconButton';
+import Dropdown from '../elements/Dropdown';
 import PeriodSelector from '../elements/PeriodSelector';
 
 type CreateListOpts = {
@@ -77,6 +79,7 @@ function TasksPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const isMobile = useIsMobileScreen();
   const viewMode = useListViewStore((state) => state.tasksViewMode);
   const setViewMode = useListViewStore((state) => state.setTasksViewMode);
   // Each view keeps its own sort choice, remembered across page switches.
@@ -270,6 +273,24 @@ function TasksPage() {
     return <TasksPageSkeleton />;
   }
 
+  const viewModeOptions = [
+    {
+      label: t('tasks.groupedView'),
+      value: 'grouped' as const,
+      icon: <Rows3 className="w-3.5 h-3.5" />,
+    },
+    {
+      label: t('tasks.flatView'),
+      value: 'flat' as const,
+      icon: <LayoutList className="w-3.5 h-3.5" />,
+    },
+    {
+      label: t('tasks.archivedView'),
+      value: 'archived' as const,
+      icon: <Archive className="w-3.5 h-3.5" />,
+    },
+  ];
+
   return (
     <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
@@ -281,30 +302,29 @@ function TasksPage() {
         )}
       >
         <div className="pb-4">
-          <div className="flex flex-wrap items-center justify-between mb-1 gap-2">
-            <PeriodSelector
-              ariaLabel={t('tasks.viewMode')}
-              options={[
-                {
-                  label: t('tasks.groupedView'),
-                  value: 'grouped' as const,
-                  icon: <Rows3 className="w-3.5 h-3.5" />,
-                },
-                {
-                  label: t('tasks.flatView'),
-                  value: 'flat' as const,
-                  icon: <LayoutList className="w-3.5 h-3.5" />,
-                },
-                {
-                  label: t('tasks.archivedView'),
-                  value: 'archived' as const,
-                  icon: <Archive className="w-3.5 h-3.5" />,
-                },
-              ]}
-              value={viewMode}
-              onChange={setViewMode}
-            />
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-1 gap-1 md:flex-wrap md:gap-2">
+            {isMobile ? (
+              <div className="min-w-0 flex-1">
+                <Dropdown
+                  ariaLabel={t('tasks.viewMode')}
+                  value={viewMode}
+                  onChange={(value) => value && setViewMode(value)}
+                  options={viewModeOptions.map(({ value, label }) => ({
+                    value,
+                    label,
+                  }))}
+                  placeholder={t('tasks.viewMode')}
+                />
+              </div>
+            ) : (
+              <PeriodSelector
+                ariaLabel={t('tasks.viewMode')}
+                options={viewModeOptions}
+                value={viewMode}
+                onChange={setViewMode}
+              />
+            )}
+            <div className="flex shrink-0 items-center gap-1 md:gap-2">
               {viewMode === 'flat' && (
                 <SortMenu
                   value={flatSort}

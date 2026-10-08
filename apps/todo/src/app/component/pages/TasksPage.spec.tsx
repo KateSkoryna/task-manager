@@ -142,6 +142,31 @@ describe('TasksPage', () => {
     expect(screen.queryByTestId('toggle-all-lists')).not.toBeInTheDocument();
   });
 
+  it('offers the views in a dropdown on a phone', async () => {
+    const original = window.matchMedia;
+    window.matchMedia = (query: string) =>
+      ({
+        ...original(query),
+        matches: query.includes('max-width: 49.9375rem'),
+      } as MediaQueryList);
+    try {
+      renderTasksPage();
+      const dropdown = screen.getByLabelText('tasks.viewMode');
+      expect(dropdown.tagName).toBe('SUMMARY');
+      expect(
+        screen.queryByRole('button', { name: 'tasks.flatView' })
+      ).not.toBeInTheDocument();
+
+      await userEvent.click(dropdown);
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'tasks.flatView' })
+      );
+      expect(screen.getByTestId('flat-task-list')).toBeInTheDocument();
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
   it('remembers the chosen view when the page is shown again', async () => {
     const { unmount } = renderTasksPage();
     await userEvent.click(
