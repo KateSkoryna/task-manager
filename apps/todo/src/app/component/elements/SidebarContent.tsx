@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { ReactNode, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -36,6 +36,8 @@ type SidebarContentProps = {
   avatarSize?: 'default' | 'drawer';
   /** Called after any action that should close the mobile drawer. */
   onNavigate?: () => void;
+  /** Sits at the end of the identity row, e.g. the drawer's close button. */
+  headerAction?: ReactNode;
 };
 
 /**
@@ -45,6 +47,7 @@ type SidebarContentProps = {
 function SidebarContent({
   avatarSize = 'default',
   onNavigate,
+  headerAction,
 }: SidebarContentProps) {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
@@ -74,12 +77,13 @@ function SidebarContent({
         >
           {initials}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-sidebar-text">
             {user?.displayName}
           </p>
           <p className="truncate text-xs text-sidebar-muted">{user?.email}</p>
         </div>
+        {headerAction}
       </div>
 
       <nav
@@ -133,9 +137,11 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* The nav only takes the room its links need, so the auto margins
-          centre the clock in the space left above Logout. */}
-      <SidebarClock className="my-auto" />
+      {/* The nav only takes the room its links need. The clock fills 80% of
+          the space left above Logout, whatever size the screen is. */}
+      <div className="grid min-h-0 flex-1 place-items-center [container-type:size]">
+        <SidebarClock />
+      </div>
 
       <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6 pt-4">
         <button

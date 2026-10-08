@@ -51,7 +51,7 @@ function SidebarClock({ className }: SidebarClockProps) {
       aria-label={t('nav.clock', { time })}
       data-testid="sidebar-clock"
       className={mergeClassNames(
-        'relative mx-auto size-48 shrink-0 rounded-2xl border-4 border-sidebar p-2',
+        'relative mx-auto size-[min(80cqw,80cqh)] shrink-0 rounded-2xl border-2 border-sidebar p-1.5 md:border-4 md:p-2',
         RIM_SHADOW,
         className
       )}
@@ -75,26 +75,26 @@ function SidebarClock({ className }: SidebarClockProps) {
         <span
           className={mergeClassNames(
             HAND_CLASSES,
-            'h-1.5 w-[30%] bg-sidebar-muted'
+            'h-1 w-[30%] bg-sidebar-muted md:h-1.5'
           )}
           style={handStyle(angles.hour)}
         />
         <span
           className={mergeClassNames(
             HAND_CLASSES,
-            'h-1 w-[45%] bg-sidebar-muted'
+            'h-0.5 w-[45%] bg-sidebar-muted md:h-1'
           )}
           style={handStyle(angles.minute)}
         />
         <span
           className={mergeClassNames(
             HAND_CLASSES,
-            'h-0.5 w-[45%] bg-sidebar-text'
+            'h-px w-[45%] bg-sidebar-text md:h-0.5'
           )}
           style={handStyle(angles.second)}
           data-testid="sidebar-clock-second-hand"
         />
-        <span className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sidebar-muted" />
+        <span className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 md:size-3 -translate-y-1/2 rounded-full bg-sidebar-muted" />
       </div>
     </div>
   );

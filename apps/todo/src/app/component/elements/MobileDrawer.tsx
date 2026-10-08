@@ -9,7 +9,7 @@ const FOCUSABLE_SELECTOR =
 
 // Tailwind's `md` breakpoint (tokens.screen.md) — kept as a literal here
 // since matchMedia needs a real media-query string, not a class name.
-const TABLET_QUERY = '(min-width: 48rem)';
+const TABLET_QUERY = '(min-width: 50rem)';
 
 export const MOBILE_DRAWER_ID = 'mobile-nav-drawer';
 
@@ -108,17 +108,20 @@ function MobileDrawer({ open, onClose, triggerRef }: MobileDrawerProps) {
         aria-label={t('header.menuTitle')}
         className="absolute inset-y-0 left-0 flex w-drawer flex-col bg-sidebar shadow-menu"
       >
-        <div className="flex justify-end px-3 pt-3">
-          <IconButton
-            size="menu"
-            tone="sidebar"
-            ariaLabel={t('header.closeMenu')}
-            onClick={onClose}
-          >
-            <X className="size-4" />
-          </IconButton>
-        </div>
-        <SidebarContent avatarSize="drawer" onNavigate={onClose} />
+        <SidebarContent
+          avatarSize="drawer"
+          onNavigate={onClose}
+          headerAction={
+            <IconButton
+              size="menu"
+              tone="sidebar"
+              ariaLabel={t('header.closeMenu')}
+              onClick={onClose}
+            >
+              <X className="size-4" />
+            </IconButton>
+          }
+        />
       </div>
     </div>
   );
