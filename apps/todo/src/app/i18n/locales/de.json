@@ -158,8 +158,8 @@
     "sortStatus": "Status",
     "sortListPriority": "Listenpriorität",
     "dueSoon": "Bald fällig",
-    "quickCapturePlaceholder": "Aufgabe hinzufügen... (z. B. \"Milch kaufen Freitag hohe Priorität\")",
-    "quickCaptureAdd": "Hinzufügen",
+    "quickCapturePlaceholder": "z. B. \"Milch kaufen Freitag hohe Priorität\"",
+    "quickCaptureAdd": "Aufgabe hinzufügen",
     "enriched": "Mit KI aktualisiert",
     "undo": "Rückgängig"
   },

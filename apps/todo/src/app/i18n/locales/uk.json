@@ -158,8 +158,8 @@
     "sortStatus": "Статусом",
     "sortListPriority": "Пріоритетом списку",
     "dueSoon": "Скоро термін",
-    "quickCapturePlaceholder": "Додати завдання... (напр. \"купити молоко пʼятниця високий пріоритет\")",
-    "quickCaptureAdd": "Додати",
+    "quickCapturePlaceholder": "напр. \"купити молоко пʼятниця високий пріоритет\"",
+    "quickCaptureAdd": "Додати завдання",
     "enriched": "Оновлено за допомогою ШІ",
     "undo": "Скасувати"
   },

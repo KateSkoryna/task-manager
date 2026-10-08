@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem, TodoList } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
@@ -14,9 +14,6 @@ import CollapseAllButton from '../todo/CollapseAllButton';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import PomodoroTimer from '../todo/PomodoroTimer';
-import TodoForm from '../todo/TodoForm';
-import Button from '../elements/Button';
-import Card from '../elements/Card';
 import IconButton from '../elements/IconButton';
 import VitalTaskPageSkeleton from './VitalTaskPageSkeleton';
 
@@ -25,13 +22,9 @@ type SelectedTask = {
   list: TodoList;
 };
 
-type LocationState = { openAddTask?: boolean } | null;
-
 function VitalTaskPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
-  const locationState = (location.state as LocationState) ?? null;
   const {
     todoLists,
     isLoading,
@@ -40,40 +33,15 @@ function VitalTaskPage() {
     refetch,
     handleDeleteList,
     handleAddTodo,
-    handleAddInboxTodo,
     handleDeleteTodo,
     handleToggleTodo,
     handleArchiveTodo,
   } = useTodoListsData();
 
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
-  const [showAddTaskForm, setShowAddTaskForm] = useState(false);
   const listSort = useListViewStore((state) => state.vitalListSort);
   const setListSort = useListViewStore((state) => state.setVitalListSort);
   const listSortOptions = useListSortOptions();
-
-  // Open the add-task form when the Today page's "Add task" button sent the
-  // user here. Keyed on the navigation, so clicking that button again
-  // reopens a form the user has since closed.
-  const lastAddTaskKey = useRef<string | null>(null);
-  useEffect(() => {
-    if (
-      !locationState?.openAddTask ||
-      lastAddTaskKey.current === location.key
-    ) {
-      return;
-    }
-    setShowAddTaskForm(true);
-    lastAddTaskKey.current = location.key;
-  }, [locationState, location.key]);
-
-  function handleAddTaskSubmit(
-    name: string,
-    opts?: Parameters<typeof handleAddInboxTodo>[1]
-  ) {
-    handleAddInboxTodo(name, opts);
-    setShowAddTaskForm(false);
-  }
 
   // Vital Tasks is a working view of what's still actionable — done tasks
   // stay visible on the regular Tasks page, not here.
@@ -145,22 +113,7 @@ function VitalTaskPage() {
               options={listSortOptions}
             />
             <CollapseAllButton lists={vitalLists ?? []} />
-            <Button
-              variant="primary"
-              onClick={() => setShowAddTaskForm((v) => !v)}
-              dataTestId="add-task-button"
-              className="flex-1 xl:flex-none"
-            >
-              <Plus className="w-4 h-4" />
-              {t('todoList.addTask')}
-            </Button>
           </div>
-
-          {showAddTaskForm && (
-            <Card variant="nested" className="mt-4">
-              <TodoForm onAddTodo={handleAddTaskSubmit} />
-            </Card>
-          )}
         </div>
 
         <TodoLists

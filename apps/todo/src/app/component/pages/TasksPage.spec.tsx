@@ -1,6 +1,6 @@
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { TodoItem } from '@shared/types';
 import {
@@ -86,13 +86,13 @@ function NavigationTrigger() {
   );
 }
 
-function renderTasksPage() {
+function renderTasksPage(state?: unknown) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/tasks']}>
+      <MemoryRouter initialEntries={[{ pathname: '/tasks', state }]}>
         <TasksPage />
       </MemoryRouter>
     </QueryClientProvider>
@@ -101,14 +101,18 @@ function renderTasksPage() {
 
 describe('TasksPage', () => {
   beforeEach(() => useListViewStore.setState(initialListViewState));
-  it('has no add-task control; tasks are added from Vital Tasks and each list', () => {
+  it('has no add-task control in the header; tasks are added in the Inbox and each list', () => {
     renderTasksPage();
     expect(screen.queryByTestId('add-task-button')).not.toBeInTheDocument();
-    expect(
-      within(screen.getByTestId('inbox-section')).queryByRole('button', {
-        name: /add task/i,
-      })
-    ).not.toBeInTheDocument();
+    expect(screen.getByTestId('inbox-quick-capture-input')).toBeInTheDocument();
+  });
+
+  it('focuses the Inbox quick-add when another page asks to add a task', async () => {
+    renderTasksPage({ openAddTask: true });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('inbox-quick-capture-input')).toHaveFocus()
+    );
   });
 
   it('offers task sorts in the flat view and list sorts in the grouped view', async () => {

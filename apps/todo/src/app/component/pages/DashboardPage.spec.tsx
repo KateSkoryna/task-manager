@@ -441,7 +441,7 @@ describe('DashboardPage', () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     renderPage();
     await user.click(screen.getByTestId('today-add-task-button'));
-    expect(mockNavigate).toHaveBeenCalledWith('/vital', {
+    expect(mockNavigate).toHaveBeenCalledWith('/tasks', {
       state: { openAddTask: true },
     });
   });

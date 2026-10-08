@@ -48,6 +48,7 @@ type LocationState = {
   todoId?: string;
   listId?: string;
   openCreateList?: boolean;
+  openAddTask?: boolean;
 } | null;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -173,6 +174,29 @@ function TasksPage() {
     setShowCreateForm(true);
     createListStateHandled.current = true;
   }, [locationState]);
+
+  // The Today page's "Add task" button lands here: show the Inbox and put the
+  // cursor in its quick-add field. Keyed on the navigation, so pressing the
+  // button again works after the user has moved on.
+  const lastAddTaskKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      isLoading ||
+      !locationState?.openAddTask ||
+      lastAddTaskKey.current === location.key
+    ) {
+      return;
+    }
+    lastAddTaskKey.current = location.key;
+    setViewMode('grouped');
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLInputElement>(
+          '[data-testid="inbox-quick-capture-input"]'
+        )
+        ?.focus()
+    );
+  }, [isLoading, locationState, location.key, setViewMode]);
 
   function handleCreateListSubmit(name: string, opts?: CreateListOpts) {
     handleCreateList(name, opts);

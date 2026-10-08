@@ -158,8 +158,8 @@
     "sortStatus": "Status",
     "sortListPriority": "List priority",
     "dueSoon": "Due soon",
-    "quickCapturePlaceholder": "Add a task... (e.g. \"buy milk friday high priority\")",
-    "quickCaptureAdd": "Add",
+    "quickCapturePlaceholder": "e.g. \"buy milk friday high priority\"",
+    "quickCaptureAdd": "Add task",
     "enriched": "Updated with AI",
     "undo": "Undo"
   },
