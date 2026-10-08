@@ -55,6 +55,7 @@ describe('OnboardingTour', () => {
     const titles = driverConfig().steps.map(
       (step: { popover: { title: string } }) => step.popover.title
     );
+    expect(driverConfig().disableActiveInteraction).toBe(true);
     expect(titles[0]).toBe('onboarding.todayTitle');
     expect(titles[titles.length - 1]).toBe('onboarding.addTitle');
   });

@@ -9,6 +9,12 @@ describe('Onboarding tour', () => {
       'contain.text',
       'This is where your tasks live'
     );
+    // Everything but the popover is blocked, including the highlighted element.
+    cy.get('[data-tour="my-tasks-link"]').should(
+      'have.css',
+      'pointer-events',
+      'none'
+    );
     cy.get('.driver-popover-close-btn').click();
     cy.get('.driver-popover').should('not.exist');
     cy.wait('@savePreferences')

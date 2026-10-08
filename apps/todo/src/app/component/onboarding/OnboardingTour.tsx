@@ -45,6 +45,8 @@ function OnboardingTour() {
       hasStarted.current = true;
       tour = driver({
         showProgress: true,
+        // Only the popover responds; the highlighted element is not clickable.
+        disableActiveInteraction: true,
         popoverClass: 'onboarding-popover',
         nextBtnText: t('onboarding.next'),
         prevBtnText: t('onboarding.previous'),
