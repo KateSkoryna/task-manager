@@ -4,6 +4,7 @@ import {
   TodoItem as TodoItemType,
   TodoListPriority,
   TodoListCategory,
+  TodoPriority,
 } from '@shared/types';
 import apiClient from '../lib/apiClient';
 
@@ -122,6 +123,7 @@ export const createInboxTodoFetcher = async (
     location?: string;
     notes?: string;
     image?: string | null;
+    priority?: TodoPriority;
   }
 ): Promise<TodoItemType> => {
   const { data } = await apiClient.post(`/users/${userId}/todos`, {

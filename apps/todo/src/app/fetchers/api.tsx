@@ -21,6 +21,7 @@ import {
   TodoList as TodoListType,
   TodoItem as TodoItemType,
   ParsedTask,
+  TodoPriority,
   PaginatedResult,
   Report,
   ReportPeriod,
@@ -233,14 +234,16 @@ export const useAddInboxTodoMutation = () => {
       location?: string;
       notes?: string;
       image?: string | null;
+      priority?: TodoPriority;
     }
   >({
-    mutationFn: ({ name, dueDate, location, notes, image }) =>
+    mutationFn: ({ name, dueDate, location, notes, image, priority }) =>
       createInboxTodoFetcher(user!.id, name, {
         dueDate,
         location,
         notes,
         image,
+        priority,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inboxTodos', user?.id] });

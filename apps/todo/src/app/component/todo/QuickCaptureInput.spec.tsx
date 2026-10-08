@@ -229,31 +229,90 @@ describe('QuickCaptureInput', () => {
     expect(editTodoMutate).not.toHaveBeenCalled();
   });
 
-  test('skips the parse and says why when AI features are off', async () => {
+  test('skips the parse and tells the user how to turn AI on when it is off', async () => {
     usePreferences.mockReturnValue({ preferences: { aiConsent: false } });
     renderInput();
+    expect(
+      screen.getByTestId('quick-capture-notice-ai-off')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/settings');
+
     await userEvent.type(screen.getByTestId('quick-capture-input'), 'buy milk');
     await userEvent.click(screen.getByTestId('quick-capture-submit'));
-
-    expect(addInboxTodoMutate).toHaveBeenCalled();
     act(() => {
       addInboxTodoMutate.mock.calls[0][1].onSuccess(makeTodo());
     });
 
     expect(parseTodoMutate).not.toHaveBeenCalled();
-    expect(
-      screen.getByTestId('quick-capture-notice-ai-off')
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/settings');
   });
 
-  test('shows no AI hint when AI features are on', async () => {
+  test('hides the AI note when AI features are on', () => {
     renderInput();
-    await userEvent.type(screen.getByTestId('quick-capture-input'), 'buy milk');
-    await userEvent.click(screen.getByTestId('quick-capture-submit'));
 
     expect(
       screen.queryByTestId('quick-capture-notice-ai-off')
     ).not.toBeInTheDocument();
+  });
+
+  test('hides the extra fields until More is pressed', async () => {
+    renderInput();
+    expect(
+      screen.queryByTestId('quick-capture-input-notes')
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('quick-capture-input-more'));
+
+    expect(screen.getByTestId('quick-capture-input-notes')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('quick-capture-input-priority')
+    ).toBeInTheDocument();
+  });
+
+  test('saves the fields chosen by hand and skips the AI parse', async () => {
+    renderInput();
+    await userEvent.type(screen.getByTestId('quick-capture-input'), 'pay rent');
+    await userEvent.click(screen.getByTestId('quick-capture-input-more'));
+    await userEvent.click(screen.getByTestId('quick-capture-input-priority'));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'tasks.priority_high' })
+    );
+    await userEvent.type(
+      screen.getByTestId('quick-capture-input-notes'),
+      'bank transfer'
+    );
+    await userEvent.click(screen.getByTestId('quick-capture-submit'));
+
+    expect(addInboxTodoMutate).toHaveBeenCalledWith(
+      {
+        name: 'pay rent',
+        priority: 'high',
+        dueDate: undefined,
+        notes: 'bank transfer',
+      },
+      expect.anything()
+    );
+    act(() => {
+      addInboxTodoMutate.mock.calls[0][1].onSuccess(makeTodo());
+    });
+    expect(parseTodoMutate).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId('quick-capture-input-notes')
+    ).not.toBeInTheDocument();
+  });
+
+  test('says in the placeholder that AI fills in the details, only when AI is on', () => {
+    const { unmount } = renderInput();
+    expect(screen.getByTestId('quick-capture-input')).toHaveAttribute(
+      'placeholder',
+      'tasks.quickCapturePlaceholder'
+    );
+    unmount();
+
+    usePreferences.mockReturnValue({ preferences: { aiConsent: false } });
+    renderInput();
+    expect(screen.getByTestId('quick-capture-input')).toHaveAttribute(
+      'placeholder',
+      'tasks.quickCapturePlaceholderPlain'
+    );
   });
 });
