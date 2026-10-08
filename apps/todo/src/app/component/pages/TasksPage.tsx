@@ -12,7 +12,7 @@ import {
 } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { useListSortOptions } from '../../hooks/useListSortOptions';
-import { useIsMobileScreen } from '../../hooks/useIsMobileScreen';
+import { useIsBelowXlScreen } from '../../hooks/useIsBelowXlScreen';
 import { useListViewStore } from '../../store/listViewStore';
 import { computeReorder } from '../../lib/reorder';
 import { FlatSort, sortFlatEntries, sortLists } from '../../lib/sortTasks';
@@ -79,7 +79,8 @@ function TasksPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const isMobile = useIsMobileScreen();
+  // Below xl the list column is narrow, so the views go in a dropdown.
+  const isNarrowList = useIsBelowXlScreen();
   const viewMode = useListViewStore((state) => state.tasksViewMode);
   const setViewMode = useListViewStore((state) => state.setTasksViewMode);
   // Each view keeps its own sort choice, remembered across page switches.
@@ -292,7 +293,7 @@ function TasksPage() {
   ];
 
   return (
-    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-[1.08fr_0.92fr] lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="-mx-content-mobile -mb-content-mobile grid min-h-full grid-cols-1 gap-6 md:-mx-content-tablet md:-mb-content-tablet lg:-mx-content-desktop lg:-mb-content-desktop md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr]">
       {/* Left panel: list — hidden on mobile once a task is selected, since
           the detail/edit view replaces it as its own screen there. */}
       <div
@@ -302,9 +303,9 @@ function TasksPage() {
         )}
       >
         <div className="pb-4">
-          <div className="flex items-center justify-between mb-1 gap-1 md:flex-wrap md:gap-2">
-            {isMobile ? (
-              <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between mb-1 gap-1 md:gap-2">
+            {isNarrowList ? (
+              <div className="min-w-0 flex-1 basis-full">
                 <Dropdown
                   ariaLabel={t('tasks.viewMode')}
                   value={viewMode}
@@ -324,7 +325,8 @@ function TasksPage() {
                 onChange={setViewMode}
               />
             )}
-            <div className="flex shrink-0 items-center gap-1 md:gap-2">
+            {/* Below the wide layout the list column is narrow, so these wrap to a row of their own below the views dropdown. */}
+            <div className="flex shrink-0 items-center gap-1 w-full justify-end md:gap-2 xl:w-auto">
               {viewMode === 'flat' && (
                 <SortMenu
                   value={flatSort}
@@ -342,7 +344,11 @@ function TasksPage() {
                   <CollapseAllButton lists={sortedLists ?? []} />
                 </>
               )}
-              <Button variant="primary" onClick={toggleCreateForm}>
+              <Button
+                variant="primary"
+                onClick={toggleCreateForm}
+                className="flex-1 xl:flex-none"
+              >
                 <Plus className="w-4 h-4" />
                 {t('tasks.newList')}
               </Button>

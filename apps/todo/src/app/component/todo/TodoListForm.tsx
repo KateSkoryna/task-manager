@@ -111,7 +111,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           ? t('todoListForm.editList')
           : t('todoListForm.createNewList')}
       </Text>
-      <div className="flex flex-col sm:flex-row gap-3 items-baseline">
+      <div className="flex flex-col xl:flex-row gap-3 xl:items-baseline">
         <Text as="p" className="text-primary font-medium">
           {t('todoListForm.listName')}
         </Text>
@@ -139,6 +139,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           type="button"
           variant="secondary"
           onClick={() => setShowMore((v) => !v)}
+          className="w-full xl:w-auto"
         >
           {showMore ? t('todoListForm.less') : t('todoListForm.more')}
           <ChevronDown
@@ -152,6 +153,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           variant="primary"
           disabled={isSubmitting}
           dataTestId="todolist-form-submit-button"
+          className="w-full xl:w-auto"
         >
           {isEditing
             ? t('tasks.save')
@@ -172,7 +174,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
       )}
 
       {showMore && (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-1 xl:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
             <label
               id="list-priority-label"

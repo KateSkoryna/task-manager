@@ -148,6 +148,7 @@ function VitalTaskPage() {
               variant="primary"
               onClick={() => setShowAddTaskForm((v) => !v)}
               dataTestId="add-task-button"
+              className="flex-1 xl:flex-none"
             >
               <Plus className="w-4 h-4" />
               {t('todoList.addTask')}

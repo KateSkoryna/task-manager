@@ -97,7 +97,7 @@ function TodoItem({
             {t(`tasks.priority_${todo.priority}`)}
           </Badge>
           {(onEdit || onDelete) && (
-            <div className="flex items-center gap-1 lg:gap-3 shrink-0">
+            <div className="flex items-center gap-1 xl:gap-3 shrink-0">
               {onEdit && (
                 <button
                   onClick={(e) => {
@@ -140,7 +140,7 @@ function TodoItem({
         )}
 
         {/* Row 3: status */}
-        <span className="hidden sm:inline text-xs text-muted">
+        <span className="hidden xl:inline text-xs text-muted">
           {t('tasks.status')}{' '}
           <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
             {statusLabel}
@@ -148,7 +148,7 @@ function TodoItem({
         </span>
 
         {/* Row 4: reorder + move-to-list controls, due date */}
-        <div className="flex flex-nowrap items-center gap-x-1.5 sm:gap-x-3">
+        <div className="flex flex-nowrap items-center gap-x-1.5 xl:gap-x-3">
           {(onMoveUp || onMoveDown) && (
             <div
               className="flex items-center border border-default rounded-inner overflow-hidden shrink-0"
@@ -176,7 +176,7 @@ function TodoItem({
           )}
           {onMoveToList && (
             <div
-              className="min-w-0 flex-1 sm:flex-none"
+              className="min-w-0 flex-1 xl:flex-none"
               onClick={(e) => e.stopPropagation()}
             >
               <MoveToListSelect
@@ -200,7 +200,7 @@ function TodoItem({
                   }`}
                 />
               )}
-              <span className="hidden sm:inline">{t('tasks.due')} </span>
+              <span className="hidden xl:inline">{t('tasks.due')} </span>
               {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               {isUrgent && (
                 <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">

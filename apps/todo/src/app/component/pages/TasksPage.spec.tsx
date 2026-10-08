@@ -142,12 +142,12 @@ describe('TasksPage', () => {
     expect(screen.queryByTestId('toggle-all-lists')).not.toBeInTheDocument();
   });
 
-  it('offers the views in a dropdown on a phone', async () => {
+  it('offers the views in a dropdown below the wide layout', async () => {
     const original = window.matchMedia;
     window.matchMedia = (query: string) =>
       ({
         ...original(query),
-        matches: query.includes('max-width: 49.9375rem'),
+        matches: query.includes('max-width: 79.9375rem'),
       } as MediaQueryList);
     try {
       renderTasksPage();
