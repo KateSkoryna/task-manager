@@ -430,6 +430,8 @@
   "onboarding": {
     "todayTitle": "This is your Today page",
     "todayDescription": "Everything due today and anything overdue shows up here, along with your Inbox.",
+    "menuTitle": "Open the menu",
+    "menuDescription": "Your pages live in this menu. Press Next and it opens.",
     "tasksTitle": "This is where your tasks live",
     "tasksDescription": "Open My Tasks to see your lists. Tasks without a list go to the Inbox, so lists are optional.",
     "statisticsTitle": "See how you are doing",

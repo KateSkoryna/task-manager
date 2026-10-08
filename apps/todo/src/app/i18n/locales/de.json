@@ -430,6 +430,8 @@
   "onboarding": {
     "todayTitle": "Das ist deine Heute-Seite",
     "todayDescription": "Alles, was heute fällig oder überfällig ist, erscheint hier – zusammen mit deinem Posteingang.",
+    "menuTitle": "Öffne das Menü",
+    "menuDescription": "Deine Seiten findest du in diesem Menü. Drücke „Weiter“, dann öffnet es sich.",
     "tasksTitle": "Hier liegen deine Aufgaben",
     "tasksDescription": "Öffne „Meine Aufgaben“, um deine Listen zu sehen. Aufgaben ohne Liste landen im Posteingang, Listen sind also optional.",
     "statisticsTitle": "Sieh, wie es läuft",

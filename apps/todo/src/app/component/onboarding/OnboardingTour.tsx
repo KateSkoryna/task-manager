@@ -1,9 +1,16 @@
 import { useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePreferences } from '../../hooks/usePreferences';
+import { useMobileMenuStore } from '../../store/mobileMenuStore';
 import { loadDriver } from './loadDriver';
 import { buildTourSteps } from './tourSteps';
+
+// Rendered right away, because the next stop looks for its target at once.
+const setMenuOpen = (isOpen: boolean) =>
+  flushSync(() => useMobileMenuStore.getState().setOpen(isOpen));
+const closeMenu = () => useMobileMenuStore.getState().setOpen(false);
 
 /**
  * Runs the first-run tour on the Today page, once per user: finishing or
@@ -38,17 +45,20 @@ function OnboardingTour() {
       hasStarted.current = true;
       tour = driver({
         showProgress: true,
+        // Only the popover responds; the highlighted element is not clickable.
+        disableActiveInteraction: true,
         popoverClass: 'onboarding-popover',
         nextBtnText: t('onboarding.next'),
         prevBtnText: t('onboarding.previous'),
         doneBtnText: t('onboarding.done'),
         progressText: t('onboarding.progress'),
-        steps: buildTourSteps(t),
+        steps: buildTourSteps(t, setMenuOpen),
         // Unlike `onDestroyed`, this also fires when the tour is closed before
         // its first highlight animation has finished. Calling `destroy()`
         // here does not trigger the hook again.
         onDestroyStarted: () => {
           if (isFirstRun) updatePreferences({ onboardingSeen: true });
+          closeMenu();
           tour?.destroy();
         },
       });
@@ -59,7 +69,10 @@ function OnboardingTour() {
       cancelled = true;
       // Leaving the page mid-tour is not finishing or skipping it, and a
       // direct destroy() skips the hook above, so nothing is stored.
-      if (tour?.isActive()) tour.destroy();
+      if (tour?.isActive()) {
+        closeMenu();
+        tour.destroy();
+      }
     };
     // Only the decision to run matters; later preference changes must not
     // restart or cut short a tour in progress.
