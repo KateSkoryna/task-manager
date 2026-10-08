@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import QuickCaptureInput from './QuickCaptureInput';
 import type { TodoItem } from '@shared/types';
 
@@ -7,6 +8,11 @@ const addInboxTodoMutate = jest.fn();
 const editTodoMutate = jest.fn();
 const parseTodoMutate = jest.fn();
 const useInboxTodosQuery = jest.fn();
+const usePreferences = jest.fn();
+
+jest.mock('../../hooks/usePreferences', () => ({
+  usePreferences: () => usePreferences(),
+}));
 
 jest.mock('../../fetchers/api', () => ({
   useAddInboxTodoMutation: () => ({ mutate: addInboxTodoMutate }),
@@ -33,16 +39,24 @@ const testIds = {
   undoTestId: 'quick-capture-undo',
 };
 
+const input = () => (
+  <MemoryRouter>
+    <QuickCaptureInput {...testIds} />
+  </MemoryRouter>
+);
+const renderInput = () => render(input());
+
 describe('QuickCaptureInput', () => {
   beforeEach(() => {
     addInboxTodoMutate.mockReset();
     editTodoMutate.mockReset();
     parseTodoMutate.mockReset();
     useInboxTodosQuery.mockReturnValue({ data: [] });
+    usePreferences.mockReturnValue({ preferences: { aiConsent: true } });
   });
 
   test('creates the task immediately from the raw text, without waiting on the parse', async () => {
-    render(<QuickCaptureInput {...testIds} />);
+    renderInput();
     await userEvent.type(
       screen.getByTestId('quick-capture-input'),
       'buy milk friday high prio'
@@ -58,7 +72,7 @@ describe('QuickCaptureInput', () => {
   });
 
   test('applies the parsed fields and shows the enrichment notice on success', async () => {
-    render(<QuickCaptureInput {...testIds} />);
+    renderInput();
     await userEvent.type(
       screen.getByTestId('quick-capture-input'),
       'buy milk friday high prio'
@@ -105,7 +119,7 @@ describe('QuickCaptureInput', () => {
   });
 
   test('leaves the raw task untouched when the model flags the text as ambiguous', async () => {
-    render(<QuickCaptureInput {...testIds} />);
+    renderInput();
     await userEvent.type(
       screen.getByTestId('quick-capture-input'),
       'buy milk, call mom tuesday, pay rent friday'
@@ -134,7 +148,7 @@ describe('QuickCaptureInput', () => {
   });
 
   test('leaves the raw task untouched when the parse fails', async () => {
-    render(<QuickCaptureInput {...testIds} />);
+    renderInput();
     await userEvent.type(screen.getByTestId('quick-capture-input'), 'buy milk');
     await userEvent.click(screen.getByTestId('quick-capture-submit'));
 
@@ -153,7 +167,7 @@ describe('QuickCaptureInput', () => {
   });
 
   test('undo restores the raw name and clears the parsed fields', async () => {
-    render(<QuickCaptureInput {...testIds} />);
+    renderInput();
     await userEvent.type(
       screen.getByTestId('quick-capture-input'),
       'buy milk friday high prio'
@@ -186,7 +200,7 @@ describe('QuickCaptureInput', () => {
   });
 
   test('does not overwrite a task the user already edited while the parse was in flight', async () => {
-    const { rerender } = render(<QuickCaptureInput {...testIds} />);
+    const { rerender } = renderInput();
     await userEvent.type(
       screen.getByTestId('quick-capture-input'),
       'buy milk friday high prio'
@@ -200,7 +214,7 @@ describe('QuickCaptureInput', () => {
     useInboxTodosQuery.mockReturnValue({
       data: [{ ...created, name: 'Buy milk (urgent)' }],
     });
-    rerender(<QuickCaptureInput {...testIds} />);
+    rerender(input());
 
     act(() =>
       parseTodoMutate.mock.calls[0][1].onSuccess({
@@ -213,5 +227,33 @@ describe('QuickCaptureInput', () => {
     );
 
     expect(editTodoMutate).not.toHaveBeenCalled();
+  });
+
+  test('skips the parse and says why when AI features are off', async () => {
+    usePreferences.mockReturnValue({ preferences: { aiConsent: false } });
+    renderInput();
+    await userEvent.type(screen.getByTestId('quick-capture-input'), 'buy milk');
+    await userEvent.click(screen.getByTestId('quick-capture-submit'));
+
+    expect(addInboxTodoMutate).toHaveBeenCalled();
+    act(() => {
+      addInboxTodoMutate.mock.calls[0][1].onSuccess(makeTodo());
+    });
+
+    expect(parseTodoMutate).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId('quick-capture-notice-ai-off')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/settings');
+  });
+
+  test('shows no AI hint when AI features are on', async () => {
+    renderInput();
+    await userEvent.type(screen.getByTestId('quick-capture-input'), 'buy milk');
+    await userEvent.click(screen.getByTestId('quick-capture-submit'));
+
+    expect(
+      screen.queryByTestId('quick-capture-notice-ai-off')
+    ).not.toBeInTheDocument();
   });
 });

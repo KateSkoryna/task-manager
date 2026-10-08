@@ -164,6 +164,8 @@
     "quickCapturePlaceholder": "e.g. \"buy milk friday high priority\"",
     "quickCaptureAdd": "Add task",
     "enriched": "Updated with AI",
+    "aiOffHint": "Added as typed. To fill in the date and priority with AI, turn on \"Allow AI-generated features\".",
+    "aiOffHintLink": "Open Settings",
     "undo": "Undo"
   },
   "todoForm": {
