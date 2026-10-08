@@ -265,88 +265,92 @@ export function TodoEditPanel({
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label
-              id={`edit-todo-status-label-${todo.id}`}
-              className={labelClass}
-            >
-              {t('tasks.status')}
-            </label>
-            <Controller
-              name="status"
-              control={control}
-              render={({ field }) => (
-                <Dropdown
-                  id={`edit-todo-status-summary-${todo.id}`}
-                  data-testid={`edit-todo-status-${todo.id}`}
-                  ariaLabelledby={`edit-todo-status-label-${todo.id}`}
-                  value={field.value}
-                  onChange={(value: TodoStatus | null) =>
-                    value && field.onChange(value)
-                  }
-                  options={statusOptions}
-                  placeholder={t('tasks.status')}
-                  className={dropdownClass}
-                  menuClassName={dropdownMenuClass}
-                  fixedPosition
-                />
-              )}
-            />
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 [&>*]:min-w-0">
+            <div className="flex flex-col gap-1">
+              <label
+                id={`edit-todo-status-label-${todo.id}`}
+                className={labelClass}
+              >
+                {t('tasks.status')}
+              </label>
+              <Controller
+                name="status"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id={`edit-todo-status-summary-${todo.id}`}
+                    data-testid={`edit-todo-status-${todo.id}`}
+                    ariaLabelledby={`edit-todo-status-label-${todo.id}`}
+                    value={field.value}
+                    onChange={(value: TodoStatus | null) =>
+                      value && field.onChange(value)
+                    }
+                    options={statusOptions}
+                    placeholder={t('tasks.status')}
+                    className={dropdownClass}
+                    menuClassName={dropdownMenuClass}
+                    fixedPosition
+                  />
+                )}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label
+                id={`edit-todo-task-priority-label-${todo.id}`}
+                className={labelClass}
+              >
+                {t('tasks.taskPriority')}
+              </label>
+              <Controller
+                name="taskPriority"
+                control={control}
+                render={({ field }) => (
+                  <Dropdown
+                    id={`edit-todo-task-priority-summary-${todo.id}`}
+                    data-testid={`edit-todo-task-priority-${todo.id}`}
+                    ariaLabelledby={`edit-todo-task-priority-label-${todo.id}`}
+                    value={field.value}
+                    onChange={(value: TodoPriority | null) =>
+                      value && field.onChange(value)
+                    }
+                    options={priorityOptions}
+                    placeholder={t('tasks.taskPriority')}
+                    className={dropdownClass}
+                    menuClassName={dropdownMenuClass}
+                    fixedPosition
+                  />
+                )}
+              />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label
-              id={`edit-todo-task-priority-label-${todo.id}`}
-              className={labelClass}
-            >
-              {t('tasks.taskPriority')}
-            </label>
-            <Controller
-              name="taskPriority"
-              control={control}
-              render={({ field }) => (
-                <Dropdown
-                  id={`edit-todo-task-priority-summary-${todo.id}`}
-                  data-testid={`edit-todo-task-priority-${todo.id}`}
-                  ariaLabelledby={`edit-todo-task-priority-label-${todo.id}`}
-                  value={field.value}
-                  onChange={(value: TodoPriority | null) =>
-                    value && field.onChange(value)
-                  }
-                  options={priorityOptions}
-                  placeholder={t('tasks.taskPriority')}
-                  className={dropdownClass}
-                  menuClassName={dropdownMenuClass}
-                  fixedPosition
-                />
-              )}
-            />
-          </div>
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 [&>*]:min-w-0">
+            <div className="flex flex-col gap-1">
+              <label className={labelClass}>{t('tasks.dueDate')}</label>
+              <Controller
+                name="dueDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePickerInput
+                    id={'edit-todo-due-date-' + todo.id}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <label className={labelClass}>{t('tasks.dueDate')}</label>
-            <Controller
-              name="dueDate"
-              control={control}
-              render={({ field }) => (
-                <DatePickerInput
-                  id={'edit-todo-due-date-' + todo.id}
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className={labelClass}>{t('tasks.location')}</label>
-            <input
-              type="text"
-              {...register('location')}
-              placeholder={t('tasks.locationPlaceholder')}
-              className={inputClass}
-              data-testid={'edit-todo-location-' + todo.id}
-            />
+            <div className="flex flex-col gap-1">
+              <label className={labelClass}>{t('tasks.location')}</label>
+              <input
+                type="text"
+                {...register('location')}
+                placeholder={t('tasks.locationPlaceholder')}
+                className={inputClass}
+                data-testid={'edit-todo-location-' + todo.id}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -401,64 +405,66 @@ export function TodoEditPanel({
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label
-                id={`edit-todo-list-priority-label-${todo.id}`}
-                className={labelClass}
-              >
-                {t('tasks.listPriority')}
-              </label>
-              <Controller
-                name="listPriority"
-                control={control}
-                render={({ field }) => (
-                  <Dropdown
-                    id={`edit-todo-list-priority-summary-${todo.id}`}
-                    ariaLabelledby={`edit-todo-list-priority-label-${todo.id}`}
-                    value={field.value || null}
-                    onChange={(value: TodoListPriority | null) =>
-                      field.onChange(value ?? '')
-                    }
-                    options={priorityOptions}
-                    nullOption={{ label: t('tasks.priority_none') }}
-                    placeholder={t('tasks.priority_none')}
-                    className={dropdownClass}
-                    menuClassName={dropdownMenuClass}
-                    fixedPosition
-                    disabled={!watch('listId')}
-                  />
-                )}
-              />
-            </div>
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 [&>*]:min-w-0">
+              <div className="flex flex-col gap-1">
+                <label
+                  id={`edit-todo-list-priority-label-${todo.id}`}
+                  className={labelClass}
+                >
+                  {t('tasks.listPriority')}
+                </label>
+                <Controller
+                  name="listPriority"
+                  control={control}
+                  render={({ field }) => (
+                    <Dropdown
+                      id={`edit-todo-list-priority-summary-${todo.id}`}
+                      ariaLabelledby={`edit-todo-list-priority-label-${todo.id}`}
+                      value={field.value || null}
+                      onChange={(value: TodoListPriority | null) =>
+                        field.onChange(value ?? '')
+                      }
+                      options={priorityOptions}
+                      nullOption={{ label: t('tasks.priority_none') }}
+                      placeholder={t('tasks.priority_none')}
+                      className={dropdownClass}
+                      menuClassName={dropdownMenuClass}
+                      fixedPosition
+                      disabled={!watch('listId')}
+                    />
+                  )}
+                />
+              </div>
 
-            <div className="flex flex-col gap-1">
-              <label
-                id={`edit-todo-category-label-${todo.id}`}
-                className={labelClass}
-              >
-                {t('tasks.category')}
-              </label>
-              <Controller
-                name="category"
-                control={control}
-                render={({ field }) => (
-                  <Dropdown
-                    id={`edit-todo-category-summary-${todo.id}`}
-                    ariaLabelledby={`edit-todo-category-label-${todo.id}`}
-                    value={field.value || null}
-                    onChange={(value: TodoListCategory | null) =>
-                      field.onChange(value ?? '')
-                    }
-                    options={categoryOptions}
-                    nullOption={{ label: t('tasks.category_none') }}
-                    placeholder={t('tasks.category_none')}
-                    className={dropdownClass}
-                    menuClassName={dropdownMenuClass}
-                    fixedPosition
-                    disabled={!watch('listId')}
-                  />
-                )}
-              />
+              <div className="flex flex-col gap-1">
+                <label
+                  id={`edit-todo-category-label-${todo.id}`}
+                  className={labelClass}
+                >
+                  {t('tasks.category')}
+                </label>
+                <Controller
+                  name="category"
+                  control={control}
+                  render={({ field }) => (
+                    <Dropdown
+                      id={`edit-todo-category-summary-${todo.id}`}
+                      ariaLabelledby={`edit-todo-category-label-${todo.id}`}
+                      value={field.value || null}
+                      onChange={(value: TodoListCategory | null) =>
+                        field.onChange(value ?? '')
+                      }
+                      options={categoryOptions}
+                      nullOption={{ label: t('tasks.category_none') }}
+                      placeholder={t('tasks.category_none')}
+                      className={dropdownClass}
+                      menuClassName={dropdownMenuClass}
+                      fixedPosition
+                      disabled={!watch('listId')}
+                    />
+                  )}
+                />
+              </div>
             </div>
 
             {!watch('listId') && (
