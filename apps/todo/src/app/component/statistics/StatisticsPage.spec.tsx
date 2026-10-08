@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { TodoList, TodoItem } from '@shared/types';
 import StatisticsPage from './StatisticsPage';
@@ -131,6 +131,39 @@ describe('StatisticsPage', () => {
 
     // "Completed Tasks" KPI: 1 of the 2 planned tasks completed.
     expect(screen.getByText('1 / 2')).toBeInTheDocument();
+  });
+
+  it('offers the period in a dropdown on phones and tablets', async () => {
+    useTodoListsQuery.mockReturnValue({ data: [], isLoading: false });
+    useInboxTodosQuery.mockReturnValue({ data: [], isLoading: false });
+    const original = window.matchMedia;
+    window.matchMedia = (query: string) =>
+      ({
+        ...original(query),
+        matches: query.includes('max-width: 79.9375rem'),
+      } as MediaQueryList);
+    try {
+      render(<StatisticsPage />);
+      const dropdown = screen.getByLabelText('statistics.period');
+      expect(dropdown.tagName).toBe('SUMMARY');
+      expect(dropdown).toHaveTextContent('statistics.month');
+      expect(
+        screen.queryByRole('radio', { name: 'statistics.week' })
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(dropdown);
+      fireEvent.click(
+        await within(dropdown.closest('details') as HTMLElement).findByRole(
+          'button',
+          { name: 'statistics.week' }
+        )
+      );
+      expect(screen.getByLabelText('statistics.period')).toHaveTextContent(
+        'statistics.week'
+      );
+    } finally {
+      window.matchMedia = original;
+    }
   });
 
   it('changes the displayed period range when navigating to the previous period', () => {
