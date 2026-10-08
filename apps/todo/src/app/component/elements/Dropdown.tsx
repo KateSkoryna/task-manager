@@ -89,6 +89,23 @@ function Dropdown<T extends string>({
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [open]);
 
+  // A fixed menu does not move with its trigger, so close it when the page or
+  // any scrollable parent scrolls (captured, as scroll does not bubble).
+  useEffect(() => {
+    if (!open || !fixedPosition) return;
+    const handleScroll = (event: Event) => {
+      if (!detailsRef.current?.contains(event.target as Node)) close();
+    };
+    const handleResize = () => close();
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, fixedPosition]);
+
   return (
     <details
       ref={detailsRef}

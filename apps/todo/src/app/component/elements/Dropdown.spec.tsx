@@ -166,6 +166,28 @@ describe('Dropdown', () => {
     );
   });
 
+  test('closes a fixed menu when the page scrolls', async () => {
+    render(<Harness fixedPosition />);
+    const summary = screen.getByLabelText('Priority');
+    await userEvent.click(summary);
+    expect(screen.getByRole('list')).toBeInTheDocument();
+
+    await waitFor(() => {
+      fireEvent.scroll(document.body);
+      expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    });
+    expect(summary.closest('details')).not.toHaveAttribute('open');
+  });
+
+  test('keeps a non-fixed menu open when the page scrolls', async () => {
+    render(<Harness />);
+    await userEvent.click(screen.getByLabelText('Priority'));
+
+    fireEvent.scroll(document.body);
+
+    expect(screen.getByRole('list')).toBeInTheDocument();
+  });
+
   test('renders only the icon as the trigger when triggerIcon is given', async () => {
     render(
       <Dropdown
