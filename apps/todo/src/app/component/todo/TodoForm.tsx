@@ -90,27 +90,29 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)}>
-      <div className="flex flex-col sm:flex-row gap-3 items-baseline">
+      <div className="flex flex-col gap-1">
         <label htmlFor="new-todo-name" className="text-primary font-medium">
           {t('todoForm.todoName')}
         </label>
-        <div className="flex-1">
-          <Input
-            {...register('name', { required: t('todoForm.titleEmpty') })}
-            id="new-todo-name"
-            type="text"
-            placeholder={t('todoForm.addPlaceholder')}
-            invalid={!!errors.name}
-            inputTestId="todo-form-input"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <div className="flex-1">
+            <Input
+              {...register('name', { required: t('todoForm.titleEmpty') })}
+              id="new-todo-name"
+              type="text"
+              placeholder={t('todoForm.addPlaceholder')}
+              invalid={!!errors.name}
+              inputTestId="todo-form-input"
+            />
+          </div>
+          <Button
+            type="submit"
+            variant="primary"
+            dataTestId="todo-form-submit-button"
+          >
+            {t('todoForm.add')}
+          </Button>
         </div>
-        <Button
-          type="submit"
-          variant="primary"
-          dataTestId="todo-form-submit-button"
-        >
-          {t('todoForm.add')}
-        </Button>
       </div>
 
       {errors.name && (
@@ -133,45 +135,48 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
 
       {showExtra && (
         <div className="mt-3 flex flex-col gap-3">
-          <div className="flex flex-col sm:flex-row gap-3 items-baseline">
-            <label
-              htmlFor="new-todo-due-date"
-              className="text-primary font-medium w-24"
-            >
-              {t('todoForm.dueDate')}
-            </label>
-            <Controller
-              name="dueDate"
-              control={control}
-              render={({ field }) => (
-                <DatePickerInput
-                  id="new-todo-due-date"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                />
-              )}
-            />
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="new-todo-due-date"
+                className="text-primary font-medium"
+              >
+                {t('todoForm.dueDate')}
+              </label>
+              <Controller
+                name="dueDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePickerInput
+                    id="new-todo-due-date"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    className="flex-1"
+                  />
+                )}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="new-todo-location"
+                className="text-primary font-medium"
+              >
+                {t('todoForm.location')}
+              </label>
+              <input
+                id="new-todo-location"
+                type="text"
+                {...register('location')}
+                placeholder={t('todoForm.locationPlaceholder')}
+                className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                data-testid="todo-form-location"
+              />
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 items-baseline">
-            <label
-              htmlFor="new-todo-location"
-              className="text-primary font-medium w-24"
-            >
-              {t('todoForm.location')}
-            </label>
-            <input
-              id="new-todo-location"
-              type="text"
-              {...register('location')}
-              placeholder={t('todoForm.locationPlaceholder')}
-              className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
-              data-testid="todo-form-location"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 items-baseline">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="new-todo-notes"
-              className="text-primary font-medium w-24"
+              className="text-primary font-medium"
             >
               {t('todoForm.notes')}
             </label>
@@ -184,10 +189,10 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
               data-testid="todo-form-notes"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 items-baseline">
+          <div className="flex flex-col gap-1">
             <label
               htmlFor="new-todo-image"
-              className="text-primary font-medium w-24"
+              className="text-primary font-medium"
             >
               {t('todoForm.image')}
             </label>
