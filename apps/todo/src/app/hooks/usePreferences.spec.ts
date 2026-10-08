@@ -16,6 +16,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   tone: 'neutral',
   aiConsent: false,
   autoArchive: 'never',
+  onboardingSeen: false,
 };
 
 const getPreferencesFetcher = jest.fn();

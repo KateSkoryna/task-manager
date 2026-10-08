@@ -108,6 +108,7 @@ describe('useAgentChat', () => {
           tone: 'neutral',
           aiConsent: true,
           autoArchive: 'never',
+          onboardingSeen: false,
         },
         telegramLinked: false,
       },

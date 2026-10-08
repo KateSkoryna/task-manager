@@ -55,6 +55,10 @@ const preferencesSchema = new Schema<UserPreferences>(
       enum: AUTO_ARCHIVE_OPTIONS as unknown as string[],
       default: DEFAULT_USER_PREFERENCES.autoArchive,
     },
+    onboardingSeen: {
+      type: Boolean,
+      default: DEFAULT_USER_PREFERENCES.onboardingSeen,
+    },
   },
   { _id: false }
 );

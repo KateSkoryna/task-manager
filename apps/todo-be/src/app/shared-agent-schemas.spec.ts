@@ -18,6 +18,7 @@ describe('user preferences', () => {
       tone: 'neutral',
       aiConsent: false,
       autoArchive: 'never',
+      onboardingSeen: false,
     });
   });
 
