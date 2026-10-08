@@ -66,8 +66,10 @@ const tokens = Object.freeze({
     weight: Object.freeze({ normal: '400', medium: '500', bold: '700' }),
   }),
   screen: Object.freeze({
-    sm: '40rem',
-    md: '48rem',
+    // Phones, including landscape, stay on the mobile layout up to 800px, so
+    // `sm` and `md` both start the tablet layout there.
+    sm: '50rem',
+    md: '50rem',
     lg: '64rem',
     xl: '80rem',
     '2xl': '96rem',

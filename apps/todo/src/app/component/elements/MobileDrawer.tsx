@@ -9,7 +9,7 @@ const FOCUSABLE_SELECTOR =
 
 // Tailwind's `md` breakpoint (tokens.screen.md) — kept as a literal here
 // since matchMedia needs a real media-query string, not a class name.
-const TABLET_QUERY = '(min-width: 48rem)';
+const TABLET_QUERY = '(min-width: 50rem)';
 
 export const MOBILE_DRAWER_ID = 'mobile-nav-drawer';
 
