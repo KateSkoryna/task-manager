@@ -71,7 +71,7 @@ const tokens = Object.freeze({
   font: Object.freeze({
     sans: ['DM Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
     mono: ['DM Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-    weight: Object.freeze({ normal: '400', medium: '500', semibold: '600' }),
+    weight: Object.freeze({ normal: '400', medium: '500', bold: '700' }),
   }),
   screen: Object.freeze({
     // Phones, including landscape, stay on the mobile layout up to 800px, so
