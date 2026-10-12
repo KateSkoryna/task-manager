@@ -55,7 +55,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const toneClasses =
       tone === 'sidebar'
         ? 'border-sidebar-border bg-sidebar-text/10 text-sidebar-text backdrop-blur-sm hover:bg-sidebar-text/20 focus-visible:bg-sidebar-text/20'
-        : 'border-default bg-surface text-muted hover:bg-surface-subtle focus-visible:bg-surface-subtle';
+        : 'border-default bg-surface text-muted shadow-card hover:bg-surface-subtle focus-visible:bg-surface-subtle';
     // The accent outline disappears on a light surface, so it is kept for
     // the dark sidebar only.
     const focusOutline =

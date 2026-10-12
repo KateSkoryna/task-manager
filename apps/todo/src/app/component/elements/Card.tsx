@@ -14,7 +14,8 @@ type CardProps = {
 
 const VARIANT_CLASSES: Record<NonNullable<CardProps['variant']>, string> = {
   primary: 'rounded-card border border-default bg-surface p-4',
-  nested: 'rounded-inner border border-default bg-surface-subtle p-3',
+  nested:
+    'rounded-inner border border-default bg-surface-subtle p-3 transition-colors hover:border-muted',
 };
 
 function Card({
@@ -28,19 +29,11 @@ function Card({
   tabIndex,
   dataTestId,
 }: CardProps) {
-  // Selected and default states each own a single shadow utility so they
-  // never compete for the same --tw-shadow variable at once.
-  const shadowClass = selected
-    ? 'shadow-selected'
-    : variant === 'primary'
-    ? 'shadow-card'
-    : '';
   return (
     <div
       className={mergeClassNames(
         VARIANT_CLASSES[variant],
-        shadowClass,
-        selected && 'border-l-4 border-l-accent-ink',
+        selected && 'shadow-[inset_4px_0_0_rgb(var(--color-accent))]',
         className
       )}
       onClick={onClick}

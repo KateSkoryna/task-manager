@@ -101,7 +101,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-full space-y-4 rounded-card border border-default bg-surface p-5"
+      className="w-full space-y-4 rounded-card border border-default bg-surface p-5 shadow-card"
       noValidate
     >
       <h2 className="text-lg font-bold text-primary">

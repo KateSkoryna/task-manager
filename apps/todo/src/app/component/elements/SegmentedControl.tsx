@@ -25,7 +25,7 @@ function SegmentedControl<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={mergeClassNames(
-        'flex w-full items-center gap-1 rounded-control border border-default bg-surface-subtle p-1',
+        'flex w-full items-center gap-1 rounded-control border border-default bg-surface-subtle p-1 shadow-card',
         className
       )}
     >

@@ -90,7 +90,7 @@ function TodayStatusPanel({
   return (
     <section
       className={mergeClassNames(
-        'rounded-xl border border-default bg-surface p-4',
+        'rounded-card border border-default bg-surface p-4 shadow-card',
         className
       )}
       data-testid="today-status"
