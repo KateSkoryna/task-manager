@@ -59,7 +59,7 @@ function TodayTaskRow<T extends TodoItem>({
       // like hover; focus on the checkbox shows only the checkbox's own ring,
       // so a keyboard user can tell which of the two Enter will act on.
       className={mergeClassNames(
-        'flex items-center gap-3 rounded-inner border border-l-4 border-transparent bg-surface-subtle px-3 py-2 transition hover:border-priority-high-bg has-[[data-row-open]:focus-visible]:border-priority-high-bg motion-safe:hover:scale-[1.01] motion-safe:has-[[data-row-open]:focus-visible]:scale-[1.01]',
+        'flex items-center gap-3 rounded-inner border border-l-4 border-transparent bg-surface-subtle px-3 py-2 transition has-[[data-row-open]:focus-visible]:border-priority-high-bg motion-safe:hover:scale-[1.01] motion-safe:has-[[data-row-open]:focus-visible]:scale-[1.01]',
         PRIORITY_BORDER[item.priority]
       )}
       data-testid={`today-task-${item.id}`}
