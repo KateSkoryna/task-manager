@@ -225,11 +225,16 @@ describe('DashboardPage', () => {
     expect(screen.queryByTestId('today-overdue')).not.toBeInTheDocument();
   });
 
-  test('orders tasks due today unfinished first, then by priority', () => {
+  test('orders tasks due today by priority, whether or not they are done', () => {
     mockLists([
-      todo({ id: 'low', priority: 'low' }),
-      todo({ id: 'done', priority: 'high', status: 'successful' }),
-      todo({ id: 'high', priority: 'high' }),
+      todo({ id: 'low', name: 'Low', priority: 'low' }),
+      todo({
+        id: 'done',
+        name: 'Beta',
+        priority: 'high',
+        status: 'successful',
+      }),
+      todo({ id: 'high', name: 'Alpha', priority: 'high' }),
     ]);
     renderPage();
     const rows = within(screen.getByTestId('today-due')).getAllByTestId(
@@ -237,8 +242,8 @@ describe('DashboardPage', () => {
     );
     expect(rows.map((row) => row.getAttribute('data-testid'))).toEqual([
       'today-task-high',
-      'today-task-low',
       'today-task-done',
+      'today-task-low',
     ]);
   });
 
