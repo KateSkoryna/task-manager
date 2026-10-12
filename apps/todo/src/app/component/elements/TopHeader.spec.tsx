@@ -11,9 +11,10 @@ jest.mock('firebase/auth', () => ({
 }));
 
 const mockNavigate = jest.fn();
+let mockPathname = '/';
 
 jest.mock('react-router-dom', () => ({
-  useLocation: () => ({ pathname: '/' }),
+  useLocation: () => ({ pathname: mockPathname }),
   useNavigate: () => mockNavigate,
 }));
 
@@ -168,12 +169,24 @@ describe('TopHeader brand', () => {
     mockSearchState = { query: '', status: 'idle', matches: [] };
   });
 
-  it('shows the app name instead of the current page title', () => {
+  afterEach(() => {
+    mockPathname = '/';
+  });
+
+  it('shows the current page title', () => {
+    mockPathname = '/tasks';
+    render(<TopHeader />);
+    expect(
+      screen.getByRole('heading', { name: 'nav.myTasks' })
+    ).toBeInTheDocument();
+  });
+
+  it('falls back to the app name on an unknown page', () => {
+    mockPathname = '/nowhere';
     render(<TopHeader />);
     expect(
       screen.getByRole('heading', { name: 'TaskPal' })
     ).toBeInTheDocument();
-    expect(screen.queryByText('nav.dashboard')).not.toBeInTheDocument();
   });
 });
 
