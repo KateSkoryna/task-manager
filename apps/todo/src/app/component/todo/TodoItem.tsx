@@ -39,7 +39,7 @@ export const STATUS_LABEL_KEYS: Record<TodoStatus, string> = {
 export const STATUS_TEXT: Record<TodoStatus, string> = {
   pending: 'text-status-progress',
   successful: 'text-status-complete',
-  failed: 'text-muted',
+  failed: 'text-status-open',
 };
 
 function TodoItem({

@@ -119,7 +119,7 @@ function TodayStatusPanel({
         <DonutChart
           value={notStarted}
           total={total}
-          color="rgb(var(--color-muted))"
+          color="rgb(var(--color-status-open))"
           animate={animate}
           label={t('dashboard.notStarted')}
         />
