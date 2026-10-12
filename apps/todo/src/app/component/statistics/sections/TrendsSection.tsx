@@ -109,7 +109,7 @@ export default function TrendsSection({
         </ResponsiveContainer>
       </ChartCard>
 
-      <div className="bg-surface rounded-2xl border border-default p-5 shadow-card space-y-4">
+      <div className="bg-surface rounded-card border border-default p-5 shadow-card space-y-4">
         <div>
           <p className="text-body font-bold text-primary mb-2">
             {t('statistics.timeToCompletion')}

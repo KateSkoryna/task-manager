@@ -279,7 +279,7 @@ export default function ReportDetailPage() {
       </div>
 
       {(preferences?.aiConsent || report.narrative) && (
-        <div className="bg-surface rounded-2xl border border-default p-5 shadow-card space-y-3 print:break-inside-avoid">
+        <div className="bg-surface rounded-card border border-default p-5 shadow-card space-y-3 print:break-inside-avoid">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-body font-bold text-primary">
               {t('reports.aiInsightsTitle')}

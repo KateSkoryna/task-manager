@@ -17,7 +17,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
 
   return (
     <div
-      className={`bg-danger/10 border border-danger text-danger p-6 rounded-lg ${className}`}
+      className={`bg-danger/10 border border-danger text-danger p-6 rounded-control ${className}`}
     >
       <Text as="h2" className="text-xl font-bold mb-2" dataTestId="error-title">
         {t('error.title')}

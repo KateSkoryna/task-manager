@@ -238,7 +238,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                   <img
                     src={image}
                     alt="Preview"
-                    className="h-16 w-16 object-cover rounded"
+                    className="h-16 w-16 object-cover rounded-control"
                   />
                   <button
                     type="button"

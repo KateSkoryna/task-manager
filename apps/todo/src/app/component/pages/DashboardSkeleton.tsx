@@ -3,7 +3,7 @@ import Skeleton from '../elements/Skeleton';
 function PanelSkeleton({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`bg-surface rounded-xl border border-default p-4 ${className}`}
+      className={`bg-surface rounded-card border border-default p-4 ${className}`}
     >
       <Skeleton className="h-4 w-32 mb-3" />
       <div className="space-y-2">
@@ -22,7 +22,7 @@ function DashboardSkeleton() {
       role="status"
       aria-label="Loading dashboard"
     >
-      <div className="bg-surface rounded-xl border border-default p-5">
+      <div className="bg-surface rounded-card border border-default p-5">
         <Skeleton className="h-6 w-24 mb-3" />
         <Skeleton className="h-2 w-full" />
       </div>

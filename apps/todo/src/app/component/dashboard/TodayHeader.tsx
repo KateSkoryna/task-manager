@@ -57,7 +57,7 @@ function TodayHeader({ done, total, overdue, onAddTask }: TodayHeaderProps) {
   return (
     <section
       className={mergeClassNames(
-        'flex flex-col gap-4 rounded-xl p-5 transition-colors sm:flex-row sm:items-center',
+        'flex flex-col gap-4 rounded-card p-5 transition-colors sm:flex-row sm:items-center',
         classes.band
       )}
       data-testid="today-header"

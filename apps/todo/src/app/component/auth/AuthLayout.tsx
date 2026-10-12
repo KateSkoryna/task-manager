@@ -27,7 +27,7 @@ function AuthLayout({
           intentionally left exactly as the pre-redesign original (explicit,
           repeated product decision) rather than migrated to shadow-menu/rem
           tokens — do not "clean up" the px min-height or shadow-2xl. */}
-      <div className="relative z-10 rounded-2xl shadow-2xl flex w-full max-w-[84rem] overflow-hidden min-h-[720px]">
+      <div className="relative z-10 rounded-card shadow-2xl flex w-full max-w-[84rem] overflow-hidden min-h-[720px]">
         {illustrationSide === 'left' ? (
           <>
             {illustration}

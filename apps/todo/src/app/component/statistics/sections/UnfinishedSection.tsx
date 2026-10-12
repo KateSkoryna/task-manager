@@ -78,7 +78,7 @@ export default function UnfinishedSection({
         )}
       </ChartCard>
 
-      <div className="bg-surface rounded-2xl border border-default p-5 shadow-card h-full flex flex-col">
+      <div className="bg-surface rounded-card border border-default p-5 shadow-card h-full flex flex-col">
         <p className="text-body font-bold text-primary mb-4">
           {t('statistics.overdueSnapshot')}
         </p>

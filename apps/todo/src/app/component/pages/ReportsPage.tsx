@@ -85,7 +85,7 @@ export default function ReportsPage() {
       ) : filtered.length === 0 ? (
         <p className="text-body text-muted">{t('reports.noData')}</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-default shadow-card">
+        <div className="overflow-hidden rounded-card border border-default shadow-card">
           <div
             className={mergeClassNames(
               ROW_GRID,
