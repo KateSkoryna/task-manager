@@ -15,7 +15,7 @@ type CardProps = {
 const VARIANT_CLASSES: Record<NonNullable<CardProps['variant']>, string> = {
   primary: 'rounded-card border border-default bg-surface p-4',
   nested:
-    'rounded-inner border border-default bg-surface-subtle p-3 transition-colors hover:border-muted',
+    'rounded-inner border border-default bg-surface-subtle p-3 transition-transform motion-safe:hover:scale-[1.01]',
 };
 
 function Card({

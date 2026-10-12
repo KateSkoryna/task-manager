@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import { ChevronUp, ChevronDown, Pencil, Trash2 } from 'lucide-react';
-import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
 import Card from '../elements/Card';
 import Badge from '../elements/Badge';
 import CompletionCheckbox from '../elements/CompletionCheckbox';
 import MoveToListSelect, { AvailableList } from './MoveToListSelect';
-import { isDueWithinHours } from '../../lib/urgency';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { formatDueDate } from '../../lib/formatDueDate';
+import { resolveLocale } from '../../lib/locale';
 
 interface TodoItemProps {
   todo: TodoItemType;
@@ -59,10 +58,8 @@ function TodoItem({
   onMoveToList,
   hideDueDate,
 }: TodoItemProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const statusLabel = t(STATUS_LABEL_KEYS[todo.status]);
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const isUrgent = todo.status === 'pending' && isDueWithinHours(todo.dueDate);
 
   useEffect(() => {
     // auto-fail overdue items is handled server-side / via edit panel
@@ -73,7 +70,7 @@ function TodoItem({
     <Card
       variant="nested"
       selected={isSelected}
-      className="cursor-pointer overflow-hidden transition-colors"
+      className="cursor-pointer overflow-hidden"
       dataTestId={'todo-item-' + todo.id}
       onClick={() => onSelect?.()}
       role="button"
@@ -203,26 +200,16 @@ function TodoItem({
             </div>
           )}
           {todo.dueDate && !hideDueDate && (
-            <span
-              className={`flex shrink-0 items-center gap-1 text-small ml-auto ${
-                isUrgent ? 'text-danger font-bold' : 'text-muted'
-              }`}
-            >
-              {isUrgent && (
-                <span
-                  aria-hidden="true"
-                  className={`h-1.5 w-1.5 rounded-full bg-danger ${
-                    prefersReducedMotion ? '' : 'animate-pulse'
-                  }`}
-                />
-              )}
+            <span className="ml-auto flex shrink-0 items-center gap-1 text-small text-muted">
               <span className="hidden xl:inline">{t('tasks.due')} </span>
-              {dayjs(todo.dueDate).format('DD/MM/YYYY')}
-              {isUrgent && (
-                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-metadata font-bold text-danger">
-                  {t('tasks.dueSoon')}
-                </span>
-              )}
+              <span className="tabular-nums">
+                {formatDueDate(
+                  todo.dueDate,
+                  new Date(),
+                  resolveLocale(i18n.language),
+                  t
+                )}
+              </span>
             </span>
           )}
         </div>

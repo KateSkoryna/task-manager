@@ -29,7 +29,6 @@ import TaskSearch from '../elements/TaskSearch';
 import DashboardSkeleton from './DashboardSkeleton';
 
 // Both task blocks page instead of growing, so the page does not scroll.
-const OVERDUE_PAGE_SIZE = 4;
 
 function DashboardPage() {
   const { t } = useTranslation();
@@ -166,7 +165,7 @@ function DashboardPage() {
               hidePriority
               className="lg:min-h-0 lg:flex-1"
               items={overdueItems}
-              pageSize={OVERDUE_PAGE_SIZE}
+              pageSize="fit"
               onOpen={handleOpen}
               renderMeta={(item) => (
                 <span className="shrink-0 text-small font-bold text-danger">

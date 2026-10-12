@@ -35,7 +35,7 @@ function InboxSection({
 
   return (
     <div
-      className="bg-surface rounded-card border border-default overflow-hidden"
+      className="bg-surface rounded-card border border-default"
       data-testid="inbox-section"
     >
       <div className="px-4 py-3 bg-surface border-b border-default flex items-center gap-3">

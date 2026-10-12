@@ -1,34 +1,18 @@
-import { CSSProperties, RefObject, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { RefObject, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '../../store/notificationStore';
 import { mergeClassNames } from '../../lib/classNames';
 import { moveOptionFocus } from '../../lib/listboxKeys';
+import { resolveLocale } from '../../lib/locale';
+import { NAV_ITEMS } from '../../lib/navItems';
 import AppLogo from './AppLogo';
 import IconButton from './IconButton';
 import TaskSearch from './TaskSearch';
 import { MOBILE_DRAWER_ID } from './MobileDrawer';
-import bgImage from '../../../assets/bg.webp';
 
 const APP_NAME = 'TaskPal';
-
-// The same pattern the login and register pages use as their page
-// background. The image is light grey line art on white, so it is multiplied
-// with the header's own surface colour: the white drops out and only the
-// lines remain, in the light and the dark theme alike.
-const HEADER_PATTERN_STYLE: CSSProperties = {
-  backgroundImage: `url(${bgImage})`,
-  backgroundRepeat: 'repeat',
-  backgroundSize: '800px',
-  backgroundBlendMode: 'multiply',
-};
-
-const LOCALE_MAP: Record<string, string> = {
-  en: 'en-US',
-  de: 'de-DE',
-  uk: 'uk-UA',
-};
 
 /**
  * "Tuesday, 06 Oct 2026". Assembled from parts rather than taken from
@@ -81,10 +65,12 @@ function TopHeader({
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [isNotificationsOpen]);
 
-  const locale =
-    LOCALE_MAP[i18n.language] ??
-    LOCALE_MAP[i18n.language.split('-')[0]] ??
-    'en-US';
+  const { pathname } = useLocation();
+  const currentItem = NAV_ITEMS.find(({ to, end }) =>
+    end ? pathname === to : pathname.startsWith(to)
+  );
+  const pageTitle = currentItem ? t(currentItem.labelKey) : APP_NAME;
+  const locale = resolveLocale(i18n.language);
   const headerDate = formatHeaderDate(new Date(), locale);
 
   return (
@@ -93,7 +79,6 @@ function TopHeader({
         'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5',
         className
       )}
-      style={HEADER_PATTERN_STYLE}
     >
       {onOpenMenu && (
         <IconButton
@@ -113,7 +98,7 @@ function TopHeader({
       <AppLogo className="size-10" />
       <div className="min-w-0">
         <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">
-          {APP_NAME}
+          {pageTitle}
         </h2>
         <p className="truncate font-mono text-small text-muted">{headerDate}</p>
       </div>

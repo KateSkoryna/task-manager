@@ -1,6 +1,10 @@
 import { mergeClassNames } from '../../lib/classNames';
 
-type BadgeTone = 'priority-high' | 'priority-medium' | 'priority-low' | 'neutral';
+type BadgeTone =
+  | 'priority-high'
+  | 'priority-medium'
+  | 'priority-low'
+  | 'neutral';
 
 type BadgeProps = {
   children: React.ReactNode;
@@ -8,19 +12,41 @@ type BadgeProps = {
   className?: string;
 };
 
-const TONE_CLASSES: Record<BadgeTone, string> = {
-  'priority-high': 'bg-priority-high-bg text-priority-high-text',
-  'priority-medium': 'bg-priority-medium-bg text-priority-medium-text',
-  'priority-low': 'border border-priority-low text-priority-low bg-transparent',
-  neutral: 'border border-default text-muted bg-surface-subtle',
+// Priority is a coloured dot followed by its label, so colour is never the
+// only cue. The strongest colour is the most important: high is solid and darkest, medium
+// a ring with a dot in a lighter shade, low an empty and lightest ring.
+const DOT_CLASSES: Partial<Record<BadgeTone, string>> = {
+  'priority-high': 'bg-priority-low',
+  'priority-medium':
+    'border-2 border-priority-high-bg bg-priority-high-bg bg-clip-content p-px',
+  'priority-low': 'border-2 border-priority-high-bg/50',
 };
 
 function Badge({ children, tone = 'neutral', className = '' }: BadgeProps) {
+  const dotClasses = DOT_CLASSES[tone];
+  if (dotClasses) {
+    return (
+      <span
+        className={mergeClassNames(
+          'inline-flex items-center gap-1.5 text-small text-muted',
+          className
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={mergeClassNames(
+            'size-2.5 shrink-0 rounded-pill',
+            dotClasses
+          )}
+        />
+        {children}
+      </span>
+    );
+  }
   return (
     <span
       className={mergeClassNames(
-        'inline-flex items-center rounded-pill px-badge-x py-badge-y text-metadata font-medium',
-        TONE_CLASSES[tone],
+        'inline-flex items-center rounded-pill border border-default bg-surface-subtle px-badge-x py-badge-y text-metadata font-medium text-muted',
         className
       )}
     >

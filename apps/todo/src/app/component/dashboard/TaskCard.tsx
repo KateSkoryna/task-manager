@@ -8,10 +8,10 @@ import { mergeClassNames } from '../../lib/classNames';
 // when the item is itself the button, `has-[:focus-visible]` when the
 // focused control sits inside it.
 export const PRIORITY_BORDER: Record<TodoPriority, string> = {
-  high: 'border-l-priority-high-bg hover:border-l-priority-high-bg focus-visible:border-l-priority-high-bg has-[:focus-visible]:border-l-priority-high-bg',
+  high: 'border-l-priority-low hover:border-l-priority-low focus-visible:border-l-priority-low has-[:focus-visible]:border-l-priority-low',
   medium:
-    'border-l-priority-medium-bg hover:border-l-priority-medium-bg focus-visible:border-l-priority-medium-bg has-[:focus-visible]:border-l-priority-medium-bg',
-  low: 'border-l-priority-low hover:border-l-priority-low focus-visible:border-l-priority-low has-[:focus-visible]:border-l-priority-low',
+    'border-l-priority-high-bg hover:border-l-priority-high-bg focus-visible:border-l-priority-high-bg has-[:focus-visible]:border-l-priority-high-bg',
+  low: 'border-l-priority-high-bg/50 hover:border-l-priority-high-bg/50 focus-visible:border-l-priority-high-bg/50 has-[:focus-visible]:border-l-priority-high-bg/50',
 };
 
 interface TaskCardProps {
@@ -28,7 +28,7 @@ function TaskCard({ item, onOpen }: TaskCardProps) {
       type="button"
       onClick={() => onOpen(item)}
       className={mergeClassNames(
-        'min-w-0 rounded-card border border-l-4 border-transparent bg-surface-subtle p-3 text-left transition hover:border-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline-none motion-safe:hover:scale-[1.02] motion-safe:focus-visible:scale-[1.02]',
+        'min-w-0 rounded-card border border-l-4 border-transparent bg-surface-subtle p-3 text-left transition focus-visible:border-accent focus-visible:outline-none motion-safe:hover:scale-[1.02] motion-safe:focus-visible:scale-[1.02]',
         PRIORITY_BORDER[item.priority]
       )}
     >

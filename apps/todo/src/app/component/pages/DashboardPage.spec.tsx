@@ -158,23 +158,25 @@ describe('DashboardPage', () => {
     expect(dueToday.getByRole('checkbox')).toBeInTheDocument();
   });
 
+  // jsdom has no layout, so the height measurement keeps the block's
+  // ceiling of 12 rows per page.
   test('pages through a long overdue list with the arrow buttons', async () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     mockLists(
-      [1, 2, 3, 4, 5].map((day) =>
-        todo({ id: `late-${day}`, dueDate: `2026-08-0${day}` })
+      Array.from({ length: 13 }, (_, n) =>
+        todo({ id: `late-${n}`, dueDate: '2026-08-01' })
       )
     );
     renderPage();
     const overdue = within(screen.getByTestId('today-overdue'));
-    expect(overdue.getAllByTestId(/^today-task-/)).toHaveLength(4);
-    expect(overdue.queryByText('late-5')).not.toBeInTheDocument();
+    expect(overdue.getAllByTestId(/^today-task-/)).toHaveLength(12);
+    expect(overdue.queryByText('late-12')).not.toBeInTheDocument();
 
     await user.click(
       overdue.getByRole('button', { name: 'dashboard.nextTasks' })
     );
     expect(overdue.getAllByTestId(/^today-task-/)).toHaveLength(1);
-    expect(overdue.getByText('late-5')).toBeInTheDocument();
+    expect(overdue.getByText('late-12')).toBeInTheDocument();
     expect(
       overdue.getByRole('button', { name: 'dashboard.nextTasks' })
     ).toBeDisabled();
