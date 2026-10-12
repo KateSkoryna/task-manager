@@ -604,7 +604,7 @@ export function TodoEditPanel({
 const STATUS_TEXT_COLORS: Record<string, string> = {
   pending: 'text-status-progress',
   successful: 'text-status-complete',
-  failed: 'text-status-open',
+  failed: 'text-muted',
 };
 
 export function TaskDetailPanel({

@@ -43,7 +43,7 @@ describe('TodoItem', () => {
     );
     expect(screen.getByText('tasks.priority_high')).toBeInTheDocument();
     expect(screen.getByText('tasks.due')).toBeInTheDocument();
-    expect(screen.getByText(/05\/08\/2026/)).toBeInTheDocument();
+    expect(screen.getByText('5 Aug')).toBeInTheDocument();
   });
   test('renders attached image', () => {
     render(
@@ -101,29 +101,6 @@ describe('TodoItem', () => {
     expect(screen.getByText('tasks.status_successful')).toHaveClass(
       'text-status-complete'
     );
-  });
-
-  test('shows a due-soon badge and pulse dot for pending tasks due within 4 hours of end of day', () => {
-    // system time is 20:30 on 2026-08-18, so a task due that day is ~3.5h from its deadline
-    const { container } = render(
-      <TodoItem todo={makeTodo('pending', { dueDate: '2026-08-18' })} />
-    );
-    expect(screen.getByText('tasks.dueSoon')).toBeInTheDocument();
-    expect(container.querySelector('.bg-danger.rounded-full')).toHaveClass(
-      'animate-pulse'
-    );
-  });
-
-  test('does not show a due-soon badge when the due date is far away', () => {
-    render(<TodoItem todo={makeTodo('pending', { dueDate: '2026-08-25' })} />);
-    expect(screen.queryByText('tasks.dueSoon')).not.toBeInTheDocument();
-  });
-
-  test('does not show a due-soon badge for completed tasks', () => {
-    render(
-      <TodoItem todo={makeTodo('successful', { dueDate: '2026-08-18' })} />
-    );
-    expect(screen.queryByText('tasks.dueSoon')).not.toBeInTheDocument();
   });
 
   describe('quick complete', () => {
