@@ -37,7 +37,7 @@ export interface Tokens {
   font: {
     sans: string[];
     mono: string[];
-    weight: { normal: string; medium: string; bold: string };
+    weight: { normal: string; medium: string; semibold: string };
   };
   screen: { sm: string; md: string; lg: string; xl: string; '2xl': string };
   radius: { control: string; inner: string; card: string; pill: string };
@@ -87,6 +87,7 @@ export interface Tokens {
     body: string;
     small: string;
     metadata: string;
+    control: string;
     headingLetterSpacing: string;
   };
   component: {

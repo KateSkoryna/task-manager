@@ -129,6 +129,7 @@ module.exports = {
         body: tokens.type.body,
         small: tokens.type.small,
         metadata: tokens.type.metadata,
+        control: tokens.type.control,
       },
       letterSpacing: {
         heading: tokens.type.headingLetterSpacing,

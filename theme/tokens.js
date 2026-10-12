@@ -71,7 +71,7 @@ const tokens = Object.freeze({
   font: Object.freeze({
     sans: ['DM Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
     mono: ['DM Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-    weight: Object.freeze({ normal: '400', medium: '500', bold: '700' }),
+    weight: Object.freeze({ normal: '400', medium: '500', semibold: '600' }),
   }),
   screen: Object.freeze({
     // Phones, including landscape, stay on the mobile layout up to 800px, so
@@ -83,9 +83,9 @@ const tokens = Object.freeze({
     '2xl': '96rem',
   }),
   radius: Object.freeze({
-    control: '0.625rem',
-    inner: '0.6875rem',
-    card: '0.875rem',
+    control: '0.5rem',
+    inner: '0.5rem',
+    card: '1rem',
     pill: '9999rem',
   }),
   shadow: Object.freeze({
@@ -129,7 +129,7 @@ const tokens = Object.freeze({
   }),
   type: Object.freeze({
     title: Object.freeze({
-      mobile: '0.875rem',
+      mobile: '1.25rem',
       tablet: '1.375rem',
       desktop: '1.5rem',
     }),
@@ -139,13 +139,14 @@ const tokens = Object.freeze({
       desktop: '1.3125rem',
     }),
     card: Object.freeze({
-      mobile: '0.875rem',
-      tablet: '0.9375rem',
+      mobile: '1rem',
+      tablet: '1rem',
       desktop: '1rem',
     }),
-    body: '0.84375rem',
-    small: '0.78125rem',
-    metadata: '0.65625rem',
+    body: '0.875rem',
+    small: '0.8125rem',
+    metadata: '0.75rem',
+    control: '1rem',
     headingLetterSpacing: '-0.005em',
   }),
   // Component aliases: values with a single, stable meaning tied to one
