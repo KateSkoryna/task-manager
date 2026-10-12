@@ -29,7 +29,7 @@ export default function KpiCard({
         <span className="text-small text-muted mt-1">{sublabel}</span>
       )}
       {comparisonLabel && (
-        <span className="text-small font-medium mt-1 text-accent">
+        <span className="text-small font-medium mt-1 text-accent-ink">
           {comparisonLabel}
         </span>
       )}

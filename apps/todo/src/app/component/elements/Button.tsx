@@ -20,11 +20,11 @@ const BASE_BUTTON_CLASSES =
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    'bg-accent font-bold text-on-accent hover:brightness-95 active:brightness-90 focus-visible:outline-accent',
+    'bg-action font-bold text-on-action hover:opacity-90 active:opacity-80 focus-visible:outline-accent-ink',
   secondary:
-    'border border-default bg-surface font-medium text-primary hover:bg-surface-subtle active:bg-surface-subtle focus-visible:outline-accent',
+    'border border-default bg-surface font-medium text-primary hover:bg-surface-subtle active:bg-surface-subtle focus-visible:outline-accent-ink',
   outline:
-    'border border-primary bg-transparent font-medium text-primary hover:bg-surface-subtle active:bg-surface-subtle focus-visible:outline-accent',
+    'border border-primary bg-transparent font-medium text-primary hover:bg-surface-subtle active:bg-surface-subtle focus-visible:outline-accent-ink',
   destructive:
     'bg-danger font-bold text-danger-text hover:brightness-95 active:brightness-90 focus-visible:outline-danger',
 };

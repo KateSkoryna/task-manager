@@ -11,7 +11,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose }) => {
   return (
     <div className="flex items-center justify-between border-b border-default p-3">
       <div className="flex items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-control bg-accent text-on-accent">
+        <span className="flex h-9 w-9 items-center justify-center rounded-control bg-action text-on-action">
           <Sparkles className="h-4 w-4" />
         </span>
         <div>

@@ -234,7 +234,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
                 {...register('notes')}
                 placeholder={t('todoListForm.notesPlaceholder')}
                 rows={2}
-                className="px-3 py-2 rounded-inner border border-default focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-surface-subtle text-primary placeholder:text-muted resize-none"
+                className="px-3 py-2 rounded-inner border border-default focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink bg-surface-subtle text-primary placeholder:text-muted resize-none"
               />
             </div>
           </div>

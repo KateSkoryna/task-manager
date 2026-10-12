@@ -135,7 +135,7 @@ function QuickCaptureInput({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t('tasks.notesPlaceholder')}
                 rows={3}
-                className="flex-1 px-3 py-2 rounded-inner border border-default focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent bg-surface-subtle text-primary placeholder:text-muted resize-none"
+                className="flex-1 px-3 py-2 rounded-inner border border-default focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink bg-surface-subtle text-primary placeholder:text-muted resize-none"
               />
             </div>
           </div>
@@ -180,7 +180,7 @@ function QuickCaptureInput({
           <button
             type="button"
             onClick={undo}
-            className="text-accent hover:underline shrink-0"
+            className="text-accent-ink hover:underline shrink-0"
             data-testid={undoTestId}
           >
             {t('tasks.undo')}

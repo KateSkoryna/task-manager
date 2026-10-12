@@ -20,7 +20,7 @@ const DAY_PICKER_STYLE: React.CSSProperties = {
   '--rdp-day-height': DAY_SIZE,
   '--rdp-day_button-width': DAY_SIZE,
   '--rdp-day_button-height': DAY_SIZE,
-  '--rdp-accent-color': 'rgb(var(--color-accent))',
+  '--rdp-accent-color': 'rgb(var(--color-action))',
   '--rdp-nav_button-width': '32px',
   '--rdp-nav_button-height': '32px',
   fontSize: '13px',
@@ -68,7 +68,7 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
         id={id}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 px-2 py-2 rounded-inner border border-default bg-surface-subtle text-body text-primary focus:border-accent focus:outline-none min-w-[10rem]"
+        className="flex w-full items-center gap-2 px-2 py-2 rounded-inner border border-default bg-surface-subtle text-body text-primary focus:border-accent-ink focus:outline-none min-w-[10rem]"
       >
         <CalendarDays className="w-4 h-4 text-muted shrink-0" />
         <span className={selected ? 'text-primary' : 'text-muted'}>
@@ -91,7 +91,7 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
             style={DAY_PICKER_STYLE}
             modifiersClassNames={{
               selected:
-                '[&>button]:!bg-accent [&>button]:!text-on-accent [&>button]:!border-0 [&>button]:!rounded-[0.5rem]',
+                '[&>button]:!bg-action [&>button]:!text-on-action [&>button]:!border-0 [&>button]:!rounded-[0.5rem]',
               today: '[&>button]:!font-bold',
             }}
           />

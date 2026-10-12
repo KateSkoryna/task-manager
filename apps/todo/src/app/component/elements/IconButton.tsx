@@ -60,7 +60,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     // the dark sidebar only.
     const focusOutline =
       tone === 'sidebar'
-        ? 'focus-visible:outline-accent'
+        ? 'focus-visible:outline-accent-ink'
         : 'focus-visible:outline-priority-high-bg';
 
     return (
@@ -78,7 +78,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           "relative inline-flex shrink-0 items-center justify-center rounded-control border transition-colors before:absolute before:inset-touch-target-inset before:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
           focusOutline,
           size === 'menu' ? 'size-menu-button' : 'size-header-action',
-          active ? 'border-accent bg-accent text-on-accent' : toneClasses,
+          active ? 'border-action bg-action text-on-action' : toneClasses,
           className
         )}
       >

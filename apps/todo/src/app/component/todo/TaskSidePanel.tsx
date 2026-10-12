@@ -236,9 +236,9 @@ export function TodoEditPanel({
 
   const labelClass = 'text-small text-muted font-medium';
   const inputClass =
-    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
+    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent-ink focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
   const dropdownClass =
-    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
+    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
     'z-50 w-max min-w-[10rem] max-w-[13.75rem] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =
@@ -493,7 +493,7 @@ export function TodoEditPanel({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={imageUploading}
-                  className="flex w-full items-center justify-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent hover:bg-accent/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex w-full items-center justify-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent-ink hover:bg-action/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent-ink disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {imageUploading ? (
                     <>
@@ -551,7 +551,7 @@ export function TodoEditPanel({
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-body font-medium bg-accent text-on-accent rounded-inner hover:opacity-90 transition-opacity"
+            className="px-4 py-2 text-body font-medium bg-action text-on-action rounded-inner hover:opacity-90 transition-opacity"
             aria-label="Save todo edit"
             data-testid={'save-todo-edit-button-' + todo.id}
           >

@@ -128,7 +128,7 @@ export default function ReportsPage() {
           type="button"
           onClick={() => fetchNextPage()}
           disabled={isFetchingNextPage}
-          className="text-body font-medium text-accent hover:underline disabled:opacity-50"
+          className="text-body font-medium text-accent-ink hover:underline disabled:opacity-50"
         >
           {isFetchingNextPage ? t('reports.loading') : t('reports.loadMore')}
         </button>

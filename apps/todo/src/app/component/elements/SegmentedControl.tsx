@@ -38,9 +38,9 @@ function SegmentedControl<T extends string>({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(option.value)}
-            className={`flex-1 rounded-inner px-3 py-1.5 text-body font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            className={`flex-1 rounded-inner px-3 py-1.5 text-body font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink ${
               selected
-                ? 'bg-accent text-on-accent'
+                ? 'bg-action text-on-action'
                 : 'text-muted hover:text-primary'
             }`}
           >
