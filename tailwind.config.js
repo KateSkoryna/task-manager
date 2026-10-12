@@ -31,6 +31,10 @@ const CHANNEL_COLOR_TOKENS = {
   'sidebar-muted': 'sidebarTextMuted',
   accent: 'accent',
   'on-accent': 'accentText',
+  action: 'action',
+  'on-action': 'actionText',
+  'surface-selected': 'surfaceSelected',
+  'accent-ink': 'accentInk',
   'priority-high-bg': 'priorityHighBg',
   'priority-high-text': 'priorityHighText',
   'priority-medium-bg': 'priorityMediumBg',
@@ -125,6 +129,7 @@ module.exports = {
         body: tokens.type.body,
         small: tokens.type.small,
         metadata: tokens.type.metadata,
+        control: tokens.type.control,
       },
       letterSpacing: {
         heading: tokens.type.headingLetterSpacing,
