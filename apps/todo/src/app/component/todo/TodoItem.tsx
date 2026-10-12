@@ -121,7 +121,7 @@ function TodoItem({
                     onEdit();
                   }}
                   aria-label={t('tasks.edit')}
-                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-primary hover:border-primary transition-colors shrink-0"
+                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-control hover:text-primary hover:border-primary transition-colors shrink-0"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
@@ -133,7 +133,7 @@ function TodoItem({
                     onDelete();
                   }}
                   aria-label={t('tasks.delete')}
-                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-md hover:text-danger hover:border-danger transition-colors shrink-0"
+                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-control hover:text-danger hover:border-danger transition-colors shrink-0"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -150,7 +150,7 @@ function TodoItem({
             <img
               src={todo.image}
               alt="Attached"
-              className="h-16 w-16 object-cover rounded"
+              className="h-16 w-16 object-cover rounded-control"
             />
           </div>
         )}

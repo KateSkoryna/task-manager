@@ -127,7 +127,7 @@ function TodayTaskBlock<T extends TodoItem>({
   return (
     <section
       className={mergeClassNames(
-        'flex flex-col rounded-xl border border-default bg-surface p-4',
+        'flex flex-col rounded-card border border-default bg-surface p-4 shadow-card',
         className
       )}
       data-testid={dataTestId}

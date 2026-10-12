@@ -88,11 +88,11 @@ function TodoList({
 
   return (
     <div
-      className="bg-default rounded-card border border-default overflow-hidden"
+      className="bg-surface rounded-card border border-default overflow-hidden"
       data-testid={dataTestId}
     >
       {/* List header */}
-      <div className="px-4 py-3 bg-default border-b border-surface">
+      <div className="px-4 py-3 bg-surface border-b border-default">
         {/* The buttons wrap below the name when the column is too narrow to
             leave it a readable width. */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -132,7 +132,7 @@ function TodoList({
                 setShowAddForm((v) => !v);
               }}
               aria-label={t('todoList.addTask')}
-              className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-md transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
+              className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-control transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -140,7 +140,7 @@ function TodoList({
               <button
                 onClick={() => setShowEditForm((v) => !v)}
                 aria-label={t('todoListForm.editList')}
-                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-md transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
+                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-control transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
@@ -148,7 +148,7 @@ function TodoList({
             {!todoList.isDefault && (
               <button
                 onClick={() => onDeleteList(todoList.id)}
-                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-md transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
+                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-control transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
                 aria-label="Delete list"
                 data-testid="todolist-item-delete-button"
               >
@@ -188,7 +188,7 @@ function TodoList({
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="p-4 space-y-3 bg-default">
+        <div className="p-4 space-y-3 bg-surface">
           {showAddForm && (
             <Card variant="nested">
               <TodoForm onAddTodo={handleAddTodo} />

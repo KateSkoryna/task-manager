@@ -8,7 +8,7 @@ function TourSection() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full space-y-3 rounded-card border border-default bg-surface p-5">
+    <div className="w-full space-y-3 rounded-card border border-default bg-surface p-5 shadow-card">
       <h2 className="text-lg font-bold text-primary">{t('help.tour.title')}</h2>
       <p className="text-muted">{t('help.tour.description')}</p>
       <Button

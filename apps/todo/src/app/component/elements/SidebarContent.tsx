@@ -111,7 +111,7 @@ function SidebarContent({
           <span
             aria-hidden="true"
             className={mergeClassNames(
-              'pointer-events-none absolute left-0 top-0 rounded-lg bg-accent',
+              'pointer-events-none absolute left-0 top-0 rounded-control bg-accent',
               animate &&
                 'transition-[transform,width,height] duration-300 ease-out motion-reduce:transition-none'
             )}
@@ -131,7 +131,7 @@ function SidebarContent({
             onClick={onNavigate}
             className={({ isActive }) =>
               mergeClassNames(
-                'relative flex items-center gap-3 rounded-lg px-3.5 py-3 text-body transition-colors duration-300 motion-reduce:transition-none',
+                'relative flex items-center gap-3 rounded-control px-3.5 py-3 text-body transition-colors duration-300 motion-reduce:transition-none',
                 isActive
                   ? 'font-bold text-on-accent'
                   : 'text-sidebar-text hover:bg-sidebar-text/10'
@@ -162,7 +162,7 @@ function SidebarContent({
       <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6 pt-4">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-body text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
+          className="flex w-full items-center gap-3 rounded-control px-3.5 py-3 text-body text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
         >
           <LogOut className="size-4 shrink-0 text-sidebar-muted" />
           {t('nav.logout')}

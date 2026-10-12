@@ -29,7 +29,7 @@ function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-app flex items-center justify-center py-8 px-4">
-      <div className="bg-surface rounded-lg shadow-menu border border-default p-8 w-full max-w-md">
+      <div className="bg-surface rounded-control shadow-menu border border-default p-8 w-full max-w-md">
         <h1 className="text-3xl font-bold text-primary mb-2 text-center">
           {t('auth.forgotPassword.title')}
         </h1>

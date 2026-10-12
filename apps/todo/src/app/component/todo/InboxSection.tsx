@@ -35,10 +35,10 @@ function InboxSection({
 
   return (
     <div
-      className="bg-default rounded-card border border-default overflow-hidden"
+      className="bg-surface rounded-card border border-default overflow-hidden"
       data-testid="inbox-section"
     >
-      <div className="px-4 py-3 bg-default border-b border-surface flex items-center gap-3">
+      <div className="px-4 py-3 bg-surface border-b border-default flex items-center gap-3">
         <InboxIcon className="w-4 h-4 text-notification-dot shrink-0" />
         <h3 className="flex-1 min-w-0 truncate text-primary font-bold">
           {t('tasks.inbox')}
@@ -46,7 +46,7 @@ function InboxSection({
         <span className="text-muted text-small shrink-0">{todos.length}</span>
       </div>
 
-      <div className="p-4 space-y-3 bg-default">
+      <div className="p-4 space-y-3 bg-surface">
         <QuickCaptureInput
           inputTestId="inbox-quick-capture-input"
           submitTestId="inbox-quick-capture-submit"

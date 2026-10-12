@@ -22,7 +22,7 @@ function TopPriorityPanel({ items, onOpen }: TopPriorityPanelProps) {
 
   return (
     <section
-      className="rounded-xl border border-default bg-surface p-4"
+      className="rounded-card border border-default bg-surface p-4 shadow-card"
       data-testid="today-top-priority"
     >
       <div className="mb-3 flex items-center gap-2 text-primary">

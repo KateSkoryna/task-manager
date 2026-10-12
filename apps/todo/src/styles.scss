@@ -24,7 +24,7 @@
 
 /* The tour popover (driver.js) takes its colors from the theme tokens. */
 .driver-popover.onboarding-popover {
-  @apply rounded-xl border border-default bg-surface text-primary shadow-menu;
+  @apply rounded-card border border-default bg-surface text-primary shadow-menu;
 
   .driver-popover-title {
     @apply text-base font-bold text-primary;

@@ -17,7 +17,7 @@ export default function KpiCard({
   return (
     <div
       data-testid={dataTestId}
-      className="bg-surface rounded-2xl border border-default p-5 shadow-card flex flex-col items-center justify-center text-center"
+      className="bg-surface rounded-card border border-default p-5 shadow-card flex flex-col items-center justify-center text-center"
     >
       <span className="text-3xl font-bold leading-none text-primary">
         {value}

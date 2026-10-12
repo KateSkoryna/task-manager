@@ -28,7 +28,7 @@ function TaskCard({ item, onOpen }: TaskCardProps) {
       type="button"
       onClick={() => onOpen(item)}
       className={mergeClassNames(
-        'min-w-0 rounded-xl border border-l-4 border-transparent bg-surface-subtle p-3 text-left transition hover:border-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline-none motion-safe:hover:scale-[1.02] motion-safe:focus-visible:scale-[1.02]',
+        'min-w-0 rounded-card border border-l-4 border-transparent bg-surface-subtle p-3 text-left transition hover:border-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline-none motion-safe:hover:scale-[1.02] motion-safe:focus-visible:scale-[1.02]',
         PRIORITY_BORDER[item.priority]
       )}
     >

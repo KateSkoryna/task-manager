@@ -51,12 +51,12 @@ function SidebarClock({ className }: SidebarClockProps) {
       aria-label={t('nav.clock', { time })}
       data-testid="sidebar-clock"
       className={mergeClassNames(
-        'relative mx-auto size-[min(80cqw,80cqh)] shrink-0 rounded-2xl border-2 border-sidebar p-1.5 md:border-4 md:p-2',
+        'relative mx-auto size-[min(80cqw,80cqh)] shrink-0 rounded-card border-2 border-sidebar p-1.5 md:border-4 md:p-2',
         RIM_SHADOW,
         className
       )}
     >
-      <div className="relative size-full overflow-hidden rounded-xl">
+      <div className="relative size-full overflow-hidden rounded-card">
         {MARKINGS.map((angle) => (
           <span
             key={angle}
@@ -71,7 +71,7 @@ function SidebarClock({ className }: SidebarClockProps) {
         ))}
       </div>
       {/* Covers the middle of the lines, leaving only the marks at the rim. */}
-      <div className="absolute inset-[16%] rounded-lg bg-sidebar">
+      <div className="absolute inset-[16%] rounded-control bg-sidebar">
         <span
           className={mergeClassNames(
             HAND_CLASSES,

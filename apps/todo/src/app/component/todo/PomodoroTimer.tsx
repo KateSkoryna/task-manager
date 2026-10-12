@@ -163,7 +163,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
       </div>
 
       <div
-        className={`h-14 flex items-center justify-center my-2 rounded-lg transition-colors ${
+        className={`h-14 flex items-center justify-center my-2 rounded-control transition-colors ${
           !isEditingDuration && status === 'idle'
             ? 'cursor-pointer hover:bg-action/10'
             : ''
