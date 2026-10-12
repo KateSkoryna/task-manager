@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 export type ThemeMode = 'light' | 'dark';
 
 export interface ColorTokens {
@@ -13,6 +15,10 @@ export interface ColorTokens {
   sidebarBorder: string;
   accent: string;
   accentText: string;
+  action: string;
+  actionText: string;
+  surfaceSelected: string;
+  accentInk: string;
   priorityHighBg: string;
   priorityHighText: string;
   priorityMediumBg: string;
@@ -23,6 +29,7 @@ export interface ColorTokens {
   statusOpen: string;
   danger: string;
   dangerText: string;
+  notificationDot: string;
 }
 
 export interface Tokens {
