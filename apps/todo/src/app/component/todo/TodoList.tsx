@@ -88,7 +88,7 @@ function TodoList({
 
   return (
     <div
-      className="bg-surface rounded-card border border-default overflow-hidden"
+      className="bg-surface rounded-card border border-default"
       data-testid={dataTestId}
     >
       {/* List header */}
