@@ -1,6 +1,6 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Menu } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '../../store/notificationStore';
 import { mergeClassNames } from '../../lib/classNames';
@@ -10,9 +10,20 @@ import { NAV_ITEMS } from '../../lib/navItems';
 import AppLogo from './AppLogo';
 import IconButton from './IconButton';
 import TaskSearch from './TaskSearch';
-import { MOBILE_DRAWER_ID } from './MobileDrawer';
+import bgImage from '../../../assets/bg.webp';
 
 const APP_NAME = 'TaskPal';
+
+// The same pattern the login and register pages use as their page
+// background. The image is light grey line art on white, so it is multiplied
+// with the header's own surface colour: the white drops out and only the
+// lines remain, in the light and the dark theme alike.
+const HEADER_PATTERN_STYLE: CSSProperties = {
+  backgroundImage: `url(${bgImage})`,
+  backgroundRepeat: 'repeat',
+  backgroundSize: '800px',
+  backgroundBlendMode: 'multiply',
+};
 
 /**
  * "Tuesday, 06 Oct 2026". Assembled from parts rather than taken from
@@ -33,18 +44,10 @@ export function formatHeaderDate(date: Date, locale: string): string {
 }
 
 type TopHeaderProps = {
-  onOpenMenu?: () => void;
-  menuButtonRef?: RefObject<HTMLButtonElement>;
-  isMenuOpen?: boolean;
   className?: string;
 };
 
-function TopHeader({
-  onOpenMenu,
-  menuButtonRef,
-  isMenuOpen,
-  className,
-}: TopHeaderProps) {
+function TopHeader({ className }: TopHeaderProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -79,22 +82,8 @@ function TopHeader({
         'flex shrink-0 items-center gap-3 border-b border-default bg-surface px-content-mobile py-3 md:gap-4 md:px-content-tablet md:py-4 lg:px-content-desktop lg:py-5',
         className
       )}
+      style={HEADER_PATTERN_STYLE}
     >
-      {onOpenMenu && (
-        <IconButton
-          ref={menuButtonRef}
-          size="menu"
-          ariaLabel={t('header.openMenu')}
-          ariaExpanded={isMenuOpen}
-          ariaControls={MOBILE_DRAWER_ID}
-          dataTestId="menu-button"
-          onClick={onOpenMenu}
-          className="md:hidden"
-        >
-          <Menu className="size-4" />
-        </IconButton>
-      )}
-
       <AppLogo className="size-10" />
       <div className="min-w-0">
         <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">

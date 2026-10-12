@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from 'react';
+import { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -8,24 +8,11 @@ import { useActiveNavIndicator } from '../../hooks/useActiveNavIndicator';
 import { NAV_ITEMS } from '../../lib/navItems';
 import SidebarClock from './SidebarClock';
 
-type SidebarContentProps = {
-  /** The drawer avatar is slightly larger than the persistent rail's. */
-  avatarSize?: 'default' | 'drawer';
-  /** Called after any action that should close the mobile drawer. */
-  onNavigate?: () => void;
-  /** Sits at the end of the identity row, e.g. the drawer's close button. */
-  headerAction?: ReactNode;
-};
-
 /**
- * Shared identity block, nav links, and logout — reused by the persistent
- * desktop/tablet rail and the mobile drawer so both stay in sync.
+ * Shared identity block, nav links, and logout — used by the persistent
+ * desktop/tablet rail.
  */
-function SidebarContent({
-  avatarSize = 'default',
-  onNavigate,
-  headerAction,
-}: SidebarContentProps) {
+function SidebarContent() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -40,18 +27,12 @@ function SidebarContent({
   const handleLogout = () => {
     logout();
     navigate('/login');
-    onNavigate?.();
   };
 
   return (
     <>
       <div className="flex items-center gap-3 border-b border-sidebar-border px-content-mobile md:px-content-tablet lg:px-content-desktop py-5">
-        <div
-          className={mergeClassNames(
-            'flex shrink-0 items-center justify-center rounded-full bg-accent font-bold text-on-accent',
-            avatarSize === 'drawer' ? 'size-avatar-drawer' : 'size-avatar'
-          )}
-        >
+        <div className="flex size-avatar shrink-0 items-center justify-center rounded-full bg-accent font-bold text-on-accent">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
@@ -62,7 +43,6 @@ function SidebarContent({
             {user?.email}
           </p>
         </div>
-        {headerAction}
       </div>
 
       <nav
@@ -92,7 +72,6 @@ function SidebarContent({
             to={to}
             end={end}
             data-tour={tourId}
-            onClick={onNavigate}
             className={({ isActive }) =>
               mergeClassNames(
                 'relative flex items-center gap-3 rounded-control px-3.5 py-3 text-body transition-colors duration-300 motion-reduce:transition-none',
