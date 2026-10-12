@@ -24,14 +24,6 @@ describe('TodoItem', () => {
     jest.useRealTimers();
   });
 
-  test.each([
-    ['pending', 'tasks.status_pending'],
-    ['successful', 'tasks.status_successful'],
-    ['failed', 'tasks.status_failed'],
-  ] as const)('shows %s status', (status, label) => {
-    render(<TodoItem todo={makeTodo(status)} />);
-    expect(screen.getByText(label)).toBeInTheDocument();
-  });
   test('shows priority and formatted due date', () => {
     render(
       <TodoItem
@@ -66,12 +58,7 @@ describe('TodoItem', () => {
   test('selecting still works when clicking empty space in the controls row', () => {
     const select = jest.fn();
     const { container } = render(
-      <TodoItem
-        todo={makeTodo()}
-        onSelect={select}
-        onMoveUp={jest.fn()}
-        canMoveUp
-      />
+      <TodoItem todo={makeTodo()} onSelect={select} />
     );
     const controlsRow = container.querySelector(
       '.flex.flex-nowrap.items-center'
@@ -79,14 +66,6 @@ describe('TodoItem', () => {
     expect(controlsRow).not.toBeNull();
     fireEvent.click(controlsRow as Element);
     expect(select).toHaveBeenCalledTimes(1);
-  });
-  test('calls edit without selecting', () => {
-    const edit = jest.fn();
-    const select = jest.fn();
-    render(<TodoItem todo={makeTodo()} onEdit={edit} onSelect={select} />);
-    fireEvent.click(screen.getByRole('button', { name: 'tasks.edit' }));
-    expect(edit).toHaveBeenCalled();
-    expect(select).not.toHaveBeenCalled();
   });
   test('shows a selected pill only when isSelected', () => {
     const { rerender } = render(<TodoItem todo={makeTodo()} />);
@@ -98,9 +77,15 @@ describe('TodoItem', () => {
     render(<TodoItem todo={makeTodo('successful')} />);
     expect(screen.getByText('Write tests')).toHaveClass('text-muted');
     expect(screen.getByText('Write tests')).not.toHaveClass('line-through');
-    expect(screen.getByText('tasks.status_successful')).toHaveClass(
-      'text-status-complete'
+  });
+
+  test('renders notes only when the task has them', () => {
+    const { rerender } = render(
+      <TodoItem todo={makeTodo('pending', { notes: '' })} />
     );
+    expect(screen.queryByText('Buy milk')).not.toBeInTheDocument();
+    rerender(<TodoItem todo={makeTodo('pending', { notes: 'Buy milk' })} />);
+    expect(screen.getByText('Buy milk')).toBeInTheDocument();
   });
 
   describe('quick complete', () => {

@@ -135,6 +135,7 @@ describe('VitalTaskPage', () => {
       </MemoryRouter>
     );
     await userEvent.click(screen.getByTestId('todo-item-t1'));
+    await userEvent.click(screen.getByTestId('task-actions-t1'));
     await userEvent.click(screen.getByTestId('archive-todo-button-t1'));
 
     expect(mockHandleArchiveTodo).toHaveBeenCalledWith('t1');

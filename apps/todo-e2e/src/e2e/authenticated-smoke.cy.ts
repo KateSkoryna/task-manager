@@ -21,9 +21,10 @@ describe('Authenticated todo smoke flow', () => {
       .as('createdList');
 
     cy.get('@createdList').within(() => {
-      // A new list has no tasks, so it starts collapsed; the header "+"
-      // expands it and opens the form.
-      cy.get('button[aria-label="Add Task"]').click();
+      // A new list has no tasks, so it starts collapsed; "Add Task" in the
+      // header menu expands it and opens the form.
+      cy.get('[data-testid^="todolist-actions-"]').click();
+      cy.get('[data-testid^="todolist-add-task-"]').click();
       cy.get('[data-testid="todo-form-input"]').type(todoName);
       cy.get('[data-testid="todo-form-submit-button"]').click();
       cy.contains('div[data-testid^="todo-item-"]', todoName).should(
@@ -63,13 +64,15 @@ describe('Authenticated todo smoke flow', () => {
       'Completed'
     );
 
+    cy.get('[data-testid^="task-actions-"]').click();
     cy.get('button[data-testid^="delete-todo-button-"]').click();
     cy.contains('div[data-testid^="todo-item-"]', todoName).should('not.exist');
 
     cy.contains('[data-testid="todolist-title"]', listName)
       .parents('div[data-testid^="todolist-item-"]')
-      .find('button[aria-label="Delete list"]')
+      .find('[data-testid^="todolist-actions-"]')
       .click();
+    cy.get('[data-testid="todolist-item-delete-button"]').click();
     cy.contains('[data-testid="todolist-title"]', listName).should('not.exist');
   });
 });

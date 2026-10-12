@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Rows3, LayoutList, ArrowLeft, Archive } from 'lucide-react';
+import { Plus, Rows3, LayoutList, Archive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoItem,
@@ -14,7 +14,7 @@ import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { useListSortOptions } from '../../hooks/useListSortOptions';
 import { useIsBelowXlScreen } from '../../hooks/useIsBelowXlScreen';
 import { useListViewStore } from '../../store/listViewStore';
-import { computeReorder } from '../../lib/reorder';
+import { computeMove } from '../../lib/reorder';
 import { FlatSort, sortFlatEntries, sortLists } from '../../lib/sortTasks';
 import { mergeClassNames } from '../../lib/classNames';
 import TodoListForm from '../todo/TodoListForm';
@@ -26,9 +26,9 @@ import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
 import ArchivedTaskList from '../todo/ArchivedTaskList';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import { TaskDetailPanel, TodoEditPanel } from '../todo/TaskSidePanel';
+import TaskPanelBar from '../todo/TaskPanelBar';
 import TasksPageSkeleton from './TasksPageSkeleton';
 import Button from '../elements/Button';
-import IconButton from '../elements/IconButton';
 import Dropdown from '../elements/Dropdown';
 import PeriodSelector from '../elements/PeriodSelector';
 
@@ -74,6 +74,7 @@ function TasksPage() {
     handleDeleteTodo,
     handleToggleTodo,
     handleEditTodo,
+    handleReorderTodos,
     handleArchiveTodo,
     handleRestoreTodo,
     createListMutationIsPending,
@@ -239,12 +240,10 @@ function TasksPage() {
     }
   }
 
-  function handleReorderTodo(id: string, direction: 'up' | 'down') {
-    const list = todoLists?.find((l) => l.todos.some((t) => t.id === id));
+  function handleReorderTodo(activeId: string, overId: string) {
+    const list = todoLists?.find((l) => l.todos.some((t) => t.id === activeId));
     const siblings = list ? list.todos : inboxTodos;
-    computeReorder(siblings, id, direction).forEach(({ id: todoId, order }) =>
-      handleEditTodo(todoId, { order })
-    );
+    handleReorderTodos(computeMove(siblings, activeId, overId));
   }
 
   function handleMoveTodo(id: string, todolistId: string | null) {
@@ -403,7 +402,6 @@ function TasksPage() {
                 todos={inboxTodos}
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={(todo) => handleSelectTodo(todo, null)}
-                onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
                 onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
@@ -420,7 +418,6 @@ function TasksPage() {
                 handleAddTodo={handleAddTodo}
                 selectedTodoId={selectedTask?.todo.id ?? null}
                 onSelectTodo={handleSelectTodo}
-                onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
                 onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
                 onReorderTodo={handleReorderTodo}
@@ -435,7 +432,6 @@ function TasksPage() {
               onSelectTodo={(todo, listId) =>
                 handleSelectTodo(todo, resolveList(listId))
               }
-              onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
               onToggleTodo={handleToggleTodo}
               availableLists={availableLists}
               onMoveTodo={handleMoveTodo}
@@ -457,17 +453,15 @@ function TasksPage() {
           )}
         >
           {selectedTask && (
-            <div className="border-b border-default p-3 md:hidden">
-              <IconButton
-                ariaLabel={t('tasks.backToList')}
-                onClick={() => {
-                  setSelectedTask(null);
-                  setIsEditing(false);
-                }}
-              >
-                <ArrowLeft className="size-4" />
-              </IconButton>
-            </div>
+            <TaskPanelBar
+              todoId={selectedTask.todo.id}
+              onBack={() => {
+                setSelectedTask(null);
+                setIsEditing(false);
+              }}
+              onArchive={() => handleArchiveSelectedTodo(selectedTask.todo.id)}
+              onDelete={() => handleDeleteSelectedTodo(selectedTask.todo.id)}
+            />
           )}
           {selectedTask ? (
             isEditing ? (
@@ -484,8 +478,6 @@ function TasksPage() {
               <TaskDetailPanel
                 todo={selectedTask.todo}
                 list={selectedTask.list}
-                onDelete={(id) => handleDeleteSelectedTodo(id)}
-                onArchive={handleArchiveSelectedTodo}
                 onStartEdit={() => setIsEditing(true)}
               />
             )

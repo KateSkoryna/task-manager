@@ -1,5 +1,5 @@
 import { TodoItem } from '@shared/types';
-import { computeReorder, sortByOrder } from './reorder';
+import { computeMove, sortByOrder } from './reorder';
 
 function todo(id: string, order: number): TodoItem {
   return {
@@ -15,7 +15,7 @@ function todo(id: string, order: number): TodoItem {
 
 function applyUpdates(
   items: TodoItem[],
-  updates: ReturnType<typeof computeReorder>
+  updates: ReturnType<typeof computeMove>
 ) {
   const orders = new Map(updates.map(({ id, order }) => [id, order]));
   return items.map((item) => ({
@@ -29,7 +29,7 @@ describe('reorder', () => {
     const items = [todo('a', 0), todo('b', 0), todo('c', 0)];
 
     // Ties show the newest task (highest id) first, so the list reads c, b, a.
-    const updated = applyUpdates(items, computeReorder(items, 'c', 'down'));
+    const updated = applyUpdates(items, computeMove(items, 'c', 'b'));
 
     expect(sortByOrder(updated).map(({ id }) => id)).toEqual(['b', 'c', 'a']);
     expect(sortByOrder(updated).map(({ order }) => order)).toEqual([0, 1, 2]);
@@ -50,17 +50,30 @@ describe('reorder', () => {
   test('moves up and keeps normalized orders unique', () => {
     const items = [todo('a', 0), todo('b', 1), todo('c', 2)];
 
-    const updated = applyUpdates(items, computeReorder(items, 'c', 'up'));
+    const updated = applyUpdates(items, computeMove(items, 'c', 'b'));
 
     expect(sortByOrder(updated).map(({ id }) => id)).toEqual(['a', 'c', 'b']);
     expect(sortByOrder(updated).map(({ order }) => order)).toEqual([0, 1, 2]);
   });
 
-  test('does nothing for missing items or list boundaries', () => {
+  test('moves a task to the top of a longer list', () => {
+    const items = [todo('a', 0), todo('b', 1), todo('c', 2), todo('d', 3)];
+
+    const updated = applyUpdates(items, computeMove(items, 'd', 'a'));
+
+    expect(sortByOrder(updated).map(({ id }) => id)).toEqual([
+      'd',
+      'a',
+      'b',
+      'c',
+    ]);
+  });
+
+  test('does nothing for missing items or a task dropped on itself', () => {
     const items = [todo('a', 0), todo('b', 1)];
 
-    expect(computeReorder(items, 'missing', 'down')).toEqual([]);
-    expect(computeReorder(items, 'a', 'up')).toEqual([]);
-    expect(computeReorder(items, 'b', 'down')).toEqual([]);
+    expect(computeMove(items, 'missing', 'a')).toEqual([]);
+    expect(computeMove(items, 'a', 'missing')).toEqual([]);
+    expect(computeMove(items, 'a', 'a')).toEqual([]);
   });
 });

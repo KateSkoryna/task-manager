@@ -35,7 +35,8 @@ describe('Statistics and reports', () => {
     // button with the same aria-label, so use that selector throughout
     // to work in both states.
     cy.get('@createdList').within(() => {
-      cy.get('button[aria-label="Add Task"]').click();
+      cy.get('[data-testid^="todolist-actions-"]').click();
+      cy.get('[data-testid^="todolist-add-task-"]').click();
       cy.get('[data-testid="todo-form-input"]').type(doneTaskName);
       cy.get('[data-testid="todo-form-toggle-extra"]').click();
       cy.get('#new-todo-due-date').click();
@@ -46,7 +47,8 @@ describe('Statistics and reports', () => {
       cy.contains('div[data-testid^="todo-item-"]', doneTaskName).should(
         'be.visible'
       );
-      cy.get('button[aria-label="Add Task"]').click();
+      cy.get('[data-testid^="todolist-actions-"]').click();
+      cy.get('[data-testid^="todolist-add-task-"]').click();
       cy.get('[data-testid="todo-form-input"]').type(pendingTaskName);
       cy.get('[data-testid="todo-form-toggle-extra"]').click();
       cy.get('#new-todo-due-date').click();

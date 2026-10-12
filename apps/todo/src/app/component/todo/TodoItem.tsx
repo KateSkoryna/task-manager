@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { ChevronUp, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
 import Card from '../elements/Card';
@@ -13,14 +12,8 @@ interface TodoItemProps {
   todo: TodoItemType;
   isSelected?: boolean;
   onSelect?: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
   /** Completes the task, or undoes it, without opening the edit panel. */
   onToggleComplete?: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
-  canMoveUp?: boolean;
-  canMoveDown?: boolean;
   currentListId?: string | null;
   availableLists?: AvailableList[];
   onMoveToList?: (todolistId: string | null) => void;
@@ -46,20 +39,13 @@ function TodoItem({
   todo,
   isSelected,
   onSelect,
-  onEdit,
-  onDelete,
   onToggleComplete,
-  onMoveUp,
-  onMoveDown,
-  canMoveUp,
-  canMoveDown,
   currentListId,
   availableLists,
   onMoveToList,
   hideDueDate,
 }: TodoItemProps) {
   const { t, i18n } = useTranslation();
-  const statusLabel = t(STATUS_LABEL_KEYS[todo.status]);
 
   useEffect(() => {
     // auto-fail overdue items is handled server-side / via edit panel
@@ -80,7 +66,7 @@ function TodoItem({
       }}
     >
       <div className="flex flex-col gap-2">
-        {/* Row 1: name + selected pill + priority + edit/delete btns */}
+        {/* Row 1: name + selected pill + priority */}
         <div className="flex items-center gap-3">
           {onToggleComplete && (
             <CompletionCheckbox
@@ -95,7 +81,7 @@ function TodoItem({
             />
           )}
           <p
-            className={`flex-1 min-w-0 truncate text-card-mobile font-bold text-primary leading-snug ${
+            className={`flex-1 min-w-0 line-clamp-2 break-words text-card-mobile font-bold text-primary leading-snug ${
               todo.status === 'successful' ? 'text-muted' : ''
             }`}
           >
@@ -109,37 +95,11 @@ function TodoItem({
           <Badge tone={`priority-${todo.priority}`} className="shrink-0">
             {t(`tasks.priority_${todo.priority}`)}
           </Badge>
-          {(onEdit || onDelete) && (
-            <div className="flex items-center gap-1 xl:gap-3 shrink-0">
-              {onEdit && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                  }}
-                  aria-label={t('tasks.edit')}
-                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-control hover:text-primary hover:border-primary transition-colors shrink-0"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                  }}
-                  aria-label={t('tasks.delete')}
-                  className="flex items-center justify-center p-1.5 text-muted border border-default rounded-control hover:text-danger hover:border-danger transition-colors shrink-0"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          )}
         </div>
 
-        <p className="text-body text-muted truncate">{todo.notes || ' '}</p>
+        {todo.notes && (
+          <p className="text-body text-muted truncate">{todo.notes}</p>
+        )}
 
         {/* Row 2: image */}
         {todo.image && (
@@ -152,44 +112,11 @@ function TodoItem({
           </div>
         )}
 
-        {/* Row 3: status */}
-        <span className="hidden xl:inline text-small text-muted">
-          {t('tasks.status')}{' '}
-          <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
-            {statusLabel}
-          </span>
-        </span>
-
-        {/* Row 4: reorder + move-to-list controls, due date */}
+        {/* Row 4: move-to-list control, due date */}
         <div className="flex flex-nowrap items-center gap-x-1.5 xl:gap-x-3">
-          {(onMoveUp || onMoveDown) && (
-            <div
-              className="flex items-center border border-default rounded-inner overflow-hidden shrink-0"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={onMoveUp}
-                disabled={!canMoveUp}
-                aria-label={t('tasks.moveUp')}
-                className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors"
-              >
-                <ChevronUp size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={onMoveDown}
-                disabled={!canMoveDown}
-                aria-label={t('tasks.moveDown')}
-                className="p-1 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-default"
-              >
-                <ChevronDown size={14} />
-              </button>
-            </div>
-          )}
           {onMoveToList && (
             <div
-              className="min-w-0 flex-1 xl:flex-none"
+              className="w-40 shrink-0 md:w-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <MoveToListSelect
@@ -199,19 +126,21 @@ function TodoItem({
               />
             </div>
           )}
-          {todo.dueDate && !hideDueDate && (
-            <span className="ml-auto flex shrink-0 items-center gap-1 text-small text-muted">
-              <span className="hidden xl:inline">{t('tasks.due')} </span>
-              <span className="tabular-nums">
-                {formatDueDate(
-                  todo.dueDate,
-                  new Date(),
-                  resolveLocale(i18n.language),
-                  t
-                )}
+          <div className="ml-auto flex min-w-0 items-center gap-2 text-small text-muted">
+            {todo.dueDate && !hideDueDate && (
+              <span className="flex shrink-0 items-center gap-1">
+                <span className="hidden xl:inline">{t('tasks.due')} </span>
+                <span className="tabular-nums">
+                  {formatDueDate(
+                    todo.dueDate,
+                    new Date(),
+                    resolveLocale(i18n.language),
+                    t
+                  )}
+                </span>
               </span>
-            </span>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </Card>

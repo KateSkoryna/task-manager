@@ -199,6 +199,7 @@ describe('TasksPage', () => {
   it('archives the selected task from its detail panel', async () => {
     renderTasksPage();
     await userEvent.click(screen.getByTestId('todo-item-t1'));
+    await userEvent.click(screen.getByTestId('task-actions-t1'));
     await userEvent.click(screen.getByTestId('archive-todo-button-t1'));
     expect(mockHandleArchiveTodo).toHaveBeenCalledWith('t1');
   });

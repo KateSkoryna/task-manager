@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { TodoItem, TodoList } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
 import { useListSortOptions } from '../../hooks/useListSortOptions';
@@ -12,9 +10,9 @@ import TodoLists from '../todo/TodoLists';
 import SortMenu from '../todo/SortMenu';
 import CollapseAllButton from '../todo/CollapseAllButton';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
+import TaskPanelBar from '../todo/TaskPanelBar';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
 import PomodoroTimer from '../todo/PomodoroTimer';
-import IconButton from '../elements/IconButton';
 import VitalTaskPageSkeleton from './VitalTaskPageSkeleton';
 
 type SelectedTask = {
@@ -23,7 +21,6 @@ type SelectedTask = {
 };
 
 function VitalTaskPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     todoLists,
@@ -83,14 +80,6 @@ function VitalTaskPage() {
     setSelectedTask(null);
   }
 
-  function handleDeleteTodoFromList(id: string) {
-    if (selectedTask?.todo.id === id) {
-      handleDeleteSelectedTodo(id);
-    } else {
-      handleDeleteTodo(id);
-    }
-  }
-
   if (isLoading) {
     return <VitalTaskPageSkeleton />;
   }
@@ -126,7 +115,6 @@ function VitalTaskPage() {
           handleAddTodo={handleAddTodo}
           selectedTodoId={selectedTask?.todo.id ?? null}
           onSelectTodo={handleSelectTodo}
-          onDeleteTodo={(todo) => handleDeleteTodoFromList(todo.id)}
           onToggleTodo={handleToggleTodo}
           onCreateList={() =>
             navigate('/tasks', { state: { openCreateList: true } })
@@ -145,14 +133,14 @@ function VitalTaskPage() {
         <div className="flex flex-col flex-1 rounded-card border border-default bg-surface shadow-card overflow-hidden">
           {selectedTask ? (
             <>
-              <div className="border-b border-default p-3 md:hidden">
-                <IconButton
-                  ariaLabel={t('tasks.backToList')}
-                  onClick={() => setSelectedTask(null)}
-                >
-                  <ArrowLeft className="size-4" />
-                </IconButton>
-              </div>
+              <TaskPanelBar
+                todoId={selectedTask.todo.id}
+                onBack={() => setSelectedTask(null)}
+                onArchive={() =>
+                  handleArchiveSelectedTodo(selectedTask.todo.id)
+                }
+                onDelete={() => handleDeleteSelectedTodo(selectedTask.todo.id)}
+              />
               {selectedTask.todo.status === 'pending' && (
                 <div className="px-6 pt-6">
                   <PomodoroTimer
@@ -164,8 +152,6 @@ function VitalTaskPage() {
               <TaskDetailPanel
                 todo={selectedTask.todo}
                 list={selectedTask.list}
-                onDelete={(id) => handleDeleteSelectedTodo(id)}
-                onArchive={handleArchiveSelectedTodo}
                 onStartEdit={() =>
                   navigate('/tasks', {
                     state: {

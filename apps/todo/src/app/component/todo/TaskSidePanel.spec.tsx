@@ -309,14 +309,12 @@ describe('TodoEditPanel list picker', () => {
 });
 
 describe('TaskDetailPanel', () => {
-  test('shows task priority, list metadata rows, and calls edit/delete', () => {
-    const onDelete = jest.fn();
+  test('shows task priority, list metadata rows, and calls edit', () => {
     const onStartEdit = jest.fn();
     render(
       <TaskDetailPanel
         todo={{ ...todo, dueDate: '2026-08-05T00:00:00Z' }}
         list={list}
-        onDelete={onDelete}
         onStartEdit={onStartEdit}
       />
     );
@@ -330,35 +328,5 @@ describe('TaskDetailPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'tasks.edit' }));
     expect(onStartEdit).toHaveBeenCalledTimes(1);
-
-    fireEvent.click(screen.getByRole('button', { name: 'tasks.delete' }));
-    expect(onDelete).toHaveBeenCalledWith('todo-1');
-  });
-
-  test('shows an archive button only when an archive handler is given', () => {
-    const onArchive = jest.fn();
-    const { rerender } = render(
-      <TaskDetailPanel
-        todo={todo}
-        list={list}
-        onDelete={jest.fn()}
-        onStartEdit={jest.fn()}
-      />
-    );
-    expect(
-      screen.queryByRole('button', { name: 'tasks.archive' })
-    ).not.toBeInTheDocument();
-
-    rerender(
-      <TaskDetailPanel
-        todo={todo}
-        list={list}
-        onDelete={jest.fn()}
-        onArchive={onArchive}
-        onStartEdit={jest.fn()}
-      />
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'tasks.archive' }));
-    expect(onArchive).toHaveBeenCalledWith('todo-1');
   });
 });

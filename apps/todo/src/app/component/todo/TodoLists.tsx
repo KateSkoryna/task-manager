@@ -26,11 +26,9 @@ interface TodoListsProps {
   handleAddTodo: (todolistId: string, name: string, opts?: NewTodoOpts) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItem, list: TodoListType) => void;
-  onEditTodo?: (todo: TodoItem, list: TodoListType) => void;
-  onDeleteTodo?: (todo: TodoItem, list: TodoListType) => void;
   onToggleTodo?: (id: string) => void;
   availableLists?: AvailableList[];
-  onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
+  onReorderTodo?: (activeId: string, overId: string) => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
   onCreateList?: () => void;
 }
@@ -46,8 +44,6 @@ function TodoLists({
   handleAddTodo,
   selectedTodoId,
   onSelectTodo,
-  onEditTodo,
-  onDeleteTodo,
   onToggleTodo,
   availableLists,
   onReorderTodo,
@@ -112,10 +108,6 @@ function TodoLists({
           selectedTodoId={selectedTodoId ?? null}
           onSelectTodo={
             onSelectTodo ? (todo) => onSelectTodo(todo, list) : undefined
-          }
-          onEditTodo={onEditTodo ? (todo) => onEditTodo(todo, list) : undefined}
-          onDeleteTodo={
-            onDeleteTodo ? (todo) => onDeleteTodo(todo, list) : undefined
           }
           dataTestId={'todolist-item-' + list.id}
           availableLists={availableLists}

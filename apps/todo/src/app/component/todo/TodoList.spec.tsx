@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import TodoList from './TodoList';
 import { TodoList as List } from '@shared/types';
@@ -32,6 +33,9 @@ const task = {
   priority: 'medium' as const,
   source: 'web' as const,
 };
+const openListMenu = () =>
+  userEvent.click(screen.getByTestId('todolist-actions-list-1'));
+
 describe('TodoList', () => {
   beforeEach(() => useListViewStore.setState(initialListViewState));
   test('shows title, metadata and empty state once expanded', () => {
@@ -97,15 +101,16 @@ describe('TodoList', () => {
     expect(screen.queryByTestId('todo-item-t1')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Expand' })).toBeInTheDocument();
   });
-  test('deletes list', () => {
+  test('deletes list', async () => {
     const del = jest.fn();
     render(
       <TodoList todoList={base} onAddTodo={jest.fn()} onDeleteList={del} />
     );
-    fireEvent.click(screen.getByTestId('todolist-item-delete-button'));
+    await openListMenu();
+    fireEvent.click(await screen.findByTestId('todolist-item-delete-button'));
     expect(del).toHaveBeenCalledWith('list-1');
   });
-  test('has no delete button for a default list', () => {
+  test('has no delete button for a default list', async () => {
     render(
       <TodoList
         todoList={{ ...base, isDefault: true }}
@@ -113,11 +118,15 @@ describe('TodoList', () => {
         onDeleteList={jest.fn()}
       />
     );
+    await openListMenu();
+    expect(
+      await screen.findByTestId('todolist-add-task-list-1')
+    ).toBeInTheDocument();
     expect(
       screen.queryByTestId('todolist-item-delete-button')
     ).not.toBeInTheDocument();
   });
-  test('opens add form from header', () => {
+  test('opens add form from header', async () => {
     render(
       <TodoList
         todoList={base}
@@ -125,7 +134,8 @@ describe('TodoList', () => {
         onDeleteList={jest.fn()}
       />
     );
-    fireEvent.click(screen.getAllByRole('button', { name: /add task/i })[0]);
+    await openListMenu();
+    fireEvent.click(await screen.findByTestId('todolist-add-task-list-1'));
     expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
   });
   test('renders todo items and completion count', () => {
@@ -150,9 +160,8 @@ describe('TodoList', () => {
     expect(screen.getByText('1/1')).toBeInTheDocument();
     expect(screen.getByText('Task')).toBeInTheDocument();
   });
-  test('selects and edits a todo', () => {
+  test('selects a todo', () => {
     const select = jest.fn();
-    const edit = jest.fn();
     const todo = {
       id: 't',
       name: 'Task',
@@ -168,20 +177,18 @@ describe('TodoList', () => {
         onAddTodo={jest.fn()}
         onDeleteList={jest.fn()}
         onSelectTodo={select}
-        onEditTodo={edit}
       />
     );
     fireEvent.click(screen.getByTestId('todo-item-t'));
-    fireEvent.click(screen.getByRole('button', { name: 'tasks.edit' }));
     expect(select).toHaveBeenCalledWith(todo);
-    expect(edit).toHaveBeenCalledWith(todo);
   });
   test('passes list id and closes add form after submit', async () => {
     const add = jest.fn();
     render(
       <TodoList todoList={base} onAddTodo={add} onDeleteList={jest.fn()} />
     );
-    fireEvent.click(screen.getAllByRole('button', { name: /add task/i })[0]);
+    await openListMenu();
+    fireEvent.click(await screen.findByTestId('todolist-add-task-list-1'));
     fireEvent.change(screen.getByTestId('todo-form-input'), {
       target: { value: 'New task' },
     });
@@ -199,10 +206,10 @@ describe('TodoList', () => {
       />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Expand' }));
-    fireEvent.click(screen.getAllByRole('button', { name: /add task/i })[1]);
+    fireEvent.click(screen.getByRole('button', { name: /add task/i }));
     expect(screen.getByTestId('todo-form-input')).toBeInTheDocument();
   });
-  test('does not show an edit-list button when onEditList is not provided', () => {
+  test('does not show an edit-list option when onEditList is not provided', async () => {
     render(
       <TodoList
         todoList={base}
@@ -210,8 +217,12 @@ describe('TodoList', () => {
         onDeleteList={jest.fn()}
       />
     );
+    await openListMenu();
     expect(
-      screen.queryByRole('button', { name: 'todoListForm.editList' })
+      await screen.findByTestId('todolist-add-task-list-1')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('todolist-edit-list-1')
     ).not.toBeInTheDocument();
   });
   test('opens the edit-list form pre-filled and submits updates', async () => {
@@ -224,9 +235,8 @@ describe('TodoList', () => {
         onEditList={onEditList}
       />
     );
-    fireEvent.click(
-      screen.getByRole('button', { name: 'todoListForm.editList' })
-    );
+    await openListMenu();
+    fireEvent.click(await screen.findByTestId('todolist-edit-list-1'));
     expect(screen.getByTestId('todolist-form-input')).toHaveValue('Work');
     fireEvent.click(screen.getByTestId('todolist-form-submit-button'));
     await waitFor(() =>
