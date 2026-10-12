@@ -190,9 +190,11 @@ module.exports = {
           '0%, 100%': { borderColor: 'rgb(var(--color-accent-ink))' },
           '50%': { borderColor: 'rgb(var(--color-default))' },
         },
+        'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },
       },
       animation: {
         'border-pulse': 'border-pulse 1.2s ease-in-out infinite',
+        'fade-in': 'fade-in 200ms ease-out',
       },
     },
   },
