@@ -11,7 +11,7 @@ const Loader: React.FC<LoaderProps> = ({
 }) => {
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-accent"></div>
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-action"></div>
       <Text as="p" className="ml-4 text-2xl text-primary">
         {message}
       </Text>

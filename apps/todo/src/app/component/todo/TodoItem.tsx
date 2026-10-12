@@ -105,7 +105,7 @@ function TodoItem({
             {todo.name}
           </p>
           {isSelected && (
-            <span className="shrink-0 inline-flex items-center rounded-full bg-accent text-on-accent text-metadata font-bold uppercase tracking-wide px-2.5 py-1">
+            <span className="shrink-0 inline-flex items-center rounded-full bg-action text-on-action text-metadata font-bold uppercase tracking-wide px-2.5 py-1">
               {t('tasks.selected')}
             </span>
           )}

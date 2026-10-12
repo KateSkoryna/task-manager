@@ -168,7 +168,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                 type="text"
                 {...register('location')}
                 placeholder={t('todoForm.locationPlaceholder')}
-                className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink"
                 data-testid="todo-form-location"
               />
             </div>
@@ -185,7 +185,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
               {...register('notes')}
               placeholder={t('todoForm.notesPlaceholder')}
               rows={2}
-              className="flex-1 resize-none rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              className="flex-1 resize-none rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink"
               data-testid="todo-form-notes"
             />
           </div>
@@ -211,7 +211,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={imageUploading}
-                  className="flex items-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent hover:bg-accent/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent-ink hover:bg-action/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent-ink disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {imageUploading ? (
                     <>

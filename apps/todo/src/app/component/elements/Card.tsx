@@ -40,7 +40,7 @@ function Card({
       className={mergeClassNames(
         VARIANT_CLASSES[variant],
         shadowClass,
-        selected && 'border-l-4 border-l-accent',
+        selected && 'border-l-4 border-l-accent-ink',
         className
       )}
       onClick={onClick}

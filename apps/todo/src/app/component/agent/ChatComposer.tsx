@@ -49,7 +49,7 @@ const ChatComposer: React.FC<ChatComposerProps> = ({ disabled, onSend }) => {
           disabled={disabled}
           aria-label={t('agent.composerPlaceholder')}
           data-testid="chat-composer-input"
-          className={`flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-control md:text-body focus:border-accent focus:outline-none disabled:opacity-50 ${
+          className={`flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-control md:text-body focus:border-accent-ink focus:outline-none disabled:opacity-50 ${
             speech.isListening ? 'text-muted' : 'text-primary'
           }`}
         />
@@ -74,7 +74,7 @@ const ChatComposer: React.FC<ChatComposerProps> = ({ disabled, onSend }) => {
           disabled={disabled || !value.trim()}
           aria-label={t('agent.send')}
           data-testid="chat-composer-send"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-accent text-on-accent transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-action text-on-action transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ArrowUp className="h-4 w-4" />
         </button>

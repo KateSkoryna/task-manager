@@ -186,7 +186,7 @@ function TopHeader({
                       aria-hidden="true"
                       className={mergeClassNames(
                         'mt-1.5 size-2 shrink-0 rounded-full',
-                        notification.read ? 'bg-transparent' : 'bg-accent'
+                        notification.read ? 'bg-transparent' : 'bg-action'
                       )}
                     />
                     <span className="whitespace-normal break-words">

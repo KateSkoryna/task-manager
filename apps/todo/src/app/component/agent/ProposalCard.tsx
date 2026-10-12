@@ -58,7 +58,7 @@ const ProposalCard: React.FC<ProposalCardProps> = ({
         {isDestructive ? (
           <Trash2 className="h-4 w-4 text-danger" />
         ) : (
-          <Sparkles className="h-4 w-4 text-accent" />
+          <Sparkles className="h-4 w-4 text-accent-ink" />
         )}
         {isDestructive
           ? t('agent.proposal.deleteTitle')

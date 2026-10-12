@@ -165,7 +165,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
       <div
         className={`h-14 flex items-center justify-center my-2 rounded-lg transition-colors ${
           !isEditingDuration && status === 'idle'
-            ? 'cursor-pointer hover:bg-accent/10'
+            ? 'cursor-pointer hover:bg-action/10'
             : ''
         }`}
         onClick={!isEditingDuration ? openEditor : undefined}
@@ -239,7 +239,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
         {status === 'running' ? (
           <Button
             onClick={pause}
-            className="px-4 py-1.5 text-body font-bold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity"
+            className="px-4 py-1.5 text-body font-bold rounded-control bg-action text-on-action hover:opacity-90 transition-opacity"
           >
             {t('pomodoro.pause')}
           </Button>
@@ -248,7 +248,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             onClick={handleStart}
             disabled={isBelowMinDuration}
             dataTestId="pomodoro-start"
-            className="px-4 py-1.5 text-body font-bold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
+            className="px-4 py-1.5 text-body font-bold rounded-control bg-action text-on-action hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             {t('pomodoro.start')}
           </Button>
@@ -271,7 +271,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
         <div
           role="status"
           data-testid="pomodoro-banner"
-          className="mt-3 flex items-start justify-between gap-2 rounded-control bg-accent px-3 py-2 text-body text-on-accent"
+          className="mt-3 flex items-start justify-between gap-2 rounded-control bg-action px-3 py-2 text-body text-on-action"
         >
           <div>
             <p className="font-bold">{banner.title}</p>

@@ -117,7 +117,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
                             state: { todoId: task.id, listId: task.todolistId },
                           })
                         }
-                        className="flex max-w-full items-center gap-1.5 rounded-inner border border-default bg-surface px-2.5 py-1.5 text-left text-small text-primary transition-colors hover:border-accent hover:bg-surface-subtle"
+                        className="flex max-w-full items-center gap-1.5 rounded-inner border border-default bg-surface px-2.5 py-1.5 text-left text-small text-primary transition-colors hover:border-accent-ink hover:bg-surface-subtle"
                       >
                         <ArrowUpRight className="h-3 w-3 shrink-0 text-muted" />
                         <span className="truncate">{task.name}</span>

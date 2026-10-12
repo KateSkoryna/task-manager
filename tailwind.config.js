@@ -187,7 +187,7 @@ module.exports = {
       // no size/position properties, so it never causes layout shift.
       keyframes: {
         'border-pulse': {
-          '0%, 100%': { borderColor: 'rgb(var(--color-accent))' },
+          '0%, 100%': { borderColor: 'rgb(var(--color-accent-ink))' },
           '50%': { borderColor: 'rgb(var(--color-default))' },
         },
       },

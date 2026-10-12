@@ -45,7 +45,7 @@ export default function PeriodSelector<T extends string>({
       className={`relative flex bg-surface border border-default rounded-lg p-1 ${className}`}
     >
       <span
-        className="absolute top-1 bottom-1 rounded-md bg-accent transition-all duration-300 ease-in-out"
+        className="absolute top-1 bottom-1 rounded-md bg-action transition-all duration-300 ease-in-out"
         style={{ left: highlight.left, width: highlight.width }}
       />
       {options.map((option, index) => (
@@ -56,7 +56,7 @@ export default function PeriodSelector<T extends string>({
           onClick={() => onChange(option.value)}
           aria-pressed={value === option.value}
           className={`relative z-10 flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-body font-medium text-center whitespace-nowrap transition-colors duration-300 ${
-            value === option.value ? 'text-on-accent' : 'text-primary'
+            value === option.value ? 'text-on-action' : 'text-primary'
           }`}
         >
           {option.icon}
