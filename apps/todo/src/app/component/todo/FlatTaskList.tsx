@@ -36,7 +36,7 @@ function FlatTaskList({
     return (
       <Text
         as="p"
-        className="text-center text-muted py-6 text-sm"
+        className="text-center text-muted py-6 text-body"
         dataTestId="empty-flat-tasks-message"
       >
         {t('tasks.emptyFlatView')}

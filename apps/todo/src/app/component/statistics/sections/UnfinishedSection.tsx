@@ -72,45 +72,47 @@ export default function UnfinishedSection({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted text-sm">{t('statistics.noOverdueTasks')}</p>
+          <p className="text-muted text-body">
+            {t('statistics.noOverdueTasks')}
+          </p>
         )}
       </ChartCard>
 
       <div className="bg-surface rounded-2xl border border-default p-5 shadow-card h-full flex flex-col">
-        <p className="text-sm font-semibold text-primary mb-4">
+        <p className="text-body font-bold text-primary mb-4">
           {t('statistics.overdueSnapshot')}
         </p>
         <div className="flex-1 flex flex-col justify-center">
           <div className="grid grid-cols-3 gap-3">
             <div className="min-w-0 text-center">
               <p
-                className="text-4xl sm:text-6xl font-black leading-none"
+                className="text-4xl sm:text-6xl font-bold leading-none"
                 style={{ color: CHART_COLORS.high }}
               >
                 {summary.overdueCount}
               </p>
-              <p className="text-xs text-muted mt-2 uppercase tracking-wider break-words">
+              <p className="text-small text-muted mt-2 uppercase tracking-wider break-words">
                 {t('statistics.overdueCountLabel')}
               </p>
             </div>
             <div className="min-w-0 text-center">
               <p
-                className="text-4xl sm:text-6xl font-black leading-none"
+                className="text-4xl sm:text-6xl font-bold leading-none"
                 style={{ color: CHART_COLORS.high }}
               >
                 {summary.staleCount}
               </p>
-              <p className="text-xs text-muted mt-2 uppercase tracking-wider break-words">
+              <p className="text-small text-muted mt-2 uppercase tracking-wider break-words">
                 {t('statistics.staleCountLabel')}
               </p>
             </div>
             <div className="min-w-0 text-center">
-              <p className="text-4xl sm:text-6xl font-black leading-none text-primary">
+              <p className="text-4xl sm:text-6xl font-bold leading-none text-primary">
                 {summary.averageAgeDays !== null
                   ? summary.averageAgeDays.toFixed(1)
                   : t('statistics.dash')}
               </p>
-              <p className="text-xs text-muted mt-2 uppercase tracking-wider break-words">
+              <p className="text-small text-muted mt-2 uppercase tracking-wider break-words">
                 {t('statistics.averageAgeLabel')}
               </p>
             </div>
@@ -118,7 +120,7 @@ export default function UnfinishedSection({
         </div>
         {summary.oldestTask && (
           <div className="mt-4 pt-4 border-t border-default space-y-1">
-            <p className="text-sm text-primary break-words">
+            <p className="text-body text-primary break-words">
               {t('statistics.oldestTask', {
                 name: summary.oldestTask.name,
                 days: summary.oldestTask.ageDays,
@@ -126,7 +128,7 @@ export default function UnfinishedSection({
               })}
             </p>
             {summary.categoriesWithOldestTasks.length > 0 && (
-              <p className="text-xs text-muted break-words">
+              <p className="text-small text-muted break-words">
                 {t('statistics.categoriesWithOldestTasks', {
                   categories: summary.categoriesWithOldestTasks
                     .map(categoryLabel)
@@ -137,7 +139,7 @@ export default function UnfinishedSection({
             {summary.newestTask &&
               summary.newestTask.id !== summary.oldestTask.id && (
                 <>
-                  <p className="text-sm text-primary break-words">
+                  <p className="text-body text-primary break-words">
                     {t('statistics.newestTask', {
                       name: summary.newestTask.name,
                       days: summary.newestTask.ageDays,
@@ -145,7 +147,7 @@ export default function UnfinishedSection({
                     })}
                   </p>
                   {summary.categoriesWithNewestTasks.length > 0 && (
-                    <p className="text-xs text-muted break-words">
+                    <p className="text-small text-muted break-words">
                       {t('statistics.categoriesWithNewestTasks', {
                         categories: summary.categoriesWithNewestTasks
                           .map(categoryLabel)

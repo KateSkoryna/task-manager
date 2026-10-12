@@ -117,7 +117,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
 
       {errors.name && (
         <p
-          className="text-danger text-sm mt-1"
+          className="text-danger text-body mt-1"
           data-testid="todo-error-message"
         >
           {errors.name.message}
@@ -127,7 +127,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
       <button
         type="button"
         onClick={() => setShowExtra((v) => !v)}
-        className="mt-2 text-sm text-muted hover:text-primary underline focus:outline-none"
+        className="mt-2 text-body text-muted hover:text-primary underline focus:outline-none"
         data-testid="todo-form-toggle-extra"
       >
         {showExtra ? t('todoForm.hideOptions') : t('todoForm.moreOptions')}
@@ -216,12 +216,14 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                   {imageUploading ? (
                     <>
                       <Upload size={16} className="animate-bounce" />
-                      <span className="text-sm">{t('todoForm.uploading')}</span>
+                      <span className="text-body">
+                        {t('todoForm.uploading')}
+                      </span>
                     </>
                   ) : (
                     <>
                       <ImagePlus size={16} />
-                      <span className="text-sm">
+                      <span className="text-body">
                         {t('todoForm.chooseImage')}
                       </span>
                     </>
@@ -229,7 +231,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                 </button>
               )}
               {imageError && (
-                <p className="text-danger text-sm">{imageError}</p>
+                <p className="text-danger text-body">{imageError}</p>
               )}
               {image && (
                 <div className="flex items-center gap-2">

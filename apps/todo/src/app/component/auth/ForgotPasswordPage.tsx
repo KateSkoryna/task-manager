@@ -41,14 +41,14 @@ function ForgotPasswordPage() {
             </p>
             <Link
               to="/login"
-              className="text-primary font-semibold hover:underline text-sm"
+              className="text-primary font-bold hover:underline text-body"
             >
               {t('auth.forgotPassword.backToSignIn')}
             </Link>
           </div>
         ) : (
           <>
-            <p className="text-muted text-sm mb-6 text-center">
+            <p className="text-muted text-body mb-6 text-center">
               {t('auth.forgotPassword.description')}
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,7 +62,7 @@ function ForgotPasswordPage() {
                 />
               </div>
 
-              {error && <p className="text-danger text-sm">{error}</p>}
+              {error && <p className="text-danger text-body">{error}</p>}
 
               <Button
                 type="submit"
@@ -76,10 +76,10 @@ function ForgotPasswordPage() {
               </Button>
             </form>
 
-            <p className="mt-4 text-center text-primary text-sm">
+            <p className="mt-4 text-center text-primary text-body">
               <Link
                 to="/login"
-                className="text-primary font-semibold hover:underline"
+                className="text-primary font-bold hover:underline"
               >
                 {t('auth.forgotPassword.backToSignIn')}
               </Link>

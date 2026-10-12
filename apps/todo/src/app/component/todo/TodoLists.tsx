@@ -85,12 +85,12 @@ function TodoLists({
               type="button"
               onClick={onCreateList}
               data-testid="todolists-empty-create-list"
-              className="font-semibold text-primary hover:underline focus:outline-none"
+              className="font-bold text-primary hover:underline focus:outline-none"
             >
               {t('todoLists.emptyNewList')}
             </button>
           ) : (
-            <span className="font-semibold text-primary">
+            <span className="font-bold text-primary">
               {t('todoLists.emptyNewList')}
             </span>
           )}{' '}

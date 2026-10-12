@@ -161,7 +161,7 @@ function TimezoneField({
           className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-inner border-2 border-default bg-surface p-0 shadow-menu"
         >
           {filteredOptions.length === 0 && (
-            <li className="px-3 py-2 text-sm text-muted">No matches</li>
+            <li className="px-3 py-2 text-body text-muted">No matches</li>
           )}
           {filteredOptions.map((zone, index) => (
             <li key={zone}>
@@ -178,7 +178,7 @@ function TimezoneField({
                 }}
                 onClick={() => selectOption(zone)}
                 className={mergeClassNames(
-                  'block w-full truncate px-3 py-2 text-left text-sm transition-colors',
+                  'block w-full truncate px-3 py-2 text-left text-body transition-colors',
                   index === highlightedIndex
                     ? 'bg-accent font-medium text-on-accent'
                     : 'text-primary hover:bg-surface-subtle'

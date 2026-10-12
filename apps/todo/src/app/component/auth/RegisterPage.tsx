@@ -170,7 +170,9 @@ function RegisterPage() {
                 />
               </div>
               {errors.firstName && (
-                <p className="text-danger text-xs mt-1">{errors.firstName}</p>
+                <p className="text-danger text-small mt-1">
+                  {errors.firstName}
+                </p>
               )}
             </div>
             <div>
@@ -185,7 +187,7 @@ function RegisterPage() {
                 />
               </div>
               {errors.lastName && (
-                <p className="text-danger text-xs mt-1">{errors.lastName}</p>
+                <p className="text-danger text-small mt-1">{errors.lastName}</p>
               )}
             </div>
           </div>
@@ -201,7 +203,7 @@ function RegisterPage() {
             />
           </div>
           {errors.username && (
-            <p className="text-danger text-xs -mt-2">{errors.username}</p>
+            <p className="text-danger text-small -mt-2">{errors.username}</p>
           )}
 
           <div className="relative">
@@ -216,7 +218,7 @@ function RegisterPage() {
             />
           </div>
           {errors.email && (
-            <p className="text-danger text-xs -mt-2">{errors.email}</p>
+            <p className="text-danger text-small -mt-2">{errors.email}</p>
           )}
 
           <div className="relative">
@@ -247,7 +249,7 @@ function RegisterPage() {
             )}
           </div>
           {errors.password && (
-            <p className="text-danger text-xs -mt-2">{errors.password}</p>
+            <p className="text-danger text-small -mt-2">{errors.password}</p>
           )}
 
           <div className="relative">
@@ -278,7 +280,7 @@ function RegisterPage() {
             )}
           </div>
           {errors.confirmPassword && (
-            <p className="text-danger text-xs -mt-2">
+            <p className="text-danger text-small -mt-2">
               {errors.confirmPassword}
             </p>
           )}
@@ -290,10 +292,12 @@ function RegisterPage() {
             label={t('auth.register.agreeToTerms')}
           />
           {errors.agreeToTerms && (
-            <p className="text-danger text-xs">{errors.agreeToTerms}</p>
+            <p className="text-danger text-small">{errors.agreeToTerms}</p>
           )}
 
-          {errors.form && <p className="text-danger text-sm">{errors.form}</p>}
+          {errors.form && (
+            <p className="text-danger text-body">{errors.form}</p>
+          )}
 
           <Button
             type="submit"
@@ -313,19 +317,16 @@ function RegisterPage() {
             variant="secondary"
             onClick={handleGoogleSignUp}
             disabled={isPending}
-            className="w-full text-sm"
+            className="w-full text-body"
           >
             <GoogleIcon />
             {t('auth.register.continueWithGoogle')}
           </Button>
         </div>
 
-        <p className="mt-4 text-sm text-muted">
+        <p className="mt-4 text-body text-muted">
           {t('auth.register.haveAccount')}{' '}
-          <Link
-            to="/login"
-            className="text-primary font-semibold hover:underline"
-          >
+          <Link to="/login" className="text-primary font-bold hover:underline">
             {t('auth.register.signIn')}
           </Link>
         </p>

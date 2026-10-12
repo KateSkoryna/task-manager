@@ -28,7 +28,7 @@ function ArchivedTaskList({
     return (
       <Text
         as="p"
-        className="text-center text-muted py-6 text-sm"
+        className="text-center text-muted py-6 text-body"
         dataTestId="empty-archive-message"
       >
         {t('tasks.emptyArchive')}
@@ -53,10 +53,8 @@ function ArchivedTaskList({
           >
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-primary">
-                  {todo.name}
-                </p>
-                <p className="truncate text-xs text-muted">
+                <p className="truncate font-bold text-primary">{todo.name}</p>
+                <p className="truncate text-small text-muted">
                   {listName}
                   {archivedOn &&
                     ` · ${t('tasks.archivedOn', { date: archivedOn })}`}

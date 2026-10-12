@@ -111,7 +111,7 @@ export default function PlanningSection({
             />
           </BarChart>
         </ResponsiveContainer>
-        <div className="mt-3 space-y-1 text-xs text-muted">
+        <div className="mt-3 space-y-1 text-small text-muted">
           <p>
             {t('statistics.averagePerDay', {
               count: workload.averagePerActiveDay,

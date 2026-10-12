@@ -60,7 +60,7 @@ function DonutChart({
           className="h-2.5 w-2.5 shrink-0 rounded-full"
           style={{ background: color }}
         />
-        <span className="text-xs text-muted">{label}</span>
+        <span className="text-small text-muted">{label}</span>
       </div>
     </div>
   );

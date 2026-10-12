@@ -23,7 +23,7 @@ function Checkbox({ id, checked, onChange, label }: Props) {
       </span>
       <label
         htmlFor={id}
-        className="text-sm text-muted cursor-pointer select-none"
+        className="text-body text-muted cursor-pointer select-none"
       >
         {label}
       </label>

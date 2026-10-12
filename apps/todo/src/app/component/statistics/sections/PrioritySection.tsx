@@ -156,7 +156,7 @@ export default function PrioritySection({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted text-sm">{t('statistics.noData')}</p>
+          <p className="text-muted text-body">{t('statistics.noData')}</p>
         )}
       </ChartCard>
     </div>

@@ -70,7 +70,7 @@ const ChatPanel: React.FC = () => {
         onCancelProposal={cancel}
       />
       {error && (
-        <p role="alert" className="px-3 pb-1 text-xs text-danger">
+        <p role="alert" className="px-3 pb-1 text-small text-danger">
           {error}
         </p>
       )}

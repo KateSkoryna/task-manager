@@ -43,7 +43,7 @@ function InboxSection({
         <h3 className="flex-1 min-w-0 truncate text-primary font-bold">
           {t('tasks.inbox')}
         </h3>
-        <span className="text-muted text-xs shrink-0">{todos.length}</span>
+        <span className="text-muted text-small shrink-0">{todos.length}</span>
       </div>
 
       <div className="p-4 space-y-3 bg-default">
@@ -57,7 +57,7 @@ function InboxSection({
         {todos.length === 0 ? (
           <Text
             as="p"
-            className="text-center text-muted py-6 text-sm"
+            className="text-center text-muted py-6 text-body"
             dataTestId="empty-inbox-message"
           >
             {t('tasks.emptyInbox')}

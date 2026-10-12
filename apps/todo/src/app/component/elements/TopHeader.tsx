@@ -160,7 +160,7 @@ function TopHeader({
               className="absolute right-0 z-50 mt-1 max-h-80 w-72 list-none overflow-y-auto rounded-inner border-2 border-default bg-surface p-0 shadow-menu"
             >
               {notifications.length === 0 && (
-                <li className="px-3 py-2 text-sm text-muted">
+                <li className="px-3 py-2 text-body text-muted">
                   {t('header.noNotifications')}
                 </li>
               )}
@@ -176,7 +176,7 @@ function TopHeader({
                       navigate(`/reports/${notification.reportId}`);
                     }}
                     className={mergeClassNames(
-                      'flex w-full items-start gap-2 px-3 py-2 text-left text-sm hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none',
+                      'flex w-full items-start gap-2 px-3 py-2 text-left text-body hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none',
                       notification.read
                         ? 'text-muted'
                         : 'font-medium text-primary'

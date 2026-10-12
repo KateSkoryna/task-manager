@@ -38,7 +38,9 @@ function TopPriorityPanel({ items, onOpen }: TopPriorityPanelProps) {
         />
       </div>
       {pageItems.length === 0 ? (
-        <p className="text-sm text-muted/60">{t('dashboard.noTopPriority')}</p>
+        <p className="text-body text-muted/60">
+          {t('dashboard.noTopPriority')}
+        </p>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {pageItems.map((item) => (

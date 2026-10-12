@@ -92,12 +92,12 @@ function NarrativeList({ title, items }: { title: string; items: string[] }) {
   if (items.length === 0) return null;
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+      <p className="text-small font-bold uppercase tracking-wide text-muted">
         {title}
       </p>
       <ul className="mt-1 list-disc space-y-1 pl-5">
         {items.map((item) => (
-          <li key={item} className="text-sm text-primary">
+          <li key={item} className="text-body text-primary">
             {item}
           </li>
         ))}
@@ -197,7 +197,7 @@ export default function ReportDetailPage() {
   if (!report) {
     return (
       <Container>
-        <p className="text-sm text-muted">{t('reports.noData')}</p>
+        <p className="text-body text-muted">{t('reports.noData')}</p>
       </Container>
     );
   }
@@ -232,12 +232,12 @@ export default function ReportDetailPage() {
           <div className="min-w-0">
             <h1
               data-testid="report-detail-name"
-              className="text-xl font-semibold text-primary truncate"
+              className="text-xl font-bold text-primary truncate"
             >
               {report.name}
             </h1>
             {userName && (
-              <p className="text-sm text-muted truncate">
+              <p className="text-body text-muted truncate">
                 {t('reports.preparedFor', { name: userName })}
               </p>
             )}
@@ -281,7 +281,7 @@ export default function ReportDetailPage() {
       {(preferences?.aiConsent || report.narrative) && (
         <div className="bg-surface rounded-2xl border border-default p-5 shadow-card space-y-3 print:break-inside-avoid">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className="text-sm font-semibold text-primary">
+            <p className="text-body font-bold text-primary">
               {t('reports.aiInsightsTitle')}
             </p>
             {preferences?.aiConsent &&
@@ -302,14 +302,16 @@ export default function ReportDetailPage() {
                     : t('reports.getInsights')}
                 </Button>
               ) : (
-                <p className="text-xs text-muted print:hidden">
+                <p className="text-small text-muted print:hidden">
                   {t('reports.insightsLimitReached')}
                 </p>
               ))}
           </div>
           {report.narrative ? (
             <div className="space-y-3">
-              <p className="text-sm text-primary">{report.narrative.summary}</p>
+              <p className="text-body text-primary">
+                {report.narrative.summary}
+              </p>
               <NarrativeList
                 title={t('reports.insightsProblems')}
                 items={report.narrative.problems}
@@ -324,10 +326,12 @@ export default function ReportDetailPage() {
               />
             </div>
           ) : (
-            <p className="text-sm text-muted">{t('reports.noInsightsYet')}</p>
+            <p className="text-body text-muted">{t('reports.noInsightsYet')}</p>
           )}
           {generateNarrative.isError && (
-            <p className="text-sm text-danger">{t('reports.insightsError')}</p>
+            <p className="text-body text-danger">
+              {t('reports.insightsError')}
+            </p>
           )}
         </div>
       )}
@@ -388,7 +392,7 @@ export default function ReportDetailPage() {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted text-sm">{t('statistics.noData')}</p>
+          <p className="text-muted text-body">{t('statistics.noData')}</p>
         )}
       </ChartCard>
     </Container>

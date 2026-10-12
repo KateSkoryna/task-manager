@@ -32,7 +32,7 @@ function SearchInput({
         placeholder={placeholder}
         ariaLabel={ariaLabel}
         inputTestId={inputTestId}
-        className="w-full rounded-inner border border-default bg-surface-subtle py-2 pl-9 pr-3 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+        className="w-full rounded-inner border border-default bg-surface-subtle py-2 pl-9 pr-3 text-control md:text-body text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
       />
     </div>
   );

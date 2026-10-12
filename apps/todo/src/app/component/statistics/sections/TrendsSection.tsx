@@ -37,7 +37,7 @@ interface TrendsSectionProps {
 function TimingRow({ label, stats }: { label: string; stats: TimingStats }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center justify-between text-xs text-muted">
+    <div className="flex items-center justify-between text-small text-muted">
       <span>{label}</span>
       <span>
         {stats.sampleSize > 0
@@ -111,10 +111,10 @@ export default function TrendsSection({
 
       <div className="bg-surface rounded-2xl border border-default p-5 shadow-card space-y-4">
         <div>
-          <p className="text-sm font-semibold text-primary mb-2">
+          <p className="text-body font-bold text-primary mb-2">
             {t('statistics.timeToCompletion')}
           </p>
-          <p className="text-xs text-muted mb-2">
+          <p className="text-small text-muted mb-2">
             {timing.sampleSize > 0
               ? t('statistics.medianAndAverage', {
                   median: timing.medianDays,
@@ -151,8 +151,8 @@ export default function TrendsSection({
           </div>
         </div>
 
-        <div className="border-t border-default pt-3 space-y-1 text-xs text-muted">
-          <p className="text-sm font-semibold text-primary mb-1">
+        <div className="border-t border-default pt-3 space-y-1 text-small text-muted">
+          <p className="text-body font-bold text-primary mb-1">
             {t('statistics.periodComparison')}
           </p>
           <p>

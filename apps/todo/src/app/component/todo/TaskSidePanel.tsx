@@ -234,11 +234,11 @@ export function TodoEditPanel({
     onSave(todoResult.data, listResult ? listResult.data : null, targetList);
   };
 
-  const labelClass = 'text-xs text-muted font-medium';
+  const labelClass = 'text-small text-muted font-medium';
   const inputClass =
-    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-sm';
+    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
   const dropdownClass =
-    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
+    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
     'z-50 w-max min-w-[10rem] max-w-[13.75rem] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =
@@ -469,7 +469,7 @@ export function TodoEditPanel({
 
             {!watch('listId') && (
               <p
-                className="text-xs text-muted"
+                className="text-small text-muted"
                 data-testid="edit-todo-inbox-note"
               >
                 {t('tasks.inboxNoListSettings')}
@@ -498,18 +498,20 @@ export function TodoEditPanel({
                   {imageUploading ? (
                     <>
                       <Upload size={16} className="animate-bounce" />
-                      <span className="text-sm">{t('tasks.uploading')}</span>
+                      <span className="text-body">{t('tasks.uploading')}</span>
                     </>
                   ) : (
                     <>
                       <ImagePlus size={16} />
-                      <span className="text-sm">{t('tasks.chooseImage')}</span>
+                      <span className="text-body">
+                        {t('tasks.chooseImage')}
+                      </span>
                     </>
                   )}
                 </button>
               )}
               {imageError && (
-                <p className="text-danger text-xs">{imageError}</p>
+                <p className="text-danger text-small">{imageError}</p>
               )}
               {editImage && (
                 <div className="flex items-center gap-2">
@@ -534,14 +536,14 @@ export function TodoEditPanel({
 
         <div className="flex gap-2 justify-end pt-3 border-t border-default mt-3 md:pt-5 md:mt-5">
           {validationError && (
-            <p className="text-sm text-danger mr-auto" role="alert">
+            <p className="text-body text-danger mr-auto" role="alert">
               {validationError}
             </p>
           )}
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm text-muted hover:text-primary transition-colors"
+            className="px-4 py-2 text-body text-muted hover:text-primary transition-colors"
             aria-label="Cancel todo edit"
             data-testid={'cancel-todo-edit-button-' + todo.id}
           >
@@ -549,7 +551,7 @@ export function TodoEditPanel({
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium bg-accent text-on-accent rounded-inner hover:opacity-90 transition-opacity"
+            className="px-4 py-2 text-body font-medium bg-accent text-on-accent rounded-inner hover:opacity-90 transition-opacity"
             aria-label="Save todo edit"
             data-testid={'save-todo-edit-button-' + todo.id}
           >
@@ -665,7 +667,7 @@ export function TaskDetailPanel({
           </div>
         </div>
 
-        <div className="border-t border-default pt-4 space-y-2.5 text-sm">
+        <div className="border-t border-default pt-4 space-y-2.5 text-body">
           <div className="flex gap-3">
             <span className="w-24 shrink-0 text-muted">{t('tasks.list')}</span>
             <span className="font-medium text-primary">
@@ -684,9 +686,7 @@ export function TaskDetailPanel({
             <span className="w-24 shrink-0 text-muted">
               {t('tasks.status')}
             </span>
-            <span
-              className={`font-semibold ${STATUS_TEXT_COLORS[todo.status]}`}
-            >
+            <span className={`font-bold ${STATUS_TEXT_COLORS[todo.status]}`}>
               {t(`tasks.status_${todo.status}`)}
             </span>
           </div>
@@ -732,7 +732,7 @@ export function TaskDetailPanel({
 
         {todo.notes && (
           <div className="mt-4 rounded-inner bg-surface-subtle p-4">
-            <p className="text-sm text-muted leading-relaxed whitespace-pre-wrap">
+            <p className="text-body text-muted leading-relaxed whitespace-pre-wrap">
               {todo.notes}
             </p>
           </div>

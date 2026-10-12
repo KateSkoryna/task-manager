@@ -91,10 +91,12 @@ function SidebarContent({
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-sidebar-text">
+          <p className="truncate text-body font-bold text-sidebar-text">
             {user?.displayName}
           </p>
-          <p className="truncate text-xs text-sidebar-muted">{user?.email}</p>
+          <p className="truncate text-small text-sidebar-muted">
+            {user?.email}
+          </p>
         </div>
         {headerAction}
       </div>
@@ -129,9 +131,9 @@ function SidebarContent({
             onClick={onNavigate}
             className={({ isActive }) =>
               mergeClassNames(
-                'relative flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm transition-colors duration-300 motion-reduce:transition-none',
+                'relative flex items-center gap-3 rounded-lg px-3.5 py-3 text-body transition-colors duration-300 motion-reduce:transition-none',
                 isActive
-                  ? 'font-semibold text-on-accent'
+                  ? 'font-bold text-on-accent'
                   : 'text-sidebar-text hover:bg-sidebar-text/10'
               )
             }
@@ -160,7 +162,7 @@ function SidebarContent({
       <div className="px-content-mobile md:px-content-tablet lg:px-content-desktop pb-6 pt-4">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
+          className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-body text-sidebar-muted transition-colors hover:bg-sidebar-text/10"
         >
           <LogOut className="size-4 shrink-0 text-sidebar-muted" />
           {t('nav.logout')}

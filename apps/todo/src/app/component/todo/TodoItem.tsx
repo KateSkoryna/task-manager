@@ -98,14 +98,14 @@ function TodoItem({
             />
           )}
           <p
-            className={`flex-1 min-w-0 truncate font-semibold text-primary leading-snug ${
+            className={`flex-1 min-w-0 truncate text-card-mobile font-bold text-primary leading-snug ${
               todo.status === 'successful' ? 'text-muted' : ''
             }`}
           >
             {todo.name}
           </p>
           {isSelected && (
-            <span className="shrink-0 inline-flex items-center rounded-full bg-accent text-on-accent text-[0.625rem] font-bold uppercase tracking-wide px-2.5 py-1">
+            <span className="shrink-0 inline-flex items-center rounded-full bg-accent text-on-accent text-metadata font-bold uppercase tracking-wide px-2.5 py-1">
               {t('tasks.selected')}
             </span>
           )}
@@ -142,7 +142,7 @@ function TodoItem({
           )}
         </div>
 
-        <p className="text-sm text-muted truncate">{todo.notes || ' '}</p>
+        <p className="text-body text-muted truncate">{todo.notes || ' '}</p>
 
         {/* Row 2: image */}
         {todo.image && (
@@ -156,7 +156,7 @@ function TodoItem({
         )}
 
         {/* Row 3: status */}
-        <span className="hidden xl:inline text-xs text-muted">
+        <span className="hidden xl:inline text-small text-muted">
           {t('tasks.status')}{' '}
           <span className={`font-medium ${STATUS_TEXT[todo.status]}`}>
             {statusLabel}
@@ -204,8 +204,8 @@ function TodoItem({
           )}
           {todo.dueDate && !hideDueDate && (
             <span
-              className={`flex shrink-0 items-center gap-1 text-xs ml-auto ${
-                isUrgent ? 'text-danger font-semibold' : 'text-muted'
+              className={`flex shrink-0 items-center gap-1 text-small ml-auto ${
+                isUrgent ? 'text-danger font-bold' : 'text-muted'
               }`}
             >
               {isUrgent && (
@@ -219,7 +219,7 @@ function TodoItem({
               <span className="hidden xl:inline">{t('tasks.due')} </span>
               {dayjs(todo.dueDate).format('DD/MM/YYYY')}
               {isUrgent && (
-                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-[0.625rem] font-semibold text-danger">
+                <span className="rounded-full bg-danger/10 px-1.5 py-0.5 text-metadata font-bold text-danger">
                   {t('tasks.dueSoon')}
                 </span>
               )}

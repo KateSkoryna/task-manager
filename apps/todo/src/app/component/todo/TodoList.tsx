@@ -115,7 +115,7 @@ function TodoList({
             >
               {todoList.name}
             </h3>
-            <span className="hidden text-muted text-xs shrink-0 lg:inline">
+            <span className="hidden text-muted text-small shrink-0 lg:inline">
               {completedCount}/{todoList.todos.length}
             </span>
             {todoList.priority && (
@@ -159,7 +159,7 @@ function TodoList({
         </div>
 
         {(todoList.category || formattedDate) && (
-          <div className="hidden items-center gap-4 text-xs text-muted mt-1.5 ml-11 sm:flex">
+          <div className="hidden items-center gap-4 text-small text-muted mt-1.5 ml-11 sm:flex">
             {todoList.category && (
               <span>
                 {t('tasks.category')} {t(`tasks.category_${todoList.category}`)}
@@ -174,7 +174,7 @@ function TodoList({
         )}
 
         {todoList.notes && (
-          <p className="hidden mt-1.5 ml-11 text-xs text-muted truncate sm:block">
+          <p className="hidden mt-1.5 ml-11 text-small text-muted truncate sm:block">
             {todoList.notes}
           </p>
         )}
@@ -198,13 +198,13 @@ function TodoList({
           {todoList.todos.length === 0 && !showAddForm ? (
             <Text
               as="p"
-              className="text-center text-muted py-6 text-sm"
+              className="text-center text-muted py-6 text-body"
               dataTestId="empty-todos-message"
             >
               {t('todoList.noTasksBefore')}{' '}
               <button
                 onClick={() => setShowAddForm(true)}
-                className="font-semibold text-primary hover:underline focus:outline-none"
+                className="font-bold text-primary hover:underline focus:outline-none"
               >
                 {t('todoList.addTask')}
               </button>{' '}
