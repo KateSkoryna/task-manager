@@ -15,8 +15,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose }) => {
           <Sparkles className="h-4 w-4" />
         </span>
         <div>
-          <p className="text-sm font-bold text-primary">{t('agent.name')}</p>
-          <p className="text-xs text-muted">{t('agent.tagline')}</p>
+          <p className="text-body font-bold text-primary">{t('agent.name')}</p>
+          <p className="text-small text-muted">{t('agent.tagline')}</p>
         </div>
       </div>
       <button

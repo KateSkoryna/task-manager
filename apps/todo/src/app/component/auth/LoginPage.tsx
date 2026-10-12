@@ -183,13 +183,13 @@ function LoginPage() {
             />
             <Link
               to="/forgot-password"
-              className="text-sm text-primary font-semibold hover:underline"
+              className="text-body text-primary font-bold hover:underline"
             >
               {t('auth.login.forgotPassword')}
             </Link>
           </div>
 
-          {error && <p className="text-danger text-sm">{error}</p>}
+          {error && <p className="text-danger text-body">{error}</p>}
 
           <Button
             type="submit"
@@ -207,18 +207,18 @@ function LoginPage() {
             variant="secondary"
             onClick={handleGoogleSignIn}
             disabled={isPending}
-            className="w-full text-sm"
+            className="w-full text-body"
           >
             <GoogleIcon />
             {t('auth.login.continueWithGoogle')}
           </Button>
         </div>
 
-        <p className="mt-6 text-sm text-muted">
+        <p className="mt-6 text-body text-muted">
           {t('auth.login.noAccount')}{' '}
           <Link
             to="/register"
-            className="text-primary font-semibold hover:underline"
+            className="text-primary font-bold hover:underline"
           >
             {t('auth.login.createOne')}
           </Link>

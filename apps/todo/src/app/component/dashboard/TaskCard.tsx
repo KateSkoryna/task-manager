@@ -32,10 +32,10 @@ function TaskCard({ item, onOpen }: TaskCardProps) {
         PRIORITY_BORDER[item.priority]
       )}
     >
-      <p className="truncate text-sm font-semibold leading-snug text-primary">
+      <p className="truncate text-body font-bold leading-snug text-primary">
         {item.name}
       </p>
-      <p className="mt-1.5 text-xs text-muted">
+      <p className="mt-1.5 text-small text-muted">
         {t('dashboard.status')}{' '}
         <span className={`font-medium ${STATUS_TEXT[item.status]}`}>
           {t(STATUS_LABEL_KEYS[item.status])}

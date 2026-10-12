@@ -149,7 +149,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
     >
       <div className="flex items-center justify-between mb-2 gap-2">
         <span
-          className={`text-xs font-bold uppercase tracking-wide ${
+          className={`text-small font-bold uppercase tracking-wide ${
             phase === 'work' ? 'text-primary' : 'text-muted'
           }`}
         >
@@ -157,7 +157,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             ? t('pomodoro.workPhase')
             : t('pomodoro.breakPhase')}
         </span>
-        <span className="text-xs text-muted truncate" title={taskName}>
+        <span className="text-small text-muted truncate" title={taskName}>
           {taskName}
         </span>
       </div>
@@ -239,7 +239,7 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
         {status === 'running' ? (
           <Button
             onClick={pause}
-            className="px-4 py-1.5 text-sm font-semibold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity"
+            className="px-4 py-1.5 text-body font-bold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity"
           >
             {t('pomodoro.pause')}
           </Button>
@@ -248,21 +248,21 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
             onClick={handleStart}
             disabled={isBelowMinDuration}
             dataTestId="pomodoro-start"
-            className="px-4 py-1.5 text-sm font-semibold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
+            className="px-4 py-1.5 text-body font-bold rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             {t('pomodoro.start')}
           </Button>
         )}
         <Button
           onClick={handleReset}
-          className="px-4 py-1.5 text-sm font-semibold rounded-control border border-default text-primary hover:bg-surface-subtle transition-colors"
+          className="px-4 py-1.5 text-body font-bold rounded-control border border-default text-primary hover:bg-surface-subtle transition-colors"
         >
           {t('pomodoro.reset')}
         </Button>
       </div>
 
       {isBelowMinDuration && status === 'idle' && (
-        <p className="mt-2 text-center text-xs text-danger">
+        <p className="mt-2 text-center text-small text-danger">
           {t('pomodoro.minDurationHint', { seconds: MIN_TOTAL_SECONDS })}
         </p>
       )}
@@ -271,10 +271,10 @@ function PomodoroTimer({ taskName, onPhaseComplete }: PomodoroTimerProps) {
         <div
           role="status"
           data-testid="pomodoro-banner"
-          className="mt-3 flex items-start justify-between gap-2 rounded-control bg-accent px-3 py-2 text-sm text-on-accent"
+          className="mt-3 flex items-start justify-between gap-2 rounded-control bg-accent px-3 py-2 text-body text-on-accent"
         >
           <div>
-            <p className="font-semibold">{banner.title}</p>
+            <p className="font-bold">{banner.title}</p>
             <p>{banner.body}</p>
           </div>
           <button

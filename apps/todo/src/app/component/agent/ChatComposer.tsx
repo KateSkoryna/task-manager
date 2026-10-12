@@ -49,7 +49,7 @@ const ChatComposer: React.FC<ChatComposerProps> = ({ disabled, onSend }) => {
           disabled={disabled}
           aria-label={t('agent.composerPlaceholder')}
           data-testid="chat-composer-input"
-          className={`flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-sm focus:border-accent focus:outline-none disabled:opacity-50 ${
+          className={`flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-control md:text-body focus:border-accent focus:outline-none disabled:opacity-50 ${
             speech.isListening ? 'text-muted' : 'text-primary'
           }`}
         />
@@ -80,7 +80,7 @@ const ChatComposer: React.FC<ChatComposerProps> = ({ disabled, onSend }) => {
         </button>
       </div>
       {speech.error && (
-        <p role="alert" className="text-xs text-danger">
+        <p role="alert" className="text-small text-danger">
           {t(`agent.speechError.${speech.error}`)}
         </p>
       )}

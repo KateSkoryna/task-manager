@@ -68,7 +68,7 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
         id={id}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 px-2 py-2 rounded-inner border border-default bg-surface-subtle text-sm text-primary focus:border-accent focus:outline-none min-w-[10rem]"
+        className="flex w-full items-center gap-2 px-2 py-2 rounded-inner border border-default bg-surface-subtle text-body text-primary focus:border-accent focus:outline-none min-w-[10rem]"
       >
         <CalendarDays className="w-4 h-4 text-muted shrink-0" />
         <span className={selected ? 'text-primary' : 'text-muted'}>
@@ -102,7 +102,7 @@ const DatePickerInput: React.FC<DatePickerInputProps> = ({
                 onChange('');
                 setOpen(false);
               }}
-              className="text-xs text-muted underline hover:text-primary"
+              className="text-small text-muted underline hover:text-primary"
             >
               Clear
             </button>

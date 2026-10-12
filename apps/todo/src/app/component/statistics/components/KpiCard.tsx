@@ -22,12 +22,14 @@ export default function KpiCard({
       <span className="text-3xl font-bold leading-none text-primary">
         {value}
       </span>
-      <span className="text-xs text-muted mt-2 uppercase tracking-wider">
+      <span className="text-small text-muted mt-2 uppercase tracking-wider">
         {label}
       </span>
-      {sublabel && <span className="text-xs text-muted mt-1">{sublabel}</span>}
+      {sublabel && (
+        <span className="text-small text-muted mt-1">{sublabel}</span>
+      )}
       {comparisonLabel && (
-        <span className="text-xs font-medium mt-1 text-accent">
+        <span className="text-small font-medium mt-1 text-accent">
           {comparisonLabel}
         </span>
       )}

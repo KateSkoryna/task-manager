@@ -81,7 +81,7 @@ function TodayTaskRow<T extends TodoItem>({
         data-row-open
         onClick={() => onOpen(item)}
         className={mergeClassNames(
-          'min-w-0 flex-1 truncate text-left text-sm font-semibold focus-visible:outline-none',
+          'min-w-0 flex-1 truncate text-left text-body font-bold focus-visible:outline-none',
           completed ? 'text-muted' : 'text-primary'
         )}
       >
@@ -143,12 +143,12 @@ function TodayTaskBlock<T extends TodoItem>({
         {icon}
         <div className="flex items-baseline gap-2">
           <h3 className="text-lg font-bold leading-none">{title}</h3>
-          <span className="text-xs text-muted">{items.length}</span>
+          <span className="text-small text-muted">{items.length}</span>
         </div>
         <PageArrows page={page} pageCount={pageCount} onChange={setPage} />
       </div>
       {items.length === 0 ? (
-        <p className="text-sm text-muted/60">{emptyMessage}</p>
+        <p className="text-body text-muted/60">{emptyMessage}</p>
       ) : (
         // Side padding leaves room for the hover scale. There is none top or
         // bottom, so the measured height is exactly the space rows can use;

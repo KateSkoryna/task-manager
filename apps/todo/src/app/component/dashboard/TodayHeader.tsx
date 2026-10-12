@@ -67,7 +67,7 @@ function TodayHeader({ done, total, overdue, onAddTask }: TodayHeaderProps) {
         <h3 className="text-2xl font-bold leading-none">
           {t('dashboard.todayTitle')}
         </h3>
-        <p className={mergeClassNames('mt-2 text-sm', classes.message)}>
+        <p className={mergeClassNames('mt-2 text-body', classes.message)}>
           {messages[mood]}
         </p>
         {total > 0 && (
@@ -91,7 +91,7 @@ function TodayHeader({ done, total, overdue, onAddTask }: TodayHeaderProps) {
                 style={{ width: `${percent}%` }}
               />
             </div>
-            <span className="shrink-0 text-sm font-semibold">
+            <span className="shrink-0 text-body font-bold">
               {t('dashboard.progressLine', { done, total })}
             </span>
           </div>

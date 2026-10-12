@@ -128,7 +128,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
           {todoList?.isDefault && (
             <Text
               as="p"
-              className="mt-1 text-xs text-muted"
+              className="mt-1 text-small text-muted"
               dataTestId="todolist-form-default-note"
             >
               {t('todoListForm.defaultNameLocked')}
@@ -153,7 +153,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
             <div className="flex flex-col gap-1">
               <label
                 id="list-priority-label"
-                className="text-sm font-medium text-primary"
+                className="text-body font-medium text-primary"
               >
                 {t('todoListForm.priority')}
               </label>
@@ -179,7 +179,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
             <div className="flex flex-col gap-1">
               <label
                 id="list-category-label"
-                className="text-sm font-medium text-primary"
+                className="text-body font-medium text-primary"
               >
                 {t('todoListForm.category')}
               </label>
@@ -204,7 +204,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
 
             <div className="flex flex-col gap-1">
               <label
-                className="text-sm font-medium text-primary"
+                className="text-body font-medium text-primary"
                 htmlFor="list-due-date"
               >
                 {t('todoListForm.dueDate')}
@@ -224,7 +224,7 @@ const TodoListForm: React.FC<TodoListFormProps> = ({
 
             <div className="flex flex-col gap-1">
               <label
-                className="text-sm font-medium text-primary"
+                className="text-body font-medium text-primary"
                 htmlFor="list-notes"
               >
                 {t('todoListForm.notes')}

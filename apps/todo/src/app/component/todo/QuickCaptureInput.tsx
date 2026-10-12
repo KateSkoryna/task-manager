@@ -76,7 +76,7 @@ function QuickCaptureInput({
           type="button"
           variant="secondary"
           onClick={() => setShowMore((v) => !v)}
-          className="w-full shrink-0 text-sm xl:w-auto"
+          className="w-full shrink-0 text-body xl:w-auto"
           dataTestId={`${inputTestId}-more`}
         >
           {showMore ? t('tasks.quickCaptureLess') : t('tasks.quickCaptureMore')}
@@ -92,7 +92,7 @@ function QuickCaptureInput({
               <div className="flex flex-col gap-1">
                 <label
                   id={`${fieldId}-priority-label`}
-                  className="text-sm font-medium text-primary"
+                  className="text-body font-medium text-primary"
                 >
                   {t('tasks.taskPriority')}
                 </label>
@@ -110,7 +110,7 @@ function QuickCaptureInput({
               <div className="flex flex-col gap-1">
                 <label
                   htmlFor={`${fieldId}-due-date`}
-                  className="text-sm font-medium text-primary"
+                  className="text-body font-medium text-primary"
                 >
                   {t('tasks.dueDate')}
                 </label>
@@ -124,7 +124,7 @@ function QuickCaptureInput({
             <div className="flex flex-col gap-1">
               <label
                 htmlFor={`${fieldId}-notes`}
-                className="text-sm font-medium text-primary"
+                className="text-body font-medium text-primary"
               >
                 {t('tasks.notes')}
               </label>
@@ -143,7 +143,7 @@ function QuickCaptureInput({
         <Button
           type="submit"
           variant="primary"
-          className="w-full shrink-0 text-sm xl:w-auto"
+          className="w-full shrink-0 text-body xl:w-auto"
           dataTestId={submitTestId}
         >
           <Plus className="h-4 w-4" />
@@ -153,7 +153,7 @@ function QuickCaptureInput({
 
       {aiIsOff && (
         <p
-          className="text-xs text-muted bg-surface-subtle rounded-inner px-3 py-2"
+          className="text-small text-muted bg-surface-subtle rounded-inner px-3 py-2"
           data-testid={`${noticeTestId}-ai-off`}
         >
           {t('tasks.aiOffHint')}{' '}
@@ -168,7 +168,7 @@ function QuickCaptureInput({
 
       {enrichment && (
         <div
-          className="flex items-center justify-between gap-2 text-xs text-muted bg-surface-subtle rounded-inner px-3 py-2"
+          className="flex items-center justify-between gap-2 text-small text-muted bg-surface-subtle rounded-inner px-3 py-2"
           data-testid={noticeTestId}
         >
           <span>

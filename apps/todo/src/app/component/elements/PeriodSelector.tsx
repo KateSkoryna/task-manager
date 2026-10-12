@@ -55,7 +55,7 @@ export default function PeriodSelector<T extends string>({
           type="button"
           onClick={() => onChange(option.value)}
           aria-pressed={value === option.value}
-          className={`relative z-10 flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-sm font-medium text-center whitespace-nowrap transition-colors duration-300 ${
+          className={`relative z-10 flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md text-body font-medium text-center whitespace-nowrap transition-colors duration-300 ${
             value === option.value ? 'text-on-accent' : 'text-primary'
           }`}
         >

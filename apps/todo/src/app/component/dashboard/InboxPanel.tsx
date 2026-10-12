@@ -32,7 +32,7 @@ function InboxPanel({ items, onOpen }: InboxPanelProps) {
           <h3 className="text-lg font-bold leading-none">
             {t('dashboard.inboxTitle')}
           </h3>
-          <span className="text-xs font-semibold text-notification-dot">
+          <span className="text-small font-bold text-notification-dot">
             {items.length}
           </span>
         </div>
@@ -43,9 +43,11 @@ function InboxPanel({ items, onOpen }: InboxPanelProps) {
           alwaysVisible
         />
       </div>
-      <p className="mb-3 mt-1 text-xs text-muted">{t('dashboard.inboxHint')}</p>
+      <p className="mb-3 mt-1 text-small text-muted">
+        {t('dashboard.inboxHint')}
+      </p>
       {pageItems.length === 0 ? (
-        <p className="text-sm text-muted/60">{t('dashboard.inboxEmpty')}</p>
+        <p className="text-body text-muted/60">{t('dashboard.inboxEmpty')}</p>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {pageItems.map((item) => (

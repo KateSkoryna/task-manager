@@ -169,7 +169,7 @@ function DashboardPage() {
               pageSize={OVERDUE_PAGE_SIZE}
               onOpen={handleOpen}
               renderMeta={(item) => (
-                <span className="shrink-0 text-xs font-semibold text-danger">
+                <span className="shrink-0 text-small font-bold text-danger">
                   {lateLabel(item)}
                 </span>
               )}

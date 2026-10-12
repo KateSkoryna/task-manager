@@ -23,7 +23,7 @@ export default function PeriodNavigator({
       <IconButton ariaLabel={previousLabel} onClick={onPrevious}>
         <ChevronLeft size={18} />
       </IconButton>
-      <span className="text-sm text-muted min-w-[9rem] text-center">
+      <span className="text-body text-muted min-w-[9rem] text-center">
         {rangeLabel}
       </span>
       <IconButton

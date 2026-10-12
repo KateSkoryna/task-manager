@@ -83,7 +83,7 @@ export default function BalanceSection({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted text-sm">{t('statistics.noData')}</p>
+          <p className="text-muted text-body">{t('statistics.noData')}</p>
         )}
       </ChartCard>
 
@@ -125,7 +125,7 @@ export default function BalanceSection({
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted text-sm">{t('statistics.noData')}</p>
+          <p className="text-muted text-body">{t('statistics.noData')}</p>
         )}
       </ChartCard>
     </div>

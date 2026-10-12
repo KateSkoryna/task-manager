@@ -36,7 +36,7 @@
   }
 
   .driver-popover-footer button {
-    @apply rounded-control border border-default bg-surface px-3 py-1.5 text-sm font-medium text-primary;
+    @apply rounded-control border border-default bg-surface px-3 py-1.5 text-body font-medium text-primary;
     text-shadow: none;
   }
 

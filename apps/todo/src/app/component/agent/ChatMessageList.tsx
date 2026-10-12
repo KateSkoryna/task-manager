@@ -93,7 +93,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
             {message.text && (
               <div
                 className={mergeClassNames(
-                  'rounded-card px-3 py-2 text-sm whitespace-pre-wrap',
+                  'rounded-card px-3 py-2 text-body whitespace-pre-wrap',
                   message.role === 'user'
                     ? 'bg-primary text-app'
                     : 'bg-surface-subtle text-primary'
@@ -117,7 +117,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
                             state: { todoId: task.id, listId: task.todolistId },
                           })
                         }
-                        className="flex max-w-full items-center gap-1.5 rounded-inner border border-default bg-surface px-2.5 py-1.5 text-left text-xs text-primary transition-colors hover:border-accent hover:bg-surface-subtle"
+                        className="flex max-w-full items-center gap-1.5 rounded-inner border border-default bg-surface px-2.5 py-1.5 text-left text-small text-primary transition-colors hover:border-accent hover:bg-surface-subtle"
                       >
                         <ArrowUpRight className="h-3 w-3 shrink-0 text-muted" />
                         <span className="truncate">{task.name}</span>

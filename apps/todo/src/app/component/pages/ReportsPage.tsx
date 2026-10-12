@@ -83,13 +83,13 @@ export default function ReportsPage() {
       {isLoading ? (
         <p className="text-primary">{t('reports.loading')}</p>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted">{t('reports.noData')}</p>
+        <p className="text-body text-muted">{t('reports.noData')}</p>
       ) : (
         <div className="overflow-hidden rounded-xl border border-default shadow-card">
           <div
             className={mergeClassNames(
               ROW_GRID,
-              'bg-surface-subtle px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted'
+              'bg-surface-subtle px-4 py-2 text-small font-bold uppercase tracking-wider text-muted'
             )}
           >
             <span>{t('reports.columnName')}</span>
@@ -107,13 +107,13 @@ export default function ReportsPage() {
                     'items-center bg-surface px-4 py-3 hover:bg-surface-subtle transition-colors'
                   )}
                 >
-                  <span className="text-sm font-semibold text-primary truncate">
+                  <span className="text-body font-bold text-primary truncate">
                     {report.name || t('reports.untitled')}
                   </span>
-                  <span className="text-center text-xs text-muted whitespace-nowrap">
+                  <span className="text-center text-small text-muted whitespace-nowrap">
                     {new Date(report.createdAt).toLocaleDateString()}
                   </span>
-                  <span className="text-center text-xs text-muted uppercase tracking-wider whitespace-nowrap">
+                  <span className="text-center text-small text-muted uppercase tracking-wider whitespace-nowrap">
                     {t(`reports.${report.period}`)}
                   </span>
                 </Link>
@@ -128,7 +128,7 @@ export default function ReportsPage() {
           type="button"
           onClick={() => fetchNextPage()}
           disabled={isFetchingNextPage}
-          className="text-sm font-medium text-accent hover:underline disabled:opacity-50"
+          className="text-body font-medium text-accent hover:underline disabled:opacity-50"
         >
           {isFetchingNextPage ? t('reports.loading') : t('reports.loadMore')}
         </button>

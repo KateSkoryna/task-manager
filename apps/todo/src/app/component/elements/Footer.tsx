@@ -16,7 +16,7 @@ function Footer({ className }: FooterProps) {
         className
       )}
     >
-      <p className="text-xs text-muted text-center md:text-left">
+      <p className="text-small text-muted text-center md:text-left">
         {t('footer.rights', { year })}
       </p>
     </footer>

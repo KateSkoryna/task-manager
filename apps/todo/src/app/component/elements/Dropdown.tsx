@@ -193,7 +193,7 @@ function Dropdown<T extends string>({
                     close(true);
                   }}
                   className={`flex w-full items-center gap-1.5 text-left transition-colors ${
-                    optionClassName ?? 'px-3 py-2 text-sm'
+                    optionClassName ?? 'px-3 py-2 text-body'
                   } ${
                     isSelected
                       ? 'bg-accent font-medium text-on-accent'

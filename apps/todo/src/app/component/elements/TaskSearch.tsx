@@ -63,18 +63,18 @@ function TaskSearch({ inputTestId, className }: TaskSearchProps) {
           className="absolute z-10 mt-1 w-full list-none overflow-hidden rounded-inner border-2 border-default bg-surface p-0 shadow-menu"
         >
           {status === 'loading' && (
-            <li className="flex items-center gap-2 px-3 py-2 text-sm text-muted">
+            <li className="flex items-center gap-2 px-3 py-2 text-body text-muted">
               <Loader2 className="size-4 animate-spin" />
               {t('header.searchLoading')}
             </li>
           )}
           {status === 'error' && (
-            <li className="px-3 py-2 text-sm text-danger">
+            <li className="px-3 py-2 text-body text-danger">
               {t('header.searchError')}
             </li>
           )}
           {status === 'success' && matches.length === 0 && (
-            <li className="px-3 py-2 text-sm text-muted">
+            <li className="px-3 py-2 text-body text-muted">
               {t('header.searchNoResults')}
             </li>
           )}
@@ -91,7 +91,7 @@ function TaskSearch({ inputTestId, className }: TaskSearchProps) {
                     });
                     clear();
                   }}
-                  className="w-full truncate px-3 py-2 text-left text-sm text-primary hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none"
+                  className="w-full truncate px-3 py-2 text-left text-body text-primary hover:bg-surface-subtle focus:bg-surface-subtle focus:outline-none"
                 >
                   {match.name}
                 </button>

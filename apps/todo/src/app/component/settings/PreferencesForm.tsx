@@ -132,7 +132,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
           />
           {errors.timezone && (
             <p
-              className="text-danger text-sm"
+              className="text-danger text-body"
               data-testid="settings-timezone-error"
             >
               {t('settings.timezoneInvalid')}
@@ -236,7 +236,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
               />
             )}
           />
-          <p className="text-sm text-muted">
+          <p className="text-body text-muted">
             {t('settings.autoArchiveDescription')}
           </p>
         </div>
@@ -254,7 +254,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
               />
             )}
           />
-          <p className="text-sm text-muted">
+          <p className="text-body text-muted">
             {t('settings.aiConsentDescription')}
           </p>
         </div>
@@ -270,7 +270,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
           </Button>
           {saved && !isSaving && (
             <span
-              className="text-sm text-muted"
+              className="text-body text-muted"
               data-testid="settings-saved-message"
             >
               {t('settings.saved')}
@@ -279,7 +279,7 @@ function PreferencesForm({ preferences, isSaving, onSave }: Props) {
         </div>
         {saveError && (
           <p
-            className="text-danger text-sm md:col-span-2"
+            className="text-danger text-body md:col-span-2"
             data-testid="settings-save-error"
           >
             {t('settings.saveError')}
