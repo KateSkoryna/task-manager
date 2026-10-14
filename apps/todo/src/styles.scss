@@ -20,6 +20,14 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* One focus color everywhere. Elements without their own focus style would
+     otherwise get the browser's default blue ring. Utility classes such as
+     `focus-visible:outline-none` still override this. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-accent));
+    outline-offset: 2px;
+  }
 }
 
 /* The tour popover (driver.js) takes its colors from the theme tokens. */
