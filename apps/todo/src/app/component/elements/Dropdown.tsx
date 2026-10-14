@@ -5,6 +5,7 @@ export interface DropdownOption<T extends string> {
   value: T;
   label: string;
   icon?: React.ReactNode;
+  testId?: string;
 }
 
 type AccessibleName =
@@ -24,6 +25,8 @@ type DropdownProps<T extends string> = AccessibleName & {
   menuClassName?: string;
   optionClassName?: string;
   fixedPosition?: boolean;
+  /** With `fixedPosition`: line the menu up with the trigger's right edge. */
+  alignEnd?: boolean;
   disabled?: boolean;
   'data-testid'?: string;
 };
@@ -42,6 +45,7 @@ function Dropdown<T extends string>({
   menuClassName,
   optionClassName,
   fixedPosition = false,
+  alignEnd = false,
   disabled = false,
   'data-testid': dataTestId,
 }: DropdownProps<T>) {
@@ -53,6 +57,7 @@ function Dropdown<T extends string>({
   const [menuPosition, setMenuPosition] = useState<{
     top: number;
     left: number;
+    right: number;
     width: number;
   } | null>(null);
 
@@ -60,6 +65,7 @@ function Dropdown<T extends string>({
     value: T | null;
     label: string;
     icon?: React.ReactNode;
+    testId?: string;
   }> = nullOption ? [{ value: null, ...nullOption }, ...options] : options;
   const selected = entries.find((entry) => entry.value === value);
 
@@ -69,6 +75,7 @@ function Dropdown<T extends string>({
     setMenuPosition({
       top: rect.bottom + 4,
       left: rect.left,
+      right: window.innerWidth - rect.right,
       width: rect.width,
     });
   };
@@ -137,7 +144,7 @@ function Dropdown<T extends string>({
         tabIndex={disabled ? -1 : undefined}
         className={`${
           className ??
-          'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border-2 border-default bg-surface px-3 py-2 text-primary focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink [&::-webkit-details-marker]:hidden'
+          'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border-2 border-default bg-surface px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent [&::-webkit-details-marker]:hidden'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
         }`}
@@ -167,7 +174,9 @@ function Dropdown<T extends string>({
               ? {
                   position: 'fixed',
                   top: menuPosition.top,
-                  left: menuPosition.left,
+                  ...(alignEnd
+                    ? { right: menuPosition.right }
+                    : { left: menuPosition.left }),
                   minWidth: menuPosition.width,
                 }
               : undefined
@@ -188,6 +197,7 @@ function Dropdown<T extends string>({
                 <button
                   type="button"
                   aria-pressed={isSelected}
+                  data-testid={entry.testId}
                   onClick={() => {
                     onChange(entry.value);
                     close(true);

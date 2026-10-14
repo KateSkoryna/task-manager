@@ -7,14 +7,19 @@
     "reports": "Reports",
     "settings": "Settings",
     "help": "Help",
+    "more": "More",
+    "mobile": "Main navigation",
     "clock": "Current time: {{time}}",
-    "logout": "Logout"
+    "logout": "Logout",
+    "short": {
+      "dashboard": "Dashboard",
+      "vitalTasks": "Vital",
+      "myTasks": "Tasks",
+      "statistics": "Stats"
+    }
   },
   "header": {
     "searchPlaceholder": "Search your task here...",
-    "openMenu": "Open menu",
-    "closeMenu": "Close menu",
-    "menuTitle": "Navigation menu",
     "search": "Search",
     "searchLoading": "Searching your tasks...",
     "searchNoResults": "No matching tasks found",
@@ -160,6 +165,7 @@
     "sortPriority": "Priority",
     "sortStatus": "Status",
     "sortListPriority": "List priority",
+    "moreActions": "More actions",
     "dueToday": "Today",
     "dueTomorrow": "Tomorrow",
     "quickCapturePlaceholder": "TaskPal reads date & priority: \"milk friday\"",
@@ -190,6 +196,7 @@
   },
   "todoList": {
     "addTask": "Add Task",
+    "deleteList": "Delete list",
     "due": "Due:",
     "noTasksBefore": "No tasks yet. Click",
     "noTasksAfter": "to get started!"
@@ -235,6 +242,9 @@
     "dismiss": "Dismiss"
   },
   "settings": {
+    "account": {
+      "title": "Account"
+    },
     "title": "Settings",
     "appearance": {
       "title": "Appearance",
@@ -287,9 +297,6 @@
   },
   "common": {
     "loading": "Loading\u2026"
-  },
-  "footer": {
-    "rights": "© {{year}} Kateryna Skoryna. All rights reserved."
   },
   "agent": {
     "name": "TaskPal",
@@ -441,8 +448,6 @@
   "onboarding": {
     "todayTitle": "This is your Today page",
     "todayDescription": "Everything due today and anything overdue shows up here, along with your Inbox.",
-    "menuTitle": "Open the menu",
-    "menuDescription": "Your pages live in this menu. Press Next and it opens.",
     "tasksTitle": "This is where your tasks live",
     "tasksDescription": "Open My Tasks to see your lists. Tasks without a list go to the Inbox, so lists are optional.",
     "statisticsTitle": "See how you are doing",

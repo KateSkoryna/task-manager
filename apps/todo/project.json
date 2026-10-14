@@ -53,7 +53,9 @@
       },
       "configurations": {
         "development": {
-          "buildTarget": "todo:build:development"
+          "buildTarget": "todo:build:development",
+          "allowedHosts": ".ngrok-free.dev",
+          "proxyConfig": "apps/todo/proxy.conf.json"
         },
         "production": {
           "buildTarget": "todo:build:production",

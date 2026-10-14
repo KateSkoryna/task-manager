@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
-  Archive,
   Trash2,
   ImagePlus,
   Upload,
@@ -236,9 +235,9 @@ export function TodoEditPanel({
 
   const labelClass = 'text-small text-muted font-medium';
   const inputClass =
-    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent-ink focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
+    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
   const dropdownClass =
-    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink [&::-webkit-details-marker]:hidden';
+    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
     'z-50 w-max min-w-[10rem] max-w-[13.75rem] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =
@@ -610,14 +609,10 @@ const STATUS_TEXT_COLORS: Record<string, string> = {
 export function TaskDetailPanel({
   todo,
   list,
-  onDelete,
-  onArchive,
   onStartEdit,
 }: {
   todo: TodoItem;
   list: TodoList | null;
-  onDelete: (id: string) => void;
-  onArchive?: (id: string) => void;
   onStartEdit: () => void;
 }) {
   const { t } = useTranslation();
@@ -638,25 +633,6 @@ export function TaskDetailPanel({
           </div>
 
           <div className="flex flex-col items-end gap-3 shrink-0">
-            {onArchive && (
-              <button
-                onClick={() => onArchive(todo.id)}
-                aria-label={t('tasks.archive')}
-                data-testid={'archive-todo-button-' + todo.id}
-                className="flex items-center justify-center p-1.5 text-muted border border-default rounded-control hover:text-primary hover:border-primary transition-colors shrink-0"
-              >
-                <Archive className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button
-              onClick={() => onDelete(todo.id)}
-              aria-label={t('tasks.delete')}
-              data-testid={'delete-todo-button-' + todo.id}
-              className="flex items-center justify-center p-1.5 text-muted border border-default rounded-control hover:text-danger hover:border-danger transition-colors shrink-0"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-
             {todo.image && (
               <img
                 src={todo.image}

@@ -2,6 +2,7 @@ import { Inbox as InboxIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType } from '@shared/types';
 import TodoItem from './TodoItem';
+import SortableTaskList from './SortableTaskList';
 import { AvailableList } from './MoveToListSelect';
 import QuickCaptureInput from './QuickCaptureInput';
 import Text from '../elements/Text';
@@ -11,11 +12,9 @@ interface InboxSectionProps {
   todos: TodoItemType[];
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItemType) => void;
-  onEditTodo?: (todo: TodoItemType) => void;
-  onDeleteTodo?: (todo: TodoItemType) => void;
   onToggleTodo?: (id: string) => void;
   availableLists?: AvailableList[];
-  onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
+  onReorderTodo?: (activeId: string, overId: string) => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
 }
 
@@ -23,8 +22,6 @@ function InboxSection({
   todos,
   selectedTodoId,
   onSelectTodo,
-  onEditTodo,
-  onDeleteTodo,
   onToggleTodo,
   availableLists,
   onReorderTodo,
@@ -63,34 +60,27 @@ function InboxSection({
             {t('tasks.emptyInbox')}
           </Text>
         ) : (
-          sortedTodos.map((todo, index) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              isSelected={selectedTodoId === todo.id}
-              onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
-              onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
-              onDelete={onDeleteTodo ? () => onDeleteTodo(todo) : undefined}
-              onToggleComplete={
-                onToggleTodo ? () => onToggleTodo(todo.id) : undefined
-              }
-              onMoveUp={
-                onReorderTodo ? () => onReorderTodo(todo.id, 'up') : undefined
-              }
-              onMoveDown={
-                onReorderTodo ? () => onReorderTodo(todo.id, 'down') : undefined
-              }
-              canMoveUp={index > 0}
-              canMoveDown={index < sortedTodos.length - 1}
-              currentListId={null}
-              availableLists={availableLists}
-              onMoveToList={
-                onMoveTodo
-                  ? (todolistId) => onMoveTodo(todo.id, todolistId)
-                  : undefined
-              }
-            />
-          ))
+          <SortableTaskList
+            items={sortedTodos}
+            onReorder={onReorderTodo}
+            renderItem={(todo) => (
+              <TodoItem
+                todo={todo}
+                isSelected={selectedTodoId === todo.id}
+                onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
+                onToggleComplete={
+                  onToggleTodo ? () => onToggleTodo(todo.id) : undefined
+                }
+                currentListId={null}
+                availableLists={availableLists}
+                onMoveToList={
+                  onMoveTodo
+                    ? (todolistId) => onMoveTodo(todo.id, todolistId)
+                    : undefined
+                }
+              />
+            )}
+          />
         )}
       </div>
     </div>

@@ -1,28 +1,15 @@
 import { buildTourSteps } from './tourSteps';
 
-const setMenuOpen = jest.fn();
-const build = () => buildTourSteps((key) => key, setMenuOpen);
-const titles = () => build().map((step) => step.popover?.title);
-
-function showOnScreen(html: string) {
-  document.body.innerHTML = html;
-  // jsdom has no layout, so pretend every element has a box on screen.
-  jest
-    .spyOn(Element.prototype, 'getClientRects')
-    .mockReturnValue([{}] as unknown as DOMRectList);
-}
+const build = () => buildTourSteps((key) => key);
 
 afterEach(() => {
   document.body.innerHTML = '';
   jest.restoreAllMocks();
-  jest.clearAllMocks();
 });
 
 describe('buildTourSteps', () => {
-  it('points at each sidebar link when the sidebar is shown', () => {
-    showOnScreen('<a data-tour="my-tasks-link"></a>');
-
-    expect(titles()).toEqual([
+  it('has the same stops on every screen size', () => {
+    expect(build().map((step) => step.popover?.title)).toEqual([
       'onboarding.todayTitle',
       'onboarding.tasksTitle',
       'onboarding.statisticsTitle',
@@ -32,47 +19,16 @@ describe('buildTourSteps', () => {
     ]);
   });
 
-  it('adds a menu stop on phones, which have a menu button', () => {
-    showOnScreen('<button data-testid="menu-button"></button>');
+  it('points at the first visible match for a stop', () => {
+    document.body.innerHTML =
+      '<a id="hidden" data-tour="my-tasks-link"></a><a id="shown" data-tour="my-tasks-link"></a>';
+    jest
+      .spyOn(Element.prototype, 'getClientRects')
+      .mockImplementation(function (this: Element) {
+        return (this.id === 'shown' ? [{}] : []) as unknown as DOMRectList;
+      });
 
-    expect(titles()).toEqual([
-      'onboarding.todayTitle',
-      'onboarding.menuTitle',
-      'onboarding.tasksTitle',
-      'onboarding.statisticsTitle',
-      'onboarding.settingsTitle',
-      'onboarding.searchTitle',
-      'onboarding.addTitle',
-    ]);
-  });
-
-  it('opens the menu leaving the menu stop and closes it after Settings', () => {
-    showOnScreen('<button data-testid="menu-button"></button>');
-    const steps = build();
-    const driver = { moveNext: jest.fn(), movePrevious: jest.fn() };
-    const opts = { driver } as never;
-    const [, menu, tasks, , settings, search] = steps.map((s) => s.popover);
-
-    menu?.onNextClick?.(undefined, steps[1], opts);
-    expect(setMenuOpen).toHaveBeenLastCalledWith(true);
-    expect(driver.moveNext).toHaveBeenCalledTimes(1);
-
-    tasks?.onPrevClick?.(undefined, steps[2], opts);
-    expect(setMenuOpen).toHaveBeenLastCalledWith(false);
-    expect(driver.movePrevious).toHaveBeenCalledTimes(1);
-
-    settings?.onNextClick?.(undefined, steps[4], opts);
-    expect(setMenuOpen).toHaveBeenLastCalledWith(false);
-
-    search?.onPrevClick?.(undefined, steps[5], opts);
-    expect(setMenuOpen).toHaveBeenLastCalledWith(true);
-  });
-
-  it('never touches the menu between stops that do not need it', () => {
-    showOnScreen('<a data-tour="my-tasks-link"></a>');
-    const steps = build();
-
-    expect(steps.every((s) => !s.popover?.onNextClick)).toBe(true);
-    expect(steps.every((s) => !s.popover?.onPrevClick)).toBe(true);
+    const element = build()[1].element as () => Element;
+    expect(element().id).toBe('shown');
   });
 });

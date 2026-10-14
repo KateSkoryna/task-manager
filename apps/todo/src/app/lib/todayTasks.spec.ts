@@ -39,28 +39,49 @@ describe('selectOverdue', () => {
 });
 
 describe('selectDueToday', () => {
-  it('orders unfinished tasks first, then by priority', () => {
+  it('orders by priority, then by name, whether or not a task is done', () => {
     const result = selectDueToday(
       [
-        todo({ id: 'low', dueDate: TODAY, priority: 'low' }),
+        todo({ id: 'low', name: 'Low', dueDate: TODAY, priority: 'low' }),
         todo({
           id: 'done-high',
+          name: 'Beta',
           dueDate: TODAY,
           priority: 'high',
           status: 'successful',
         }),
-        todo({ id: 'high', dueDate: TODAY, priority: 'high' }),
-        todo({ id: 'medium', dueDate: TODAY, priority: 'medium' }),
-        todo({ id: 'tomorrow', dueDate: '2026-08-20' }),
+        todo({ id: 'high', name: 'Alpha', dueDate: TODAY, priority: 'high' }),
+        todo({
+          id: 'medium',
+          name: 'Medium',
+          dueDate: TODAY,
+          priority: 'medium',
+        }),
+        todo({ id: 'tomorrow', name: 'Later', dueDate: '2026-08-20' }),
       ],
       TODAY
     );
     expect(result.map((t) => t.id)).toEqual([
       'high',
+      'done-high',
       'medium',
       'low',
-      'done-high',
     ]);
+  });
+
+  it('keeps a task in its place when it is marked done', () => {
+    const before = [
+      todo({ id: 'a', name: 'A', dueDate: TODAY, priority: 'high' }),
+      todo({ id: 'b', name: 'B', dueDate: TODAY, priority: 'high' }),
+      todo({ id: 'c', name: 'C', dueDate: TODAY, priority: 'high' }),
+    ];
+    const after = before.map((t) =>
+      t.id === 'a' ? { ...t, status: 'successful' as const } : t
+    );
+
+    expect(selectDueToday(after, TODAY).map((t) => t.id)).toEqual(
+      selectDueToday(before, TODAY).map((t) => t.id)
+    );
   });
 });
 

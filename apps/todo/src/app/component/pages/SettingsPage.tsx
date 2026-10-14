@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { usePreferences } from '../../hooks/usePreferences';
 import ContentSkeleton from '../elements/ContentSkeleton';
 import ErrorFallback from '../elements/ErrorFallback';
+import AccountSection from '../settings/AccountSection';
 import AppearanceSection from '../settings/AppearanceSection';
 import PreferencesForm from '../settings/PreferencesForm';
 
@@ -19,6 +20,7 @@ function SettingsPage() {
 
   return (
     <div className="space-y-4">
+      <AccountSection />
       <AppearanceSection />
       {isLoading && <ContentSkeleton />}
       {!isLoading && isError && (

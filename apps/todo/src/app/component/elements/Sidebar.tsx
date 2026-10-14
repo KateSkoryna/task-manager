@@ -5,7 +5,7 @@ type SidebarProps = {
   className?: string;
 };
 
-/** Persistent tablet/desktop navigation rail. Hidden on mobile — see MobileDrawer. */
+/** Persistent tablet/desktop navigation rail. Hidden on mobile, where BottomNav is used. */
 function Sidebar({ className }: SidebarProps) {
   return (
     <div

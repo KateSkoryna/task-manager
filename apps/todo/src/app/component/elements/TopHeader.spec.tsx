@@ -173,16 +173,8 @@ describe('TopHeader brand', () => {
     mockPathname = '/';
   });
 
-  it('shows the current page title', () => {
+  it('always shows the app name as the title', () => {
     mockPathname = '/tasks';
-    render(<TopHeader />);
-    expect(
-      screen.getByRole('heading', { name: 'nav.myTasks' })
-    ).toBeInTheDocument();
-  });
-
-  it('falls back to the app name on an unknown page', () => {
-    mockPathname = '/nowhere';
     render(<TopHeader />);
     expect(
       screen.getByRole('heading', { name: 'TaskPal' })

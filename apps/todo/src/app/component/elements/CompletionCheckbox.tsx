@@ -28,7 +28,7 @@ function CompletionCheckbox({
       }}
       onKeyDown={(event) => event.stopPropagation()}
       className={mergeClassNames(
-        'flex h-5 w-5 shrink-0 items-center justify-center rounded-control border-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg',
+        "relative flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors before:absolute before:-inset-3 before:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg",
         completed
           ? 'border-status-complete bg-status-complete'
           : 'border-muted hover:border-primary'

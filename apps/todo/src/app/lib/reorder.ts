@@ -8,22 +8,23 @@ export function sortByOrder<T extends { order: number; id: string }>(
   );
 }
 
-/** Moves a todo by one position and returns every changed order to persist. */
-export function computeReorder(
+/**
+ * Moves a todo to the position of another one and returns every changed
+ * order to persist.
+ */
+export function computeMove(
   items: TodoItem[],
-  id: string,
-  direction: 'up' | 'down'
+  activeId: string,
+  overId: string
 ): { id: string; order: number }[] {
   const sorted = sortByOrder(items);
-  const index = sorted.findIndex((item) => item.id === id);
-  if (index === -1) return [];
-
-  const swapIndex = direction === 'up' ? index - 1 : index + 1;
-  if (swapIndex < 0 || swapIndex >= sorted.length) return [];
+  const from = sorted.findIndex((item) => item.id === activeId);
+  const to = sorted.findIndex((item) => item.id === overId);
+  if (from === -1 || to === -1 || from === to) return [];
 
   const reordered = [...sorted];
-  const [moved] = reordered.splice(index, 1);
-  reordered.splice(swapIndex, 0, moved);
+  const [moved] = reordered.splice(from, 1);
+  reordered.splice(to, 0, moved);
 
   return reordered.flatMap((item, order) =>
     item.order === order ? [] : [{ id: item.id, order }]

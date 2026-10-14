@@ -34,7 +34,10 @@ export function selectOverdue<T extends TodoItem>(
     .sort((a, b) => (dueDay(a) ?? '').localeCompare(dueDay(b) ?? ''));
 }
 
-/** Tasks due on `todayStr`: unfinished first, then by priority. */
+/**
+ * Tasks due on `todayStr`, by priority and then by name. Finishing a task
+ * does not change its place, so rows never move under a tap.
+ */
 export function selectDueToday<T extends TodoItem>(
   todos: T[],
   todayStr: string
@@ -43,8 +46,8 @@ export function selectDueToday<T extends TodoItem>(
     .filter((todo) => dueDay(todo) === todayStr)
     .sort(
       (a, b) =>
-        Number(isCompleted(a)) - Number(isCompleted(b)) ||
-        PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
+        PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] ||
+        a.name.localeCompare(b.name)
     );
 }
 

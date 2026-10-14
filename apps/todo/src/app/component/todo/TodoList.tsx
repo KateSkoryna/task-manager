@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoList as TodoListType,
@@ -7,6 +7,8 @@ import {
   UpdateTodoList,
 } from '@shared/types';
 import TodoItem from './TodoItem';
+import ListActionsMenu from './ListActionsMenu';
+import SortableTaskList from './SortableTaskList';
 import { AvailableList } from './MoveToListSelect';
 import TodoForm from './TodoForm';
 import TodoListForm, { TodoListFormOpts } from './TodoListForm';
@@ -30,12 +32,10 @@ interface TodoListProps {
   onEditList?: (id: string, updates: UpdateTodoList) => void;
   selectedTodoId?: string | null;
   onSelectTodo?: (todo: TodoItemType) => void;
-  onEditTodo?: (todo: TodoItemType) => void;
-  onDeleteTodo?: (todo: TodoItemType) => void;
   onToggleTodo?: (id: string) => void;
   dataTestId?: string;
   availableLists?: AvailableList[];
-  onReorderTodo?: (id: string, direction: 'up' | 'down') => void;
+  onReorderTodo?: (activeId: string, overId: string) => void;
   onMoveTodo?: (id: string, todolistId: string | null) => void;
 }
 
@@ -52,8 +52,6 @@ function TodoList({
   onEditList,
   selectedTodoId,
   onSelectTodo,
-  onEditTodo,
-  onDeleteTodo,
   onToggleTodo,
   dataTestId,
   availableLists,
@@ -126,35 +124,17 @@ function TodoList({
           </div>
 
           <div className="ml-auto flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => {
+            <ListActionsMenu
+              listId={todoList.id}
+              onAddTask={() => {
                 if (!isExpanded) setListExpanded(todoList.id, true);
                 setShowAddForm((v) => !v);
               }}
-              aria-label={t('todoList.addTask')}
-              className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-control transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-            {onEditList && (
-              <button
-                onClick={() => setShowEditForm((v) => !v)}
-                aria-label={t('todoListForm.editList')}
-                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-control transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-            )}
-            {!todoList.isDefault && (
-              <button
-                onClick={() => onDeleteList(todoList.id)}
-                className="flex items-center justify-center p-1.5 text-muted border border-muted/50 rounded-control transition-colors shrink-0 hover:text-priority-high-bg hover:border-priority-high-bg focus-visible:text-priority-high-bg focus-visible:border-priority-high-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
-                aria-label="Delete list"
-                data-testid="todolist-item-delete-button"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
+              onEdit={onEditList ? () => setShowEditForm((v) => !v) : undefined}
+              onDelete={
+                todoList.isDefault ? undefined : () => onDeleteList(todoList.id)
+              }
+            />
           </div>
         </div>
 
@@ -211,36 +191,27 @@ function TodoList({
               {t('todoList.noTasksAfter')}
             </Text>
           ) : (
-            sortedTodos.map((todo, index) => (
-              <TodoItem
-                key={todo.id}
-                todo={todo}
-                isSelected={selectedTodoId === todo.id}
-                onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
-                onEdit={onEditTodo ? () => onEditTodo(todo) : undefined}
-                onDelete={onDeleteTodo ? () => onDeleteTodo(todo) : undefined}
-                onToggleComplete={
-                  onToggleTodo ? () => onToggleTodo(todo.id) : undefined
-                }
-                onMoveUp={
-                  onReorderTodo ? () => onReorderTodo(todo.id, 'up') : undefined
-                }
-                onMoveDown={
-                  onReorderTodo
-                    ? () => onReorderTodo(todo.id, 'down')
-                    : undefined
-                }
-                canMoveUp={index > 0}
-                canMoveDown={index < sortedTodos.length - 1}
-                currentListId={todoList.id}
-                availableLists={availableLists}
-                onMoveToList={
-                  onMoveTodo
-                    ? (todolistId) => onMoveTodo(todo.id, todolistId)
-                    : undefined
-                }
-              />
-            ))
+            <SortableTaskList
+              items={sortedTodos}
+              onReorder={onReorderTodo}
+              renderItem={(todo) => (
+                <TodoItem
+                  todo={todo}
+                  isSelected={selectedTodoId === todo.id}
+                  onSelect={onSelectTodo ? () => onSelectTodo(todo) : undefined}
+                  onToggleComplete={
+                    onToggleTodo ? () => onToggleTodo(todo.id) : undefined
+                  }
+                  currentListId={todoList.id}
+                  availableLists={availableLists}
+                  onMoveToList={
+                    onMoveTodo
+                      ? (todolistId) => onMoveTodo(todo.id, todolistId)
+                      : undefined
+                  }
+                />
+              )}
+            />
           )}
         </div>
       )}

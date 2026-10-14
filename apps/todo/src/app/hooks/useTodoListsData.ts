@@ -7,6 +7,7 @@ import {
   useToggleTodoMutation,
   useDeleteTodoMutation,
   useEditTodoMutation,
+  useReorderTodosMutation,
   useTodoListsQuery,
   useInboxTodosQuery,
   useAddInboxTodoMutation,
@@ -59,6 +60,7 @@ export const useTodoListsData = () => {
   const toggleTodoMutation = useToggleTodoMutation();
   const deleteTodoMutation = useDeleteTodoMutation();
   const editTodoMutation = useEditTodoMutation();
+  const reorderTodosMutation = useReorderTodosMutation();
 
   const findTodo = (id: string) =>
     allLists
@@ -144,6 +146,10 @@ export const useTodoListsData = () => {
     );
   };
 
+  const handleReorderTodos = (updates: { id: string; order: number }[]) => {
+    if (updates.length > 0) reorderTodosMutation.mutate(updates);
+  };
+
   const handleArchiveTodo = (id: string) => {
     editTodoMutation.mutate({ id, ...archiveUpdate() });
   };
@@ -169,6 +175,7 @@ export const useTodoListsData = () => {
     handleToggleTodo,
     handleDeleteTodo,
     handleEditTodo,
+    handleReorderTodos,
     handleArchiveTodo,
     handleRestoreTodo,
     createListMutationIsPending: createListMutation.isPending,

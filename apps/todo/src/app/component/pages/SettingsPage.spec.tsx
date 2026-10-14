@@ -18,6 +18,18 @@ const usePreferences = jest.fn();
 const updatePreferences = jest.fn();
 const refetch = jest.fn();
 
+jest.mock('../../store/authStore', () => ({
+  useAuthStore: (selector: (state: { user: unknown }) => unknown) =>
+    selector({
+      user: {
+        displayName: 'Ada Lovelace',
+        email: 'ada@example.com',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+      },
+    }),
+}));
+
 jest.mock('../../hooks/usePreferences', () => ({
   usePreferences: () => usePreferences(),
 }));

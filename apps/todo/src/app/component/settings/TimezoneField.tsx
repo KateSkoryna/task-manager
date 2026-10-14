@@ -131,8 +131,8 @@ function TimezoneField({
         autoComplete="off"
         data-testid={dataTestId}
         className={mergeClassNames(
-          'w-full rounded-inner border-2 bg-surface-subtle px-3 py-2 pr-8 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent-ink',
-          invalid ? 'border-danger' : 'border-default focus:border-accent-ink'
+          'w-full rounded-inner border-2 bg-surface-subtle px-3 py-2 pr-8 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent',
+          invalid ? 'border-danger' : 'border-default focus:border-accent'
         )}
       />
       <button

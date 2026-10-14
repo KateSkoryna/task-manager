@@ -272,6 +272,62 @@ export const invalidateTodoCaches = (
   queryClient.invalidateQueries({ queryKey: ['inboxTodos', userId] });
 };
 
+type OrderUpdate = { id: string; order: number };
+
+/**
+ * Saves a new task order. The lists change on screen at once, the saves run
+ * together, and the screen goes back only if one of them fails. Without this
+ * the dropped task jumps back until the server answers.
+ */
+export const useReorderTodosMutation = () => {
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const listsKey = ['todoLists', user?.id];
+  const inboxKey = ['inboxTodos', user?.id];
+
+  return useMutation<
+    unknown,
+    Error,
+    OrderUpdate[],
+    { lists?: TodoListType[]; inbox?: TodoItemType[] }
+  >({
+    mutationFn: (updates) =>
+      Promise.all(
+        updates.map(({ id, order }) =>
+          updateTodoFetcher(id, user!.id, { order })
+        )
+      ),
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: listsKey });
+      await queryClient.cancelQueries({ queryKey: inboxKey });
+      const lists = queryClient.getQueryData<TodoListType[]>(listsKey);
+      const inbox = queryClient.getQueryData<TodoItemType[]>(inboxKey);
+      const orders = new Map(updates.map(({ id, order }) => [id, order]));
+      const withOrder = (todo: TodoItemType): TodoItemType =>
+        orders.has(todo.id) ? { ...todo, order: orders.get(todo.id)! } : todo;
+      queryClient.setQueryData<TodoListType[]>(
+        listsKey,
+        (current: TodoListType[] | undefined) =>
+          current?.map((list: TodoListType) => ({
+            ...list,
+            todos: list.todos.map(withOrder),
+          }))
+      );
+      queryClient.setQueryData<TodoItemType[]>(
+        inboxKey,
+        (current: TodoItemType[] | undefined) => current?.map(withOrder)
+      );
+      return { lists, inbox };
+    },
+    onError: (err, _updates, previous) => {
+      console.error('Error reordering todos:', err);
+      queryClient.setQueryData(listsKey, previous?.lists);
+      queryClient.setQueryData(inboxKey, previous?.inbox);
+    },
+    onSettled: () => invalidateTodoCaches(queryClient, user?.id),
+  });
+};
+
 export const useToggleTodoMutation = () => {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
