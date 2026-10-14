@@ -235,9 +235,9 @@ export function TodoEditPanel({
 
   const labelClass = 'text-small text-muted font-medium';
   const inputClass =
-    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent-ink focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
+    'w-full px-2 py-2 rounded-inner border border-default focus:border-accent focus:outline-none bg-surface-subtle text-primary text-control md:text-body';
   const dropdownClass =
-    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink [&::-webkit-details-marker]:hidden';
+    'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border border-default bg-surface px-2 py-2 text-body text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent [&::-webkit-details-marker]:hidden';
   const dropdownMenuClass =
     'z-50 w-max min-w-[10rem] max-w-[13.75rem] list-none overflow-hidden rounded-inner border border-default bg-surface p-0 shadow-menu';
   const actionBtnClass =

@@ -144,7 +144,7 @@ function Dropdown<T extends string>({
         tabIndex={disabled ? -1 : undefined}
         className={`${
           className ??
-          'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border-2 border-default bg-surface px-3 py-2 text-primary focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink [&::-webkit-details-marker]:hidden'
+          'flex w-full cursor-pointer list-none items-center justify-between rounded-inner border-2 border-default bg-surface px-3 py-2 text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent [&::-webkit-details-marker]:hidden'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
         }`}

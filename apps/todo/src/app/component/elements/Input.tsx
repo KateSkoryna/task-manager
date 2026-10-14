@@ -24,9 +24,9 @@ type InputProps = {
 // Used only when a caller omits className; callers supplying their own
 // className keep full control, unchanged from before.
 const DEFAULT_INPUT_CLASSES =
-  'w-full rounded-inner border border-default bg-surface-subtle px-3 py-2 text-control md:text-body text-primary placeholder:text-muted focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-not-allowed read-only:opacity-60';
+  'w-full rounded-inner border border-default bg-surface-subtle px-3 py-2 text-control md:text-body text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-not-allowed read-only:opacity-60';
 const INVALID_INPUT_CLASSES =
-  'border-danger focus:border-danger focus:ring-danger';
+  'border-danger focus:border-danger focus:ring-inset focus:ring-danger';
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (

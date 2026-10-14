@@ -168,7 +168,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
                 type="text"
                 {...register('location')}
                 placeholder={t('todoForm.locationPlaceholder')}
-                className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink"
+                className="flex-1 rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent"
                 data-testid="todo-form-location"
               />
             </div>
@@ -185,7 +185,7 @@ const TodoForm: React.FC<FormProps> = ({ onAddTodo }) => {
               {...register('notes')}
               placeholder={t('todoForm.notesPlaceholder')}
               rows={2}
-              className="flex-1 resize-none rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent-ink focus:outline-none focus:ring-2 focus:ring-accent-ink"
+              className="flex-1 resize-none rounded-inner border border-default bg-surface-subtle px-3 py-2 text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent"
               data-testid="todo-form-notes"
             />
           </div>
