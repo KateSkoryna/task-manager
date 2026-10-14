@@ -44,7 +44,9 @@ function BottomNav() {
             }
           >
             <Icon className="size-5" />
-            <span className="max-w-full truncate px-0.5">{t(labelKey)}</span>
+            <span className="max-w-full truncate px-0.5">
+              {t(labelKey.replace('nav.', 'nav.short.'))}
+            </span>
           </NavLink>
         ))}
         <button

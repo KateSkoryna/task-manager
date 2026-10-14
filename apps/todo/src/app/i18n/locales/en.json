@@ -10,7 +10,13 @@
     "more": "More",
     "mobile": "Main navigation",
     "clock": "Current time: {{time}}",
-    "logout": "Logout"
+    "logout": "Logout",
+    "short": {
+      "dashboard": "Dashboard",
+      "vitalTasks": "Vital",
+      "myTasks": "Tasks",
+      "statistics": "Stats"
+    }
   },
   "header": {
     "searchPlaceholder": "Search your task here...",

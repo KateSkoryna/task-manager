@@ -10,7 +10,13 @@
     "more": "Ще",
     "mobile": "Головна навігація",
     "clock": "Поточний час: {{time}}",
-    "logout": "Вийти"
+    "logout": "Вийти",
+    "short": {
+      "dashboard": "Дошка",
+      "vitalTasks": "Важливі",
+      "myTasks": "Завдання",
+      "statistics": "Статистика"
+    }
   },
   "header": {
     "searchPlaceholder": "Шукайте завдання тут...",

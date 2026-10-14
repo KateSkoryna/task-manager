@@ -10,7 +10,13 @@
     "more": "Mehr",
     "mobile": "Hauptnavigation",
     "clock": "Aktuelle Uhrzeit: {{time}}",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "short": {
+      "dashboard": "Dashboard",
+      "vitalTasks": "Wichtig",
+      "myTasks": "Aufgaben",
+      "statistics": "Statistik"
+    }
   },
   "header": {
     "searchPlaceholder": "Suchen Sie hier Ihre Aufgabe...",

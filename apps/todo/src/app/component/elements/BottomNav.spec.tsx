@@ -30,12 +30,11 @@ describe('BottomNav', () => {
 
   test('marks the current page', () => {
     renderAt('/tasks');
-    expect(screen.getByRole('link', { name: 'nav.myTasks' })).toHaveAttribute(
-      'aria-current',
-      'page'
-    );
     expect(
-      screen.getByRole('link', { name: 'nav.dashboard' })
+      screen.getByRole('link', { name: 'nav.short.myTasks' })
+    ).toHaveAttribute('aria-current', 'page');
+    expect(
+      screen.getByRole('link', { name: 'nav.short.dashboard' })
     ).not.toHaveAttribute('aria-current');
   });
 
