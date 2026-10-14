@@ -1,4 +1,14 @@
 import './app/i18n/i18n';
+import '@fontsource/dm-sans/latin-400.css';
+import '@fontsource/dm-sans/latin-500.css';
+import '@fontsource/dm-sans/latin-700.css';
+import '@fontsource/dm-sans/latin-ext-400.css';
+import '@fontsource/dm-sans/latin-ext-500.css';
+import '@fontsource/dm-sans/latin-ext-700.css';
+import '@fontsource/dm-mono/latin-400.css';
+import '@fontsource/dm-mono/latin-500.css';
+import '@fontsource/dm-mono/latin-ext-400.css';
+import '@fontsource/dm-mono/latin-ext-500.css';
 import { StrictMode, ReactElement, Suspense, lazy, useEffect } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
