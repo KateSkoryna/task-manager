@@ -1,12 +1,11 @@
 import { CSSProperties, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '../../store/notificationStore';
 import { mergeClassNames } from '../../lib/classNames';
 import { moveOptionFocus } from '../../lib/listboxKeys';
 import { resolveLocale } from '../../lib/locale';
-import { NAV_ITEMS } from '../../lib/navItems';
 import AppLogo from './AppLogo';
 import IconButton from './IconButton';
 import TaskSearch from './TaskSearch';
@@ -68,11 +67,6 @@ function TopHeader({ className }: TopHeaderProps) {
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [isNotificationsOpen]);
 
-  const { pathname } = useLocation();
-  const currentItem = NAV_ITEMS.find(({ to, end }) =>
-    end ? pathname === to : pathname.startsWith(to)
-  );
-  const pageTitle = currentItem ? t(currentItem.labelKey) : APP_NAME;
   const locale = resolveLocale(i18n.language);
   const headerDate = formatHeaderDate(new Date(), locale);
 
@@ -87,7 +81,7 @@ function TopHeader({ className }: TopHeaderProps) {
       <AppLogo className="size-10" />
       <div className="min-w-0">
         <h2 className="truncate text-title-mobile font-bold tracking-heading text-primary md:text-title-tablet lg:text-title-desktop">
-          {pageTitle}
+          {APP_NAME}
         </h2>
         <p className="truncate font-mono text-small text-muted">{headerDate}</p>
       </div>
