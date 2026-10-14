@@ -148,7 +148,7 @@ function TodayTaskBlock<T extends TodoItem>({
         <PageArrows page={page} pageCount={pageCount} onChange={setPage} />
       </div>
       {items.length === 0 ? (
-        <p className="text-body text-muted/60">{emptyMessage}</p>
+        <p className="text-body text-muted">{emptyMessage}</p>
       ) : (
         // Side padding leaves room for the hover scale. There is none top or
         // bottom, so the measured height is exactly the space rows can use;
