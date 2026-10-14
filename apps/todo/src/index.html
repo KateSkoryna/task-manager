@@ -13,10 +13,19 @@
 
     <script>
       // Applies the saved theme before first paint to avoid a flash of the
-      // wrong theme. The storage key must match STORAGE_KEY in useTheme.ts.
+      // wrong theme. Without a saved choice it follows the device's setting.
+      // The storage key must match STORAGE_KEY in useTheme.ts.
       (function () {
         var saved = localStorage.getItem('todo-theme');
-        var theme = saved === 'dark' ? 'dark' : 'light';
+        var prefersDark =
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme =
+          saved === 'dark' || saved === 'light'
+            ? saved
+            : prefersDark
+            ? 'dark'
+            : 'light';
         document.documentElement.setAttribute('data-theme', theme);
       })();
     </script>
