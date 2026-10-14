@@ -26,7 +26,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onClose }) => {
         onClick={onClose}
         aria-label={t('agent.close')}
         data-testid="chat-panel-close"
-        className="flex size-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-surface-subtle hover:text-primary focus-visible:bg-surface-subtle focus-visible:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-priority-high-bg"
+        className="flex size-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-surface-subtle hover:text-primary focus-visible:bg-surface-subtle focus-visible:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         <X className="h-4 w-4" />
       </button>
