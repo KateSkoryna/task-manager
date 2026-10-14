@@ -14,7 +14,6 @@
         "index": "apps/todo/src/index.html",
         "baseHref": "/",
         "main": "apps/todo/src/main.tsx",
-        "polyfills": "apps/todo/src/polyfills.ts",
         "tsConfig": "apps/todo/tsconfig.app.json",
         "assets": ["apps/todo/src/favicon.ico", "apps/todo/src/assets"],
         "styles": ["apps/todo/src/styles.scss"],
