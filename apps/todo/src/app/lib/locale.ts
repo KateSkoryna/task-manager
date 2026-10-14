@@ -1,4 +1,4 @@
-export const LOCALE_MAP: Record<string, string> = {
+const LOCALE_MAP: Record<string, string> = {
   en: 'en-US',
   de: 'de-DE',
   uk: 'uk-UA',

@@ -11,12 +11,6 @@ function hexToRgbChannels(hex) {
   return `${r} ${g} ${b}`;
 }
 
-/** '0.875rem 1rem' -> { y: '0.875rem', x: '1rem' } */
-function parsePadding(shorthand) {
-  const [y, x] = shorthand.split(' ');
-  return { y, x };
-}
-
 // Semantic color name -> token key. Values are hex and get split into RGB
 // channels so Tailwind's rgb(var(--x) / <alpha-value>) opacity modifiers work.
 const CHANNEL_COLOR_TOKENS = {
@@ -33,12 +27,8 @@ const CHANNEL_COLOR_TOKENS = {
   'on-accent': 'accentText',
   action: 'action',
   'on-action': 'actionText',
-  'surface-selected': 'surfaceSelected',
   'accent-ink': 'accentInk',
   'priority-high-bg': 'priorityHighBg',
-  'priority-high-text': 'priorityHighText',
-  'priority-medium-bg': 'priorityMediumBg',
-  'priority-medium-text': 'priorityMediumText',
   'priority-low': 'priorityLow',
   'status-complete': 'statusComplete',
   'status-progress': 'statusProgress',
@@ -56,7 +46,6 @@ const PASSTHROUGH_COLOR_TOKENS = {
 
 const SHADOW_TOKENS = {
   card: { light: 'cardLight', dark: 'cardDark' },
-  selected: { light: 'selectedLight', dark: 'selectedDark' },
   menu: { light: 'menuLight', dark: 'menuDark' },
 };
 
@@ -70,10 +59,6 @@ const semanticColors = Object.fromEntries(
       ])
     )
 );
-
-const desktopHeaderPadding = parsePadding(tokens.layout.desktop.headerPadding);
-const tabletHeaderPadding = parsePadding(tokens.layout.tablet.headerPadding);
-const mobileHeaderPadding = parsePadding(tokens.layout.mobile.headerPadding);
 
 /** Emits :root and [data-theme='dark'] custom properties from tokens.color. */
 const themeVariablesPlugin = plugin(({ addBase }) => {
@@ -120,12 +105,7 @@ module.exports = {
         'title-mobile': tokens.type.title.mobile,
         'title-tablet': tokens.type.title.tablet,
         'title-desktop': tokens.type.title.desktop,
-        'section-mobile': tokens.type.section.mobile,
-        'section-tablet': tokens.type.section.tablet,
-        'section-desktop': tokens.type.section.desktop,
         'card-mobile': tokens.type.card.mobile,
-        'card-tablet': tokens.type.card.tablet,
-        'card-desktop': tokens.type.card.desktop,
         body: tokens.type.body,
         small: tokens.type.small,
         metadata: tokens.type.metadata,
@@ -145,22 +125,12 @@ module.exports = {
       // value — these must not add another offset/blur wrapper around them.
       boxShadow: {
         card: 'var(--shadow-card)',
-        selected: 'var(--shadow-selected)',
         menu: 'var(--shadow-menu)',
       },
       spacing: {
         'content-mobile': tokens.layout.mobile.contentPadding,
         'content-tablet': tokens.layout.tablet.contentPadding,
         'content-desktop': tokens.layout.desktop.contentPadding,
-        'section-gap-mobile': tokens.layout.mobile.sectionGap,
-        'section-gap-tablet': tokens.layout.tablet.sectionGap,
-        'section-gap-desktop': tokens.layout.desktop.sectionGap,
-        'header-y-mobile': mobileHeaderPadding.y,
-        'header-x-mobile': mobileHeaderPadding.x,
-        'header-y-tablet': tabletHeaderPadding.y,
-        'header-x-tablet': tabletHeaderPadding.x,
-        'header-y-desktop': desktopHeaderPadding.y,
-        'header-x-desktop': desktopHeaderPadding.x,
         'badge-y': tokens.component.badgePaddingY,
         'badge-x': tokens.component.badgePaddingX,
         'touch-target-inset': tokens.component.touchTargetInset,
@@ -168,20 +138,12 @@ module.exports = {
       width: {
         'sidebar-tablet': tokens.layout.tablet.sidebarWidth,
         'sidebar-desktop': tokens.layout.desktop.sidebarWidth,
-        drawer: tokens.layout.drawerWidth,
         'search-desktop': tokens.layout.desktop.searchWidth,
-        'weekday-cell': tokens.size.weekdayCellWidth,
-      },
-      height: {
-        'weekday-cell': tokens.size.weekdayCellHeight,
       },
       size: {
         'header-action': tokens.size.headerIconButton,
         'menu-button': tokens.size.mobileMenuButton,
         avatar: tokens.size.avatar,
-        'avatar-drawer': tokens.size.drawerAvatar,
-        'ring-sm': tokens.size.progressRingSmall,
-        'ring-lg': tokens.size.progressRingLarge,
       },
       // Color-only animation for a busy control whose label doesn't change —
       // no size/position properties, so it never causes layout shift.

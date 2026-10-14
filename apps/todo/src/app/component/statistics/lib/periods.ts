@@ -118,6 +118,3 @@ export function bucketsFor(period: Period): Bucket[] {
   }
   return buckets;
 }
-
-export const dayjsInPeriodZone = (value: DateInput, period: Period) =>
-  inZone(value, period.zone);

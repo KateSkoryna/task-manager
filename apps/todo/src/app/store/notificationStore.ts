@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { generateId } from '../lib/id';
 
-export interface AppNotification {
+interface AppNotification {
   id: string;
   reportId: string;
   message: string;

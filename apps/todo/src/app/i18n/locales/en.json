@@ -100,7 +100,6 @@
     "addList": "Add list",
     "listCreateFailed": "Could not create the list. Please try again.",
     "inboxNoListSettings": "The Inbox has no list settings. Pick a list to set them.",
-    "myTasks": "My Tasks",
     "newList": "New List",
     "selectTask": "Select a task to view details",
     "editTask": "Edit Task",
@@ -114,7 +113,6 @@
     "locationPlaceholder": "Optional location...",
     "notes": "Notes:",
     "notesPlaceholder": "Optional notes...",
-    "listName": "List name:",
     "taskPriority": "Priority:",
     "listPriority": "List priority:",
     "category": "Category:",
@@ -142,8 +140,6 @@
     "inbox": "Inbox",
     "emptyInbox": "Inbox is empty.",
     "emptyFlatView": "No tasks yet.",
-    "moveUp": "Move up",
-    "moveDown": "Move down",
     "backToList": "Back to list",
     "moveToList": "Move to list",
     "viewMode": "View mode",
@@ -245,7 +241,6 @@
     "account": {
       "title": "Account"
     },
-    "title": "Settings",
     "appearance": {
       "title": "Appearance",
       "theme": "Theme",
@@ -284,7 +279,6 @@
     "loadError": "Failed to load your preferences."
   },
   "help": {
-    "title": "Help",
     "tour": {
       "title": "Welcome tour",
       "description": "Take the short tour of the Today page again.",
@@ -294,9 +288,6 @@
   "error": {
     "title": "Something went wrong!",
     "tryAgain": "Try again"
-  },
-  "common": {
-    "loading": "Loading\u2026"
   },
   "agent": {
     "name": "TaskPal",

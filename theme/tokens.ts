@@ -17,12 +17,8 @@ export interface ColorTokens {
   accentText: string;
   action: string;
   actionText: string;
-  surfaceSelected: string;
   accentInk: string;
   priorityHighBg: string;
-  priorityHighText: string;
-  priorityMediumBg: string;
-  priorityMediumText: string;
   priorityLow: string;
   statusComplete: string;
   statusProgress: string;
@@ -44,46 +40,31 @@ export interface Tokens {
   shadow: {
     cardLight: string;
     cardDark: string;
-    selectedLight: string;
-    selectedDark: string;
     menuLight: string;
     menuDark: string;
   };
   layout: {
     mobile: {
       contentPadding: string;
-      headerPadding: string;
-      sectionGap: string;
     };
     tablet: {
       contentPadding: string;
-      headerPadding: string;
-      sectionGap: string;
       sidebarWidth: string;
     };
     desktop: {
       contentPadding: string;
-      headerPadding: string;
-      sectionGap: string;
       sidebarWidth: string;
       searchWidth: string;
     };
-    drawerWidth: string;
   };
   size: {
     headerIconButton: string;
     mobileMenuButton: string;
     avatar: string;
-    drawerAvatar: string;
-    weekdayCellWidth: string;
-    weekdayCellHeight: string;
-    progressRingSmall: string;
-    progressRingLarge: string;
   };
   type: {
     title: { mobile: string; tablet: string; desktop: string };
-    section: { mobile: string; tablet: string; desktop: string };
-    card: { mobile: string; tablet: string; desktop: string };
+    card: { mobile: string };
     body: string;
     small: string;
     metadata: string;

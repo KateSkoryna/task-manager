@@ -47,7 +47,7 @@ export function agingBuckets(
   return labels.map((label) => ({ label, count: counts.get(label) ?? 0 }));
 }
 
-export interface OldestTask {
+interface OldestTask {
   id: string;
   name: string;
   ageDays: number;

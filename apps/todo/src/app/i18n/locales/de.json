@@ -100,7 +100,6 @@
     "addList": "Liste hinzufügen",
     "listCreateFailed": "Die Liste konnte nicht erstellt werden. Bitte versuche es erneut.",
     "inboxNoListSettings": "Der Posteingang hat keine Listeneinstellungen. Wähle eine Liste, um sie festzulegen.",
-    "myTasks": "Meine Aufgaben",
     "newList": "Neue Liste",
     "selectTask": "Aufgabe wählen, um Details anzuzeigen",
     "editTask": "Aufgabe bearbeiten",
@@ -114,7 +113,6 @@
     "locationPlaceholder": "Optionaler Ort...",
     "notes": "Notizen:",
     "notesPlaceholder": "Optionale Notizen...",
-    "listName": "Listenname:",
     "taskPriority": "Priorität:",
     "listPriority": "Listenpriorität:",
     "category": "Kategorie:",
@@ -142,8 +140,6 @@
     "inbox": "Posteingang",
     "emptyInbox": "Der Posteingang ist leer.",
     "emptyFlatView": "Noch keine Aufgaben.",
-    "moveUp": "Nach oben verschieben",
-    "moveDown": "Nach unten verschieben",
     "backToList": "Zurück zur Liste",
     "moveToList": "Zu Liste verschieben",
     "viewMode": "Ansicht",
@@ -245,7 +241,6 @@
     "account": {
       "title": "Konto"
     },
-    "title": "Einstellungen",
     "appearance": {
       "title": "Erscheinungsbild",
       "theme": "Design",
@@ -284,7 +279,6 @@
     "loadError": "Deine Einstellungen konnten nicht geladen werden."
   },
   "help": {
-    "title": "Hilfe",
     "tour": {
       "title": "Willkommenstour",
       "description": "Mach die kurze Tour durch die Heute-Seite noch einmal.",
@@ -294,9 +288,6 @@
   "error": {
     "title": "Etwas ist schiefgelaufen!",
     "tryAgain": "Erneut versuchen"
-  },
-  "common": {
-    "loading": "Wird geladen..."
   },
   "agent": {
     "name": "TaskPal",
