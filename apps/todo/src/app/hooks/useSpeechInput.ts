@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type SpeechInputError = 'permission-denied' | 'no-speech' | 'unknown';
+type SpeechInputError = 'permission-denied' | 'no-speech' | 'unknown';
 
 interface UseSpeechInputResult {
   isSupported: boolean;

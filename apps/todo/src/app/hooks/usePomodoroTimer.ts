@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
 export type PomodoroPhase = 'work' | 'break';
-export type PomodoroStatus = 'idle' | 'running' | 'paused';
+type PomodoroStatus = 'idle' | 'running' | 'paused';
 
-export const DEFAULT_WORK_MINUTES = 25;
+const DEFAULT_WORK_MINUTES = 25;
 export const WORK_SECONDS = DEFAULT_WORK_MINUTES * 60;
 export const BREAK_SECONDS = 5 * 60;
 

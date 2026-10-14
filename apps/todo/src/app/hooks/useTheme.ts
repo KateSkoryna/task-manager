@@ -17,7 +17,7 @@ interface ThemeState {
 }
 
 /** Single source of truth for the light/dark theme, backed by localStorage. */
-export const useThemeStore = create<ThemeState>((set) => ({
+const useThemeStore = create<ThemeState>((set) => ({
   theme: readAppliedTheme(),
   setTheme: (theme) => {
     document.documentElement.setAttribute('data-theme', theme);

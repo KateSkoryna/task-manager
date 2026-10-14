@@ -1,6 +1,6 @@
 import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
 
-export interface PeriodSelectorOption<T extends string> {
+interface PeriodSelectorOption<T extends string> {
   label: string;
   value: T;
   icon?: ReactNode;

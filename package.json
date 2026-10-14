@@ -115,7 +115,6 @@
     "jest": "30.5.2",
     "jest-environment-jsdom": "29.4.3",
     "mongodb-memory-server": "^11.3.0",
-    "msw": "^2.15.0",
     "nx": "17.2.8",
     "postcss": "^8.5.28",
     "prettier": "2.8.4",

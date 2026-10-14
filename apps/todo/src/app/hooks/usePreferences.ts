@@ -6,7 +6,7 @@ import {
   updatePreferencesFetcher,
 } from '../fetchers/preferences';
 
-export const preferencesQueryKey = (userId?: string) => ['preferences', userId];
+const preferencesQueryKey = (userId?: string) => ['preferences', userId];
 
 export const usePreferences = () => {
   const user = useAuthStore((s) => s.user);
