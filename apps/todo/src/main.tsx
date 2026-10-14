@@ -1,5 +1,5 @@
 import './app/i18n/i18n';
-import { StrictMode, ReactElement, useEffect } from 'react';
+import { StrictMode, ReactElement, Suspense, lazy, useEffect } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -21,12 +21,7 @@ import TasksPage from './app/component/pages/TasksPage';
 import TasksPageSkeleton from './app/component/pages/TasksPageSkeleton';
 import VitalTaskPage from './app/component/pages/VitalTaskPage';
 import VitalTaskPageSkeleton from './app/component/pages/VitalTaskPageSkeleton';
-import SettingsPage from './app/component/pages/SettingsPage';
-import HelpPage from './app/component/pages/HelpPage';
-import StatisticsPage from './app/component/statistics/StatisticsPage';
-import ReportsPage from './app/component/pages/ReportsPage';
 import ReportsPageSkeleton from './app/component/pages/ReportsPageSkeleton';
-import ReportDetailPage from './app/component/pages/ReportDetailPage';
 import LoginPage from './app/component/auth/LoginPage';
 import RegisterPage from './app/component/auth/RegisterPage';
 import ForgotPasswordPage from './app/component/auth/ForgotPasswordPage';
@@ -34,6 +29,18 @@ import { useAuthStore } from './app/store/authStore';
 import Loader from './app/component/elements/Loader';
 import { auth } from './app/lib/firebase';
 import apiClient from './app/lib/apiClient';
+
+// Loaded when first visited, so the charting library and the pages behind
+// "More" stay out of the first download.
+const SettingsPage = lazy(() => import('./app/component/pages/SettingsPage'));
+const HelpPage = lazy(() => import('./app/component/pages/HelpPage'));
+const StatisticsPage = lazy(
+  () => import('./app/component/statistics/StatisticsPage')
+);
+const ReportsPage = lazy(() => import('./app/component/pages/ReportsPage'));
+const ReportDetailPage = lazy(
+  () => import('./app/component/pages/ReportDetailPage')
+);
 
 const queryClient = new QueryClient();
 
@@ -43,6 +50,15 @@ const PAGE_SKELETONS: Record<string, ReactElement> = {
   '/tasks': <TasksPageSkeleton />,
   '/reports': <ReportsPageSkeleton />,
 };
+
+function LazyPage({ children }: { children: ReactElement }) {
+  const { pathname } = useLocation();
+  return (
+    <Suspense fallback={PAGE_SKELETONS[pathname] ?? <ContentSkeleton />}>
+      {children}
+    </Suspense>
+  );
+}
 
 function AuthBootstrap({ children }: { children: ReactElement }) {
   const setUser = useAuthStore((s) => s.setUser);
@@ -119,11 +135,46 @@ root.render(
               <Route path="/" element={<DashboardPage />} />
               <Route path="/vital" element={<VitalTaskPage />} />
               <Route path="/tasks" element={<TasksPage />} />
-              <Route path="/statistics" element={<StatisticsPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/reports/:reportId" element={<ReportDetailPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/help" element={<HelpPage />} />
+              <Route
+                path="/statistics"
+                element={
+                  <LazyPage>
+                    <StatisticsPage />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <LazyPage>
+                    <ReportsPage />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="/reports/:reportId"
+                element={
+                  <LazyPage>
+                    <ReportDetailPage />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <LazyPage>
+                    <SettingsPage />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="/help"
+                element={
+                  <LazyPage>
+                    <HelpPage />
+                  </LazyPage>
+                }
+              />
             </Route>
             <Route
               path="/login"
