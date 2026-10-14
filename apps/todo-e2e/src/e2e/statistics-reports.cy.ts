@@ -68,10 +68,9 @@ describe('Statistics and reports', () => {
     cy.get('summary[data-testid^="edit-todo-status-"]').click();
     cy.contains('button', 'Completed').should('be.visible').click();
     cy.get('button[data-testid^="save-todo-edit-button-"]').click();
-    cy.contains('div[data-testid^="todo-item-"]', doneTaskName).should(
-      'contain.text',
-      'Completed'
-    );
+    cy.contains('div[data-testid^="todo-item-"]', doneTaskName)
+      .find('[role="checkbox"]')
+      .should('have.attr', 'aria-checked', 'true');
 
     // Statistics: switch to "Week" — Reports starts on its All filter,
     // so the new weekly report shows up without a period-selector interaction.
