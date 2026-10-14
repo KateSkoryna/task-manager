@@ -10,7 +10,7 @@
     "docker:mongodb": "docker compose up -d mongo",
     "serve:fe": "nx serve todo",
     "serve:be": "nx serve todo-be",
-    "build": "nx build",
+    "build": "NODE_ENV=production nx build",
     "test:unit:fe": "nx test todo",
     "test:unit:be": "nx test todo-be",
     "test:unit": "nx run-many --target=test",
