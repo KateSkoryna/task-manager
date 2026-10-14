@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import TodoItem from './TodoItem';
 import { TodoItem as Todo } from '@shared/types';
 
@@ -48,11 +49,15 @@ describe('TodoItem', () => {
       'https://example.com/x.png'
     );
   });
-  test('selects by click and Enter', () => {
+  test('selects by clicking the card and by pressing Enter on the title', async () => {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     const select = jest.fn();
     render(<TodoItem todo={makeTodo()} onSelect={select} />);
-    fireEvent.click(screen.getByRole('button'));
-    fireEvent.keyDown(screen.getByRole('button'), { key: 'Enter' });
+    fireEvent.click(screen.getByTestId('todo-item-1'));
+    expect(select).toHaveBeenCalledTimes(1);
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Write tests' })).toHaveFocus();
+    await user.keyboard('{Enter}');
     expect(select).toHaveBeenCalledTimes(2);
   });
   test('selecting still works when clicking empty space in the controls row', () => {

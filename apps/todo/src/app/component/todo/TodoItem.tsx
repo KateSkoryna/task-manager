@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TodoItem as TodoItemType, TodoStatus } from '@shared/types';
 import Card from '../elements/Card';
@@ -47,23 +46,16 @@ function TodoItem({
 }: TodoItemProps) {
   const { t, i18n } = useTranslation();
 
-  useEffect(() => {
-    // auto-fail overdue items is handled server-side / via edit panel
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todo.id]);
-
   return (
     <Card
       variant="nested"
       selected={isSelected}
       className="cursor-pointer overflow-hidden"
       dataTestId={'todo-item-' + todo.id}
+      // A click anywhere on the card opens the task. Keyboard and screen
+      // reader users get the title button below, whose click bubbles up here.
       onClick={() => onSelect?.()}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onSelect?.();
-      }}
+      role="presentation"
     >
       <div className="flex flex-col gap-2">
         {/* Row 1: name + selected pill + priority */}
@@ -80,13 +72,14 @@ function TodoItem({
               onToggle={onToggleComplete}
             />
           )}
-          <p
-            className={`flex-1 min-w-0 line-clamp-2 break-words text-card-mobile font-bold text-primary leading-snug ${
-              todo.status === 'successful' ? 'text-muted' : ''
+          <button
+            type="button"
+            className={`flex-1 min-w-0 line-clamp-2 break-words text-left text-card-mobile font-bold leading-snug focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+              todo.status === 'successful' ? 'text-muted' : 'text-primary'
             }`}
           >
             {todo.name}
-          </p>
+          </button>
           {isSelected && (
             <span className="shrink-0 inline-flex items-center rounded-full bg-action text-on-action text-metadata font-bold uppercase tracking-wide px-2.5 py-1">
               {t('tasks.selected')}

@@ -2,7 +2,6 @@ import { Fragment, ReactNode, useEffect, useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
-  KeyboardSensor,
   MouseSensor,
   TouchSensor,
   closestCenter,
@@ -12,7 +11,6 @@ import {
 import {
   SortableContext,
   arrayMove,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -30,7 +28,9 @@ interface SortableTaskListProps<T extends { id: string }> {
 /**
  * Lets the tasks be reordered by dragging. The mouse starts a drag after
  * moving a few pixels, so a plain click still selects the task. Touch needs a
- * short press and hold, so scrolling the list still works.
+ * short press and hold, so scrolling the list still works. There is no
+ * keyboard sensor: it takes Enter and Space for starting a drag, and those
+ * keys must open the task from the title button instead.
  *
  * The new order is shown in the same instant the task is dropped, before the
  * saved order comes back from the server. Otherwise the list would show the
@@ -45,9 +45,6 @@ function SortableTaskList<T extends { id: string }>({
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, {
       activationConstraint: { delay: 250, tolerance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
   const [shownIds, setShownIds] = useState<string[] | null>(null);
