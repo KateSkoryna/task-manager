@@ -14,7 +14,7 @@ function Checkbox({ id, checked, onChange, label }: Props) {
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="peer absolute inset-0 z-10 h-5 w-5 cursor-pointer appearance-none rounded-control bg-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ink"
+          className="peer absolute inset-0 z-10 h-5 w-5 cursor-pointer appearance-none rounded-control bg-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         />
         <span
           aria-hidden="true"

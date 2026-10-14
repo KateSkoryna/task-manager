@@ -492,7 +492,7 @@ export function TodoEditPanel({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={imageUploading}
-                  className="flex w-full items-center justify-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent-ink hover:bg-action/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-accent-ink disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex w-full items-center justify-center gap-2 px-4 py-2 rounded-inner border-2 border-dashed border-default hover:border-accent-ink hover:bg-action/10 text-muted hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {imageUploading ? (
                     <>
