@@ -15,16 +15,12 @@ export function TodoListCardSkeleton() {
   );
 }
 
-function TodoListsSkeleton() {
+function TodoListsSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div
-      className="space-y-4"
-      role="status"
-      aria-label="Loading todo lists"
-    >
-      <TodoListCardSkeleton />
-      <TodoListCardSkeleton />
-      <TodoListCardSkeleton />
+    <div className="space-y-4" role="status" aria-label="Loading todo lists">
+      {Array.from({ length: count }, (_, index) => (
+        <TodoListCardSkeleton key={index} />
+      ))}
     </div>
   );
 }
