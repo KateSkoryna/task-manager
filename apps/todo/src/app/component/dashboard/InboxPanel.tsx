@@ -47,7 +47,7 @@ function InboxPanel({ items, onOpen }: InboxPanelProps) {
         {t('dashboard.inboxHint')}
       </p>
       {pageItems.length === 0 ? (
-        <p className="text-body text-muted/60">{t('dashboard.inboxEmpty')}</p>
+        <p className="text-body text-muted">{t('dashboard.inboxEmpty')}</p>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {pageItems.map((item) => (
