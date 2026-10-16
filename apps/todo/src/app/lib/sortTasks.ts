@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { TodoList } from '@shared/types';
 import { FlatEntry } from '../component/todo/FlatTaskList';
 
@@ -26,11 +27,29 @@ const compareDates = (a?: string | null, b?: string | null) =>
 const rank = (table: Record<string, number>, key?: string) =>
   key === undefined ? LAST : table[key] ?? LAST;
 
+/**
+ * Today and later come first, soonest first; then overdue, most recent first;
+ * undated last. `today` is YYYY-MM-DD.
+ */
+function compareDueFromToday(today: string): typeof compareDates {
+  const group = (due?: string | null) =>
+    !due ? 2 : due.slice(0, 10) >= today ? 0 : 1;
+  return (a?: string | null, b?: string | null) =>
+    group(a) - group(b) ||
+    (group(a) === 1 ? -1 : 1) * compareNullable(a, b, compareText);
+}
+
 const flatComparators: Record<
   FlatSort,
-  (a: FlatEntry, b: FlatEntry, listNames: Map<string, string>) => number
+  (
+    a: FlatEntry,
+    b: FlatEntry,
+    listNames: Map<string, string>,
+    compareDue: typeof compareDates
+  ) => number
 > = {
-  dueDate: (a, b) => compareDates(a.todo.dueDate, b.todo.dueDate),
+  dueDate: (a, b, _names, compareDue) =>
+    compareDue(a.todo.dueDate, b.todo.dueDate),
   name: (a, b) => compareText(a.todo.name, b.todo.name),
   listName: (a, b, listNames) =>
     compareNullable(
@@ -48,12 +67,14 @@ const flatComparators: Record<
 export function sortFlatEntries(
   entries: FlatEntry[],
   sort: FlatSort,
-  listNames: Map<string, string>
+  listNames: Map<string, string>,
+  today = dayjs().format('YYYY-MM-DD')
 ): FlatEntry[] {
+  const compareDue = compareDueFromToday(today);
   return [...entries].sort(
     (a, b) =>
-      flatComparators[sort](a, b, listNames) ||
-      compareDates(a.todo.dueDate, b.todo.dueDate) ||
+      flatComparators[sort](a, b, listNames, compareDue) ||
+      compareDue(a.todo.dueDate, b.todo.dueDate) ||
       compareText(a.todo.name, b.todo.name)
   );
 }
