@@ -10,7 +10,7 @@ describe('Task list picker', () => {
 
     cy.get('[data-testid="inbox-quick-capture-input"]').type(taskName);
     cy.get('[data-testid="inbox-quick-capture-submit"]').click();
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
       .click();
     cy.get('button[data-testid^="edit-todo-button-"]').click();
@@ -29,13 +29,8 @@ describe('Task list picker', () => {
 
     cy.get('button[data-testid^="save-todo-edit-button-"]').click();
 
-    cy.contains('[data-testid="todolist-title"]', listName)
-      .parents('div[data-testid^="todolist-item-"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
-      .should('be.visible');
-    cy.get('[data-testid="inbox-section"]').should(
-      'not.contain.text',
-      taskName
-    );
+      .should('contain.text', listName);
   });
 });

@@ -8,69 +8,43 @@ const pickToday = () =>
 describe('Statistics and reports', () => {
   it('generates a report from statistics and views it in the list and detail page', () => {
     const uniqueId = Date.now();
-    const listName = `Stats List ${uniqueId}`;
     const doneTaskName = `Done task ${uniqueId}`;
     const pendingTaskName = `Pending task ${uniqueId}`;
 
-    cy.registerTestUser({ namePrefix: 'stats-reports' });
+    cy.registerTestUser({ namePrefix: 'stats-reports', aiConsent: true });
 
     // Seed a completed and a pending task in the current period, so the
     // report has non-zero, meaningful data to summarize.
     cy.contains('a', 'My Tasks').click();
     cy.url().should('include', '/tasks');
 
-    cy.contains('button', 'New List').click();
-    cy.get('[data-testid="todolist-form-input"]').type(listName);
-    cy.get('[data-testid="todolist-form-submit-button"]').click();
-    cy.contains('[data-testid="todolist-title"]', listName)
-      .should('be.visible')
-      .parents('div[data-testid^="todolist-item-"]')
-      .as('createdList');
-
     // Statistics counts tasks by due date, not creation date, so each
     // seeded task needs today's date set via the date picker for the
     // current period's completion rate to be non-zero.
-    // "Add Task" is only rendered as visible text in the list's empty
-    // state — once it holds a task, the same action is an icon-only
-    // button with the same aria-label, so use that selector throughout
-    // to work in both states.
-    cy.get('@createdList').within(() => {
-      cy.get('[data-testid^="todolist-actions-"]').click();
-      cy.get('[data-testid^="todolist-add-task-"]').click();
-      cy.get('[data-testid="todo-form-input"]').type(doneTaskName);
-      cy.get('[data-testid="todo-form-toggle-extra"]').click();
-      cy.get('#new-todo-due-date').click();
-    });
-    pickToday();
-    cy.get('@createdList').within(() => {
-      cy.get('[data-testid="todo-form-submit-button"]').click();
-      cy.contains('div[data-testid^="todo-item-"]', doneTaskName).should(
-        'be.visible'
-      );
-      cy.get('[data-testid^="todolist-actions-"]').click();
-      cy.get('[data-testid^="todolist-add-task-"]').click();
-      cy.get('[data-testid="todo-form-input"]').type(pendingTaskName);
-      cy.get('[data-testid="todo-form-toggle-extra"]').click();
-      cy.get('#new-todo-due-date').click();
-    });
-    pickToday();
-    cy.get('@createdList').within(() => {
-      cy.get('[data-testid="todo-form-submit-button"]').click();
-      cy.contains('div[data-testid^="todo-item-"]', pendingTaskName).should(
-        'be.visible'
-      );
-    });
+    const seedTask = (taskName: string) => {
+      cy.get('[data-testid="inbox-quick-capture-input"]').type(taskName);
+      cy.get('[data-testid="inbox-quick-capture-submit"]').click();
+      cy.get('[data-testid="flat-task-list"]')
+        .contains('div[data-testid^="todo-item-"]', taskName)
+        .click();
+      cy.get('button[data-testid^="edit-todo-button-"]').click();
+      cy.get('[id^="edit-todo-due-date-"]').click();
+      pickToday();
+    };
 
-    cy.get('@createdList')
-      .contains('div[data-testid^="todo-item-"]', doneTaskName)
-      .click();
-    cy.get('button[data-testid^="edit-todo-button-"]').click();
+    seedTask(doneTaskName);
     cy.get('summary[data-testid^="edit-todo-status-"]').click();
     cy.contains('button', 'Completed').should('be.visible').click();
     cy.get('button[data-testid^="save-todo-edit-button-"]').click();
     cy.contains('div[data-testid^="todo-item-"]', doneTaskName)
       .find('[role="checkbox"]')
       .should('have.attr', 'aria-checked', 'true');
+
+    seedTask(pendingTaskName);
+    cy.get('button[data-testid^="save-todo-edit-button-"]').click();
+    cy.contains('div[data-testid^="todo-item-"]', pendingTaskName).should(
+      'be.visible'
+    );
 
     // Statistics: switch to "Week" — Reports starts on its All filter,
     // so the new weekly report shows up without a period-selector interaction.

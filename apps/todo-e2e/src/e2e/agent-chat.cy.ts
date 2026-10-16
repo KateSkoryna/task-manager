@@ -16,12 +16,12 @@ describe('AI chat agent', () => {
    * and costs another real Gemini call against the shared quota.
    */
   const seedInboxTask = (taskName: string) => {
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .find('[aria-label="Add Task"]')
       .click();
     cy.get('[data-testid="todo-form-input"]').type(taskName);
     cy.get('[data-testid="todo-form-submit-button"]').click();
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
       .should('be.visible');
   };
@@ -42,7 +42,7 @@ describe('AI chat agent', () => {
 
     cy.contains('a', 'My Tasks').click();
     cy.url().should('include', '/tasks');
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
       .should('be.visible');
   });
@@ -69,7 +69,7 @@ describe('AI chat agent', () => {
     cy.get('[data-testid="chat-panel"] [role="group"]').should('not.exist');
 
     cy.visit('/tasks');
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
       .should('be.visible');
   });
@@ -128,6 +128,6 @@ describe('AI chat agent', () => {
     }).should('be.visible');
 
     cy.visit('/tasks');
-    cy.get('[data-testid="inbox-section"]').should('not.contain', taskName);
+    cy.get('[data-testid="flat-task-list"]').should('not.contain', taskName);
   });
 });

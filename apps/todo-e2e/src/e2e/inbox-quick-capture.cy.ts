@@ -9,7 +9,7 @@ describe('Inbox quick capture', () => {
     cy.get('[data-testid="inbox-quick-capture-input"]').type(taskName);
     cy.get('[data-testid="inbox-quick-capture-submit"]').click();
 
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
       .should('be.visible');
   });
@@ -29,21 +29,16 @@ describe('Inbox quick capture', () => {
     cy.contains('button', 'New List').click();
     cy.get('[data-testid="todolist-form-input"]').type(listName);
     cy.get('[data-testid="todolist-form-submit-button"]').click();
-    cy.contains('[data-testid="todolist-title"]', listName).should(
-      'be.visible'
-    );
-
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
       .as('capturedTask');
 
     cy.get('@capturedTask').find('[aria-label="Move to list"]').click();
     cy.contains('button', listName).click();
 
-    cy.get('[data-testid="inbox-section"]').should('not.contain', taskName);
-    cy.contains('[data-testid="todolist-title"]', listName)
-      .parents('div[data-testid^="todolist-item-"]')
+    // The task stays in the flat list; its list is shown on the card.
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', taskName)
-      .should('be.visible');
+      .should('contain.text', listName);
   });
 });
