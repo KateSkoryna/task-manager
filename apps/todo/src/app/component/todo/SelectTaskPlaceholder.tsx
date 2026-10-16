@@ -1,14 +1,14 @@
 import { ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-function SelectTaskPlaceholder() {
+function SelectTaskPlaceholder({ message }: { message?: string }) {
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-col items-center text-muted gap-3 p-6">
       <ClipboardList className="w-16 h-16 opacity-20" />
       <p className="text-base font-medium opacity-40 text-center">
-        {t('tasks.selectTask')}
+        {message ?? t('tasks.selectTask')}
       </p>
     </div>
   );

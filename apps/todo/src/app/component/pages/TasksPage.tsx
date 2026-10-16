@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Rows3, LayoutList, Archive } from 'lucide-react';
+import { Plus, LayoutList, Archive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   TodoItem,
@@ -11,17 +11,12 @@ import {
   UpdateTodoList,
 } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
-import { useListSortOptions } from '../../hooks/useListSortOptions';
 import { useIsBelowXlScreen } from '../../hooks/useIsBelowXlScreen';
 import { useListViewStore } from '../../store/listViewStore';
-import { computeMove } from '../../lib/reorder';
-import { FlatSort, sortFlatEntries, sortLists } from '../../lib/sortTasks';
+import { sortFlatEntries } from '../../lib/sortTasks';
 import { mergeClassNames } from '../../lib/classNames';
 import TodoListForm from '../todo/TodoListForm';
-import TodoLists from '../todo/TodoLists';
-import SortMenu from '../todo/SortMenu';
-import CollapseAllButton from '../todo/CollapseAllButton';
-import InboxSection from '../todo/InboxSection';
+import QuickCaptureInput from '../todo/QuickCaptureInput';
 import FlatTaskList, { FlatEntry } from '../todo/FlatTaskList';
 import ArchivedTaskList from '../todo/ArchivedTaskList';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
@@ -63,18 +58,12 @@ function TasksPage() {
     inboxTodos,
     archivedEntries,
     isLoading,
-    isError,
-    error,
-    refetch,
     handleCreateList,
     createList,
-    handleDeleteList,
     handleEditList,
-    handleAddTodo,
     handleDeleteTodo,
     handleToggleTodo,
     handleEditTodo,
-    handleReorderTodos,
     handleArchiveTodo,
     handleRestoreTodo,
     createListMutationIsPending,
@@ -87,12 +76,6 @@ function TasksPage() {
   const isNarrowList = useIsBelowXlScreen();
   const viewMode = useListViewStore((state) => state.tasksViewMode);
   const setViewMode = useListViewStore((state) => state.setTasksViewMode);
-  // Each view keeps its own sort choice, remembered across page switches.
-  const flatSort = useListViewStore((state) => state.tasksFlatSort);
-  const setFlatSort = useListViewStore((state) => state.setTasksFlatSort);
-  const listSort = useListViewStore((state) => state.tasksListSort);
-  const setListSort = useListViewStore((state) => state.setTasksListSort);
-  const listSortOptions = useListSortOptions();
 
   const availableLists = useMemo(
     () => (todoLists ?? []).map((list) => ({ id: list.id, name: list.name })),
@@ -107,15 +90,10 @@ function TasksPage() {
     const listNames = new Map(availableLists.map((l) => [l.id, l.name]));
     return sortFlatEntries(
       [...listEntries, ...inboxEntries],
-      flatSort,
+      'dueDate',
       listNames
     );
-  }, [todoLists, inboxTodos, availableLists, flatSort]);
-
-  const sortedLists = useMemo(
-    () => (todoLists ? sortLists(todoLists, listSort) : todoLists),
-    [todoLists, listSort]
-  );
+  }, [todoLists, inboxTodos, availableLists]);
 
   // Auto-select + open edit when navigated from another page with state.
   // Tracks the last *navigation* handled (by history key), not just the last
@@ -190,7 +168,7 @@ function TasksPage() {
       return;
     }
     lastAddTaskKey.current = location.key;
-    setViewMode('grouped');
+    setViewMode('flat');
     requestAnimationFrame(() =>
       document
         .querySelector<HTMLInputElement>(
@@ -240,12 +218,6 @@ function TasksPage() {
     }
   }
 
-  function handleReorderTodo(activeId: string, overId: string) {
-    const list = todoLists?.find((l) => l.todos.some((t) => t.id === activeId));
-    const siblings = list ? list.todos : inboxTodos;
-    handleReorderTodos(computeMove(siblings, activeId, overId));
-  }
-
   function handleMoveTodo(id: string, todolistId: string | null) {
     handleEditTodo(id, { todolistId });
     setSelectedTask((prev) =>
@@ -285,24 +257,11 @@ function TasksPage() {
     setIsEditing(false);
   }
 
-  const flatSortOptions: { value: FlatSort; label: string }[] = [
-    { value: 'dueDate', label: t('tasks.sortDueDate') },
-    { value: 'name', label: t('tasks.sortName') },
-    { value: 'listName', label: t('tasks.sortListName') },
-    { value: 'priority', label: t('tasks.sortPriority') },
-    { value: 'status', label: t('tasks.sortStatus') },
-  ];
-
   if (isLoading) {
     return <TasksPageSkeleton />;
   }
 
   const viewModeOptions = [
-    {
-      label: t('tasks.groupedView'),
-      value: 'grouped' as const,
-      icon: <Rows3 className="w-3.5 h-3.5" />,
-    },
     {
       label: t('tasks.flatView'),
       value: 'flat' as const,
@@ -350,23 +309,6 @@ function TasksPage() {
             )}
             {/* Below the wide layout the list column is narrow, so these wrap to a row of their own below the views dropdown. */}
             <div className="flex shrink-0 items-center gap-1 w-full justify-end md:gap-2 xl:w-auto">
-              {viewMode === 'flat' && (
-                <SortMenu
-                  value={flatSort}
-                  onChange={setFlatSort}
-                  options={flatSortOptions}
-                />
-              )}
-              {viewMode === 'grouped' && (
-                <>
-                  <SortMenu
-                    value={listSort}
-                    onChange={setListSort}
-                    options={listSortOptions}
-                  />
-                  <CollapseAllButton lists={sortedLists ?? []} />
-                </>
-              )}
               <Button
                 variant="primary"
                 onClick={toggleCreateForm}
@@ -396,46 +338,25 @@ function TasksPage() {
               onRestore={handleRestoreTodo}
               onDelete={(todo) => handleDeleteTodoFromList(todo.id)}
             />
-          ) : viewMode === 'grouped' ? (
+          ) : (
             <>
-              <InboxSection
-                todos={inboxTodos}
-                selectedTodoId={selectedTask?.todo.id ?? null}
-                onSelectTodo={(todo) => handleSelectTodo(todo, null)}
-                onToggleTodo={handleToggleTodo}
-                availableLists={availableLists}
-                onReorderTodo={handleReorderTodo}
-                onMoveTodo={handleMoveTodo}
+              <QuickCaptureInput
+                inputTestId="inbox-quick-capture-input"
+                submitTestId="inbox-quick-capture-submit"
+                noticeTestId="inbox-enrichment-notice"
+                undoTestId="inbox-enrichment-undo"
               />
-              <TodoLists
-                todoLists={sortedLists}
-                isLoading={isLoading}
-                isError={isError}
-                error={error}
-                refetch={refetch}
-                handleDeleteList={handleDeleteList}
-                handleEditList={handleEditList}
-                handleAddTodo={handleAddTodo}
+              <FlatTaskList
+                entries={flatEntries}
                 selectedTodoId={selectedTask?.todo.id ?? null}
-                onSelectTodo={handleSelectTodo}
+                onSelectTodo={(todo, listId) =>
+                  handleSelectTodo(todo, resolveList(listId))
+                }
                 onToggleTodo={handleToggleTodo}
                 availableLists={availableLists}
-                onReorderTodo={handleReorderTodo}
                 onMoveTodo={handleMoveTodo}
-                onCreateList={() => setShowCreateForm(true)}
               />
             </>
-          ) : (
-            <FlatTaskList
-              entries={flatEntries}
-              selectedTodoId={selectedTask?.todo.id ?? null}
-              onSelectTodo={(todo, listId) =>
-                handleSelectTodo(todo, resolveList(listId))
-              }
-              onToggleTodo={handleToggleTodo}
-              availableLists={availableLists}
-              onMoveTodo={handleMoveTodo}
-            />
           )}
         </div>
       </div>

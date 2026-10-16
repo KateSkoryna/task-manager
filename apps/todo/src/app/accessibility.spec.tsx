@@ -201,7 +201,7 @@ describe('accessibility (axe)', () => {
 
   test('Vital tasks with a task selected', async () => {
     const { container } = renderPage(<VitalTaskPage />);
-    await userEvent.click(screen.getByTestId('todo-item-t1'));
+    await userEvent.click(screen.getByTestId('todo-item-t2'));
     await expectNoAxeViolations(container);
   });
 
