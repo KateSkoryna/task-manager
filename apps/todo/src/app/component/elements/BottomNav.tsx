@@ -7,10 +7,6 @@ import { NAV_ITEMS } from '../../lib/navItems';
 import { useMobileMenuStore } from '../../store/mobileMenuStore';
 import MoreMenu, { MORE_MENU_ID } from './MoreMenu';
 
-// The pages used most, in the order they appear in the bar. Everything else
-// is one tap away behind "More".
-const BOTTOM_NAV_PATHS = ['/', '/tasks', '/vital', '/statistics'];
-
 const SLOT_CLASSES =
   'relative m-1 flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-control text-metadata font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent';
 
@@ -20,9 +16,7 @@ function BottomNav() {
   const isMoreOpen = useMobileMenuStore((s) => s.isOpen);
   const setMoreOpen = useMobileMenuStore((s) => s.setOpen);
   const moreRef = useRef<HTMLButtonElement>(null);
-  const items = BOTTOM_NAV_PATHS.map((path) =>
-    NAV_ITEMS.find(({ to }) => to === path)
-  ).filter((item): item is (typeof NAV_ITEMS)[number] => Boolean(item));
+  const items = NAV_ITEMS.filter((item) => 'inTabBar' in item);
 
   return (
     <>

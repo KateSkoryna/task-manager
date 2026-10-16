@@ -5,9 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { NAV_ITEMS } from '../../lib/navItems';
 
-// The pages that are not in the tab bar.
-const MORE_PATHS = ['/reports', '/settings', '/help'];
-
 export const MORE_MENU_ID = 'more-menu';
 
 const ROW_CLASSES =
@@ -51,9 +48,8 @@ function MoreMenu({ open, onClose, triggerRef }: MoreMenuProps) {
 
   if (!open) return null;
 
-  const items = MORE_PATHS.map((path) =>
-    NAV_ITEMS.find(({ to }) => to === path)
-  ).filter((item): item is (typeof NAV_ITEMS)[number] => Boolean(item));
+  // The pages that are not in the tab bar.
+  const items = NAV_ITEMS.filter((item) => !('inTabBar' in item));
 
   const handleLogout = () => {
     logout();
