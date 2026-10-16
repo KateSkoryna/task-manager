@@ -1,14 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TodoItem, TodoList } from '@shared/types';
+import { useTranslation } from 'react-i18next';
+import { detectTimezone, inZone, TodoItem, TodoList } from '@shared/types';
 import { useTodoListsData } from '../../hooks/useTodoListsData';
-import { useListSortOptions } from '../../hooks/useListSortOptions';
-import { sortLists } from '../../lib/sortTasks';
+import { usePreferences } from '../../hooks/usePreferences';
+import { useIsBelowXlScreen } from '../../hooks/useIsBelowXlScreen';
+import { useFlatSortOptions } from '../../hooks/useFlatSortOptions';
+import { sortFlatEntries } from '../../lib/sortTasks';
 import { useListViewStore } from '../../store/listViewStore';
+import {
+  PeriodKind,
+  resolvePeriod,
+  shiftPeriod,
+} from '../statistics/lib/periods';
 import { mergeClassNames } from '../../lib/classNames';
-import TodoLists from '../todo/TodoLists';
+import FlatTaskList from '../todo/FlatTaskList';
 import SortMenu from '../todo/SortMenu';
-import CollapseAllButton from '../todo/CollapseAllButton';
+import PeriodSelector from '../elements/PeriodSelector';
+import Dropdown from '../elements/Dropdown';
+import PeriodNavigator from '../statistics/components/PeriodNavigator';
 import { TaskDetailPanel } from '../todo/TaskSidePanel';
 import TaskPanelBar from '../todo/TaskPanelBar';
 import SelectTaskPlaceholder from '../todo/SelectTaskPlaceholder';
@@ -17,44 +27,85 @@ import VitalTaskPageSkeleton from './VitalTaskPageSkeleton';
 
 type SelectedTask = {
   todo: TodoItem;
-  list: TodoList;
+  list: TodoList | null;
 };
 
 function VitalTaskPage() {
+  const { t } = useTranslation();
+  const isBelowXl = useIsBelowXlScreen();
+  const { preferences } = usePreferences();
   const navigate = useNavigate();
   const {
     todoLists,
+    inboxTodos,
     isLoading,
-    isError,
-    error,
-    refetch,
-    handleDeleteList,
-    handleAddTodo,
     handleDeleteTodo,
     handleToggleTodo,
     handleArchiveTodo,
   } = useTodoListsData();
 
   const [selectedTask, setSelectedTask] = useState<SelectedTask | null>(null);
-  const listSort = useListViewStore((state) => state.vitalListSort);
-  const setListSort = useListViewStore((state) => state.setVitalListSort);
-  const listSortOptions = useListSortOptions();
 
-  // Vital Tasks is a working view of what's still actionable — done tasks
-  // stay visible on the regular Tasks page, not here.
-  const vitalLists =
-    todoLists &&
-    sortLists(
-      todoLists
-        .filter((l) => l.priority === 'high')
-        .map((list) => ({
-          ...list,
-          todos: list.todos.filter((todo) => todo.status === 'pending'),
-        })),
-      listSort
+  const flatSort = useListViewStore((state) => state.vitalFlatSort);
+  const setFlatSort = useListViewStore((state) => state.setVitalFlatSort);
+  const flatSortOptions = useFlatSortOptions();
+
+  const zone = preferences?.timezone ?? detectTimezone();
+  const [periodKind, setPeriodKind] = useState<PeriodKind>('month');
+  const [anchor, setAnchor] = useState<Date>(() => new Date());
+  const period = useMemo(
+    () => resolvePeriod(periodKind, anchor, zone),
+    [periodKind, anchor, zone]
+  );
+
+  // Vital Tasks is a working view of what's still actionable — every
+  // high-priority task due in the chosen period. Done tasks stay visible on
+  // the regular Tasks page, not here.
+  const vitalEntries = useMemo(() => {
+    const entries = [
+      ...(todoLists ?? []).flatMap((list) =>
+        list.todos.map((todo) => ({ todo, listId: list.id as string | null }))
+      ),
+      ...inboxTodos.map((todo) => ({ todo, listId: null })),
+    ].filter(
+      ({ todo }) =>
+        todo.priority === 'high' &&
+        todo.status === 'pending' &&
+        todo.dueDate &&
+        new Date(todo.dueDate) >= period.start &&
+        new Date(todo.dueDate) <= period.end
     );
+    const listNames = new Map((todoLists ?? []).map((l) => [l.id, l.name]));
+    return sortFlatEntries(entries, flatSort, listNames);
+  }, [todoLists, inboxTodos, period, flatSort]);
 
-  function handleSelectTodo(todo: TodoItem, list: TodoList) {
+  const periodOptions = [
+    { label: t('statistics.week'), value: 'week' as const },
+    { label: t('statistics.month'), value: 'month' as const },
+    { label: t('statistics.year'), value: 'year' as const },
+  ];
+
+  const hasTasks = vitalEntries.length > 0;
+  const showDetail = hasTasks && selectedTask !== null;
+
+  const rangeLabel = useMemo(() => {
+    const start = inZone(period.start, zone);
+    const end = inZone(period.end, zone);
+    if (period.kind === 'year') return start.format('YYYY');
+    if (period.kind === 'month') return start.format('MMMM YYYY');
+    return `${start.format('MMM D')} – ${end.format('MMM D, YYYY')}`;
+  }, [period, zone]);
+
+  function handlePeriodChange(kind: PeriodKind) {
+    setPeriodKind(kind);
+    setAnchor(new Date());
+  }
+
+  function resolveList(listId: string | null): TodoList | null {
+    return (todoLists ?? []).find((l) => l.id === listId) ?? null;
+  }
+
+  function handleSelectTodo(todo: TodoItem, list: TodoList | null) {
     setSelectedTask((prev) =>
       prev?.todo.id === todo.id ? null : { todo, list }
     );
@@ -91,35 +142,65 @@ function VitalTaskPage() {
       <div
         className={mergeClassNames(
           'flex-col overflow-y-auto pl-content-mobile pr-content-mobile pb-content-mobile md:pl-content-tablet md:pr-0 md:pb-content-tablet lg:pl-content-desktop lg:pb-content-desktop md:flex',
-          selectedTask ? 'hidden' : 'flex'
+          showDetail ? 'hidden' : 'flex'
         )}
       >
-        <div className="pb-4">
-          <div className="flex items-center justify-end gap-2">
-            <SortMenu
-              value={listSort}
-              onChange={setListSort}
-              options={listSortOptions}
+        <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex justify-center sm:justify-start">
+            <PeriodNavigator
+              rangeLabel={rangeLabel}
+              onPrevious={() => setAnchor(shiftPeriod(period, -1).start)}
+              onNext={() => setAnchor(shiftPeriod(period, 1).start)}
+              previousLabel={t('statistics.previousPeriod')}
+              nextLabel={t('statistics.nextPeriod')}
             />
-            <CollapseAllButton lists={vitalLists ?? []} />
+          </div>
+          <div className="flex w-full flex-nowrap items-center gap-2 sm:w-auto sm:gap-3">
+            {isBelowXl ? (
+              <div className="min-w-0 flex-1 sm:w-40 sm:flex-none">
+                <Dropdown
+                  ariaLabel={t('statistics.period')}
+                  value={periodKind}
+                  onChange={(value) => value && handlePeriodChange(value)}
+                  options={periodOptions}
+                  placeholder={t('statistics.period')}
+                />
+              </div>
+            ) : (
+              <PeriodSelector
+                ariaLabel={t('statistics.period')}
+                options={periodOptions}
+                value={periodKind}
+                onChange={handlePeriodChange}
+                className="min-w-0 flex-1 sm:flex-none"
+              />
+            )}
+            <SortMenu
+              value={flatSort}
+              onChange={setFlatSort}
+              options={flatSortOptions}
+            />
           </div>
         </div>
 
-        <TodoLists
-          todoLists={vitalLists}
-          isLoading={isLoading}
-          isError={isError}
-          error={error}
-          refetch={refetch}
-          handleDeleteList={handleDeleteList}
-          handleAddTodo={handleAddTodo}
-          selectedTodoId={selectedTask?.todo.id ?? null}
-          onSelectTodo={handleSelectTodo}
-          onToggleTodo={handleToggleTodo}
-          onCreateList={() =>
-            navigate('/tasks', { state: { openCreateList: true } })
-          }
-        />
+        {hasTasks ? (
+          <FlatTaskList
+            entries={vitalEntries}
+            selectedTodoId={selectedTask?.todo.id ?? null}
+            onSelectTodo={(todo, listId) =>
+              handleSelectTodo(todo, resolveList(listId))
+            }
+            onToggleTodo={handleToggleTodo}
+            availableLists={[]}
+          />
+        ) : (
+          <div
+            className="rounded-card border border-default bg-surface p-6 text-center text-muted text-body shadow-card"
+            data-testid="empty-vital-tasks"
+          >
+            {t('tasks.emptyVitalView')}
+          </div>
+        )}
       </div>
 
       {/* Right panel: detail — its own full-width screen on mobile, a
@@ -127,7 +208,7 @@ function VitalTaskPage() {
       <div
         className={mergeClassNames(
           'flex-col pl-content-mobile pr-content-mobile pb-content-mobile md:pl-0 md:pr-content-tablet md:pb-content-tablet lg:pr-content-desktop lg:pb-content-desktop md:flex md:sticky md:top-0 md:self-start',
-          selectedTask ? 'flex' : 'hidden'
+          showDetail ? 'flex' : 'hidden'
         )}
       >
         <div className="flex flex-col flex-1 rounded-card border border-default bg-surface shadow-card overflow-hidden">
@@ -156,14 +237,16 @@ function VitalTaskPage() {
                   navigate('/tasks', {
                     state: {
                       todoId: selectedTask.todo.id,
-                      listId: selectedTask.list.id,
+                      listId: selectedTask.list?.id,
                     },
                   })
                 }
               />
             </>
           ) : (
-            <SelectTaskPlaceholder />
+            <SelectTaskPlaceholder
+              message={hasTasks ? undefined : t('tasks.emptyVitalView')}
+            />
           )}
         </div>
       </div>

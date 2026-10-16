@@ -12,20 +12,20 @@ describe('listViewStore', () => {
 
   it('saves the layout to localStorage and restores it', async () => {
     useListViewStore.getState().setListExpanded('l1', false);
-    useListViewStore.getState().setTasksViewMode('flat');
+    useListViewStore.getState().setTasksViewMode('archived');
 
     const raw = localStorage.getItem('todo-list-view') ?? '{}';
     const saved = JSON.parse(raw);
     expect(saved.state.expandedByList).toEqual({ l1: false });
-    expect(saved.state.tasksViewMode).toBe('flat');
+    expect(saved.state.tasksViewMode).toBe('archived');
 
     // Simulate a fresh page load: memory starts empty, storage still has the
     // saved layout (resetting the store also overwrites it, so put it back).
     useListViewStore.setState(initialListViewState);
     localStorage.setItem('todo-list-view', raw);
-    expect(useListViewStore.getState().tasksViewMode).toBe('grouped');
-    await useListViewStore.persist.rehydrate();
     expect(useListViewStore.getState().tasksViewMode).toBe('flat');
+    await useListViewStore.persist.rehydrate();
+    expect(useListViewStore.getState().tasksViewMode).toBe('archived');
     expect(useListViewStore.getState().expandedByList).toEqual({ l1: false });
   });
 

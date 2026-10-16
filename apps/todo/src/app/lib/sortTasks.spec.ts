@@ -32,17 +32,28 @@ describe('sortFlatEntries', () => {
     ['l2', 'Home'],
   ]);
 
-  it('sorts by due date, soonest first, undated last', () => {
+  it('sorts by due date from today: upcoming soonest first, then overdue most recent first, undated last', () => {
     const result = sortFlatEntries(
       [
         entry({ name: 'none' }),
+        entry({ name: 'old', dueDate: '2026-09-01' }),
         entry({ name: 'late', dueDate: '2026-12-01' }),
-        entry({ name: 'soon', dueDate: '2026-10-01' }),
+        entry({ name: 'yesterday', dueDate: '2026-10-14' }),
+        entry({ name: 'today', dueDate: '2026-10-15' }),
+        entry({ name: 'soon', dueDate: '2026-10-20T09:00:00.000Z' }),
       ],
       'dueDate',
-      listNames
+      listNames,
+      '2026-10-15'
     );
-    expect(names(result)).toEqual(['soon', 'late', 'none']);
+    expect(names(result)).toEqual([
+      'today',
+      'soon',
+      'late',
+      'yesterday',
+      'old',
+      'none',
+    ]);
   });
 
   it('sorts by name', () => {
@@ -100,7 +111,8 @@ describe('sortFlatEntries', () => {
         entry({ name: 'a', priority: 'high', dueDate: '2026-10-02' }),
       ],
       'priority',
-      listNames
+      listNames,
+      '2026-09-01'
     );
     expect(names(result)).toEqual(['c', 'a', 'b']);
   });

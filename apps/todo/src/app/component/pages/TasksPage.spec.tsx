@@ -115,36 +115,13 @@ describe('TasksPage', () => {
     );
   });
 
-  it('offers task sorts in the flat view and list sorts in the grouped view', async () => {
+  it('shows the flat view by default, with no sort or collapse-all controls', () => {
     renderTasksPage();
-
-    await userEvent.click(screen.getByLabelText('tasks.sortBy'));
+    expect(screen.getByTestId('flat-task-list')).toBeInTheDocument();
     expect(
-      await screen.findByRole('button', { name: 'tasks.sortListDueDate' })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'tasks.sortStatus' })
+      screen.queryByRole('button', { name: 'tasks.groupedView' })
     ).not.toBeInTheDocument();
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'tasks.flatView' })
-    );
-    await userEvent.click(screen.getByLabelText('tasks.sortBy'));
-    expect(
-      await screen.findByRole('button', { name: 'tasks.sortStatus' })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'tasks.sortListDueDate' })
-    ).not.toBeInTheDocument();
-  });
-
-  it('shows the collapse-all button in the grouped view only', async () => {
-    renderTasksPage();
-    expect(screen.getByTestId('toggle-all-lists')).toBeInTheDocument();
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'tasks.flatView' })
-    );
+    expect(screen.queryByLabelText('tasks.sortBy')).not.toBeInTheDocument();
     expect(screen.queryByTestId('toggle-all-lists')).not.toBeInTheDocument();
   });
 
@@ -222,24 +199,12 @@ describe('TasksPage', () => {
     expect(mockHandleRestoreTodo).toHaveBeenCalledWith('t3');
   });
 
-  it('re-sorts the flat view when a sort is chosen', async () => {
+  it('always sorts the flat view by due date, ties broken by name', () => {
     renderTasksPage();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'tasks.flatView' })
-    );
-
-    const order = () =>
-      within(screen.getByTestId('flat-task-list'))
-        .getAllByTestId(/^todo-item-/)
-        .map((el) => el.getAttribute('data-testid'));
-    // Default: due date, ties broken by name.
-    expect(order()).toEqual(['todo-item-t1', 'todo-item-t2']);
-
-    await userEvent.click(screen.getByLabelText('tasks.sortBy'));
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'tasks.sortPriority' })
-    );
-    expect(order()).toEqual(['todo-item-t2', 'todo-item-t1']);
+    const order = within(screen.getByTestId('flat-task-list'))
+      .getAllByTestId(/^todo-item-/)
+      .map((el) => el.getAttribute('data-testid'));
+    expect(order).toEqual(['todo-item-t1', 'todo-item-t2']);
   });
 
   it('scrolls the selected task back into view in the left list', async () => {

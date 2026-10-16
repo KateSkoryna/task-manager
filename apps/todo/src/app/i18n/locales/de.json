@@ -140,6 +140,7 @@
     "inbox": "Posteingang",
     "emptyInbox": "Der Posteingang ist leer.",
     "emptyFlatView": "Noch keine Aufgaben.",
+    "emptyVitalView": "Keine Aufgaben mit hoher Priorität",
     "backToList": "Zurück zur Liste",
     "moveToList": "Zu Liste verschieben",
     "viewMode": "Ansicht",

@@ -1,31 +1,25 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { TodoList } from '@shared/types';
-import { FlatSort, ListSort } from '../lib/sortTasks';
+import { FlatSort } from '../lib/sortTasks';
 
-export type TasksViewMode = 'grouped' | 'flat' | 'archived';
+export type TasksViewMode = 'flat' | 'archived';
 
 interface ListViewState {
   /** Only lists the user has toggled; the rest use the default below. */
   expandedByList: Record<string, boolean>;
   tasksViewMode: TasksViewMode;
-  tasksFlatSort: FlatSort;
-  tasksListSort: ListSort;
-  vitalListSort: ListSort;
+  vitalFlatSort: FlatSort;
   setListExpanded: (listId: string, expanded: boolean) => void;
   setListsExpanded: (listIds: string[], expanded: boolean) => void;
   setTasksViewMode: (mode: TasksViewMode) => void;
-  setTasksFlatSort: (sort: FlatSort) => void;
-  setTasksListSort: (sort: ListSort) => void;
-  setVitalListSort: (sort: ListSort) => void;
+  setVitalFlatSort: (sort: FlatSort) => void;
 }
 
 export const initialListViewState = {
   expandedByList: {} as Record<string, boolean>,
-  tasksViewMode: 'grouped' as TasksViewMode,
-  tasksFlatSort: 'dueDate' as FlatSort,
-  tasksListSort: 'name' as ListSort,
-  vitalListSort: 'name' as ListSort,
+  tasksViewMode: 'flat' as TasksViewMode,
+  vitalFlatSort: 'dueDate' as FlatSort,
 };
 
 /**
@@ -49,11 +43,17 @@ export const useListViewStore = create<ListViewState>()(
           },
         })),
       setTasksViewMode: (tasksViewMode) => set({ tasksViewMode }),
-      setTasksFlatSort: (tasksFlatSort) => set({ tasksFlatSort }),
-      setTasksListSort: (tasksListSort) => set({ tasksListSort }),
-      setVitalListSort: (vitalListSort) => set({ vitalListSort }),
+      setVitalFlatSort: (vitalFlatSort) => set({ vitalFlatSort }),
     }),
-    { name: 'todo-list-view', version: 1 }
+    {
+      name: 'todo-list-view',
+      version: 2,
+      // Grouped view was removed; anyone who saved it lands on flat.
+      migrate: (persisted) => ({
+        ...(persisted as Partial<ListViewState>),
+        tasksViewMode: 'flat',
+      }),
+    }
   )
 );
 

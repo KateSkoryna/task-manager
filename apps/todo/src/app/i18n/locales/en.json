@@ -140,6 +140,7 @@
     "inbox": "Inbox",
     "emptyInbox": "Inbox is empty.",
     "emptyFlatView": "No tasks yet.",
+    "emptyVitalView": "No tasks with high priority",
     "backToList": "Back to list",
     "moveToList": "Move to list",
     "viewMode": "View mode",

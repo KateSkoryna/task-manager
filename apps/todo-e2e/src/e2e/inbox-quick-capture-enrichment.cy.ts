@@ -29,7 +29,7 @@ describe('Inbox quick capture — AI enrichment', () => {
         cy.get('[data-testid="inbox-enrichment-undo"]').click();
       });
 
-    cy.get('[data-testid="inbox-section"]')
+    cy.get('[data-testid="flat-task-list"]')
       .contains('div[data-testid^="todo-item-"]', rawText)
       .should('be.visible');
     cy.get('[data-testid="inbox-enrichment-notice"]').should('not.exist');
