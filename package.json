@@ -118,7 +118,7 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "jest": "30.5.2",
     "jest-axe": "^11.0.0",
-    "jest-environment-jsdom": "29.4.3",
+    "jest-environment-jsdom": "30.5.2",
     "mongodb-memory-server": "^11.3.0",
     "nx": "17.2.8",
     "postcss": "^8.5.28",
