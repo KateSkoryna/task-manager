@@ -59,7 +59,7 @@
     "mongodb": "^5.9.2",
     "mongoose": "7.6.8",
     "nestjs-pino": "^4.6.1",
-    "nodemailer": "^8.0.2",
+    "nodemailer": "^10.3.1",
     "pino-http": "^11.0.0",
     "react": "^18.2.0",
     "react-day-picker": "^10.0.2",
